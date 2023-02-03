@@ -335,7 +335,7 @@
               <MiscControls></MiscControls>
               <Define></Define>
               <Undefine></Undefine>
-              <IncludePath>.\App;.\RTE;C:\Keil_v5\ARM\PACK\Keil\ArteryTek.AT32F403A_407_DFP.2.0.8\Device\Include;.\lib</IncludePath>
+              <IncludePath>.\App\0_Common;.\App\1_Variation;.\App\2_Middle;.\App\3_Driver;.\RTE;C:\Keil_v5\ARM\PACK\Keil\ArteryTek.AT32F403A_407_DFP.2.0.8\Device\Include;.\lib</IncludePath>
             </VariousControls>
           </Cads>
           <Aads>
@@ -388,12 +388,43 @@
         </Group>
         <Group>
           <GroupName>1_Variation</GroupName>
+          <Files>
+            <File>
+              <FileName>test_periph.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>.\App\1_Variation\test_periph.c</FilePath>
+            </File>
+          </Files>
         </Group>
         <Group>
           <GroupName>2_Middle</GroupName>
+          <Files>
+            <File>
+              <FileName>gpio.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>.\App\2_Middle\gpio.c</FilePath>
+            </File>
+            <File>
+              <FileName>led.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>.\App\2_Middle\led.c</FilePath>
+            </File>
+          </Files>
         </Group>
         <Group>
           <GroupName>3_Driver</GroupName>
+          <Files>
+            <File>
+              <FileName>arm_clock.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>.\App\3_Driver\arm_clock.c</FilePath>
+            </File>
+            <File>
+              <FileName>arm_gpio.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>.\App\3_Driver\arm_gpio.c</FilePath>
+            </File>
+          </Files>
         </Group>
         <Group>
           <GroupName>lib</GroupName>
