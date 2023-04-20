@@ -2,7 +2,6 @@
 //led.c
 //********************************************************************************
 
-#include "at32f403a_407.h"
 #include "led.h"
 #include "arm_gpio.h"
 #include "arm_clock.h"
