@@ -1,4 +1,5 @@
 #include "app.h"
+#include "clock.h"
 
 error_status AppInit(void)
 {

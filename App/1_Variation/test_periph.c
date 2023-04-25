@@ -44,7 +44,7 @@ void PeriphTest(void)
 
 static void Delay(void)
 {
-    for(int i = 0; i < 600000; i++);
+    for(int i = 0; i < 10000000; i++);
 }
 
 static void LedTest(void)

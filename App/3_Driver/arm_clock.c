@@ -11,7 +11,8 @@
 
 #define ARM_CRM_STARTUP_TIMEOUT ((uint32_t)0x3000)
 
-//статусы системы тактирования
+//статус системы тактирования
+
 #define ARM_CRM_STA_READY                ((uint32_t)0UL)
 //высокочастотный внешний тактовый генератор HEXT
 #define ARM_CRM_STA_HEXT_READY_ERR        ((uint32_t)1UL << 0)
@@ -49,9 +50,9 @@ bool ARM_CRM_isReady(uint32_t status)
 
 //конфигурирование системы тактирования с использованием внешнего
 //кварцевого резонатора. Его частота определяется в init.h. Используем ФАБЧ.
-//настраиваем частоту тактирования для резонатора (для 8 МГц - 8/2*60=240 МГц)
+//настраиваем частоту тактирования для резонатора 8 МГц (8/2*60=240 МГц)
 
-uint32_t ARM_CRM_HEXT_PLL_ClockSourceConfig(void)
+uint32_t ARM_CRM_HEXT_PLL_SysClock240MHzConfig(void)
 {
     uint32_t drv_status = ARM_CRM_STA_READY;
     crm_reset();
@@ -60,6 +61,22 @@ uint32_t ARM_CRM_HEXT_PLL_ClockSourceConfig(void)
     crm_pll_config(CRM_PLL_SOURCE_HEXT_DIV, CRM_PLL_MULT_60,
                    CRM_PLL_OUTPUT_RANGE_GT72MHZ);
     crm_hext_clock_div_set(CRM_HEXT_DIV_2);
+    crm_clock_source_enable(CRM_CLOCK_SOURCE_PLL, TRUE);
+    drv_status |= ARM_CRM_ClockSourceReady(CRM_CLOCK_SOURCE_PLL);
+    return drv_status;
+}
+
+//конфигурирование системы тактирования с использованием внутреннего
+//RC-генератора 8 МГц. Используем ФАБЧ.
+//настраиваем частоту тактирования (8/2*60=240 МГц)
+uint32_t ARM_CRM_HICK_PLL_SysClock240MHzConfig(void)
+{
+    uint32_t drv_status = ARM_CRM_STA_READY;
+    crm_reset();
+    crm_clock_source_enable(CRM_CLOCK_SOURCE_HICK, TRUE);
+    drv_status |= ARM_CRM_ClockSourceReady(CRM_CLOCK_SOURCE_HICK);
+    crm_pll_config(CRM_PLL_SOURCE_HICK, CRM_PLL_MULT_60,
+                   CRM_PLL_OUTPUT_RANGE_GT72MHZ);
     crm_clock_source_enable(CRM_CLOCK_SOURCE_PLL, TRUE);
     drv_status |= ARM_CRM_ClockSourceReady(CRM_CLOCK_SOURCE_PLL);
     return drv_status;
@@ -126,7 +143,17 @@ static uint32_t ARM_CRM_ClockSourceReady(crm_clock_source_type source)
             } else {
                 drv_status &= ARM_CRM_STA_HEXT_READY_ERR;
             }
-            return drv_status;
+            break;
+        }
+        case CRM_CLOCK_SOURCE_HICK: {
+            while((crm_flag_get(CRM_HICK_STABLE_FLAG) == ERROR) && (counter != ARM_CRM_STARTUP_TIMEOUT)) {
+                counter++;
+            }
+            if(crm_flag_get(CRM_HICK_STABLE_FLAG) == ERROR) {
+                drv_status |= ARM_CRM_STA_HICK_READY_ERR;
+            } else {
+                drv_status &= ARM_CRM_STA_HICK_READY_ERR;
+            }
             break;
         }
         case CRM_CLOCK_SOURCE_PLL: {
@@ -138,7 +165,6 @@ static uint32_t ARM_CRM_ClockSourceReady(crm_clock_source_type source)
             } else {
                 drv_status &= ARM_CRM_STA_PLL_READY_ERR;
             }
-            return drv_status;
             break;
         }
     }
