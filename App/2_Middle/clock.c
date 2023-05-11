@@ -4,6 +4,7 @@
 
 #include "clock.h"
 #include "arm_clock.h"
+#include "assert.h"
 
 //********************************************************************************
 //Macros
@@ -21,7 +22,7 @@
 //********************************************************************************
 //Variables
 //********************************************************************************
-
+static flag_status ClockHEXTFailFlag = RESET;
 
 //********************************************************************************
 //Prototypes
@@ -42,7 +43,6 @@ error_status ClockInit(void)
     sys_clock = system_core_clock;
     system_core_clock_update();
     sys_clock = system_core_clock;
-    system_core_clock_update();
 //активация защиты системы тактирования: в случае сбоя в работе
 //внешнего кварца HEXT происходит автоматическое переключение
 //на внутренний RC-генератор HICK и возникнет прерывание NMI.
@@ -53,22 +53,32 @@ error_status ClockInit(void)
 
 void ClockFailureDetectHandler(void)
 {
-    uint32_t status, sys_clock;
+    uint32_t status;
     crm_sclk_type sclk_source;
-    if(crm_flag_get(CRM_CLOCK_FAILURE_INT_FLAG) != ERROR) {
+    if(crm_flag_get(CRM_CLOCK_FAILURE_INT_FLAG) == SET) {
         crm_clock_failure_detection_enable(FALSE);
+        ClockHEXTFailFlag = SET;
         status = ARM_CRM_HICK_PLL_SysClock240MHzConfig();
         ARM_CRM_BusClockConfig();
         sclk_source = ARM_CRM_GetClockSourceForSwitch();
         status |= ARM_CRM_SysClockSwitchCmd(sclk_source);
         system_core_clock_update();
-        sys_clock = system_core_clock;
         if(ARM_CRM_isReady(status)) {
             crm_flag_clear(CRM_CLOCK_FAILURE_INT_FLAG);
         }
     }
+
 }
 
+flag_status ClockTestHEXTFailFlag(void)
+{
+    return ClockHEXTFailFlag;
+}
+
+void ClockResetHEXTFailFlag(void)
+{
+    ClockHEXTFailFlag = RESET;
+}
 
 //================================================================================
 //Private

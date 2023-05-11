@@ -424,6 +424,11 @@
               <FileType>1</FileType>
               <FilePath>.\App\2_Middle\NMI-ISR.c</FilePath>
             </File>
+            <File>
+              <FileName>assert.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>.\App\2_Middle\assert.c</FilePath>
+            </File>
           </Files>
         </Group>
         <Group>
@@ -452,10 +457,13 @@
           </Files>
         </Group>
         <Group>
-          <GroupName>::CMSIS</GroupName>
+          <GroupName>::Compiler</GroupName>
         </Group>
         <Group>
           <GroupName>::Device</GroupName>
+        </Group>
+        <Group>
+          <GroupName>::CMSIS</GroupName>
         </Group>
       </Groups>
     </Target>
@@ -470,13 +478,13 @@
           <targetInfo name="Target 1"/>
         </targetInfos>
       </component>
-      <component Cclass="Device" Cgroup="at32f403a_407_conf" Cvendor="ArteryTek" Cversion="2.0.0" condition="AT32F403A_407 CMSIS">
+      <component Cclass="Device" Cgroup="at32f403a_407_firmware_library" Csub="crm" Cvendor="ArteryTek" Cversion="2.0.0" condition="AT32F403A_407 STDPERIPHERALS MISC">
         <package name="AT32F403A_407_DFP" schemaVersion="1.2" vendor="ArteryTek" version="2.0.8"/>
         <targetInfos>
           <targetInfo name="Target 1"/>
         </targetInfos>
       </component>
-      <component Cclass="Device" Cgroup="at32f403a_407_firmware_library" Csub="crm" Cvendor="ArteryTek" Cversion="2.0.0" condition="AT32F403A_407 STDPERIPHERALS MISC">
+      <component Cclass="Device" Cgroup="at32f403a_407_firmware_library" Csub="debug" Cvendor="ArteryTek" Cversion="2.0.0" condition="AT32F403A_407 STDPERIPHERALS CRM">
         <package name="AT32F403A_407_DFP" schemaVersion="1.2" vendor="ArteryTek" version="2.0.8"/>
         <targetInfos>
           <targetInfo name="Target 1"/>
@@ -488,14 +496,14 @@
           <targetInfo name="Target 1"/>
         </targetInfos>
       </component>
-      <component Cclass="Device" Cgroup="at32f403a_407_firmware_library" Csub="misc" Cvendor="ArteryTek" Cversion="2.0.0" condition="AT32F403A_407 CMSIS">
+      <component Cclass="Device" Cgroup="startup" Cvendor="ArteryTek" Cversion="2.0.0" condition="AT32F403A_407">
         <package name="AT32F403A_407_DFP" schemaVersion="1.2" vendor="ArteryTek" version="2.0.8"/>
         <targetInfos>
           <targetInfo name="Target 1"/>
         </targetInfos>
       </component>
-      <component Cclass="Device" Cgroup="startup" Cvendor="ArteryTek" Cversion="2.0.0" condition="AT32F403A_407">
-        <package name="AT32F403A_407_DFP" schemaVersion="1.2" vendor="ArteryTek" version="2.0.8"/>
+      <component Cbundle="ARM Compiler" Cclass="Compiler" Cgroup="I/O" Csub="STDOUT" Cvariant="ITM" Cvendor="Keil" Cversion="1.2.0" condition="ARMCC Cortex-M with ITM">
+        <package name="ARM_Compiler" schemaVersion="1.6.3" url="http://www.keil.com/pack/" vendor="Keil" version="1.6.3"/>
         <targetInfos>
           <targetInfo name="Target 1"/>
         </targetInfos>
@@ -509,16 +517,22 @@
         <targetInfos/>
       </file>
       <file attr="config" category="header" name="Device\Include\at32f403a_407_conf.h" version="2.0.0">
-        <instance index="0">RTE\Device\-AT32F407VGT7\at32f403a_407_conf.h</instance>
+        <instance index="0" removed="1">RTE\Device\-AT32F407VGT7\at32f403a_407_conf.h</instance>
         <component Cclass="Device" Cgroup="at32f403a_407_conf" Cvendor="ArteryTek" Cversion="2.0.0" condition="AT32F403A_407 CMSIS"/>
+        <package name="AT32F403A_407_DFP" schemaVersion="1.2" vendor="ArteryTek" version="2.0.8"/>
+        <targetInfos/>
+      </file>
+      <file attr="config" category="source" name="Device\Firmware\Peripherals\src\at32f403a_407_crm.c" version="2.0.0">
+        <instance index="0">RTE\Device\-AT32F407VGT7\at32f403a_407_crm.c</instance>
+        <component Cclass="Device" Cgroup="at32f403a_407_firmware_library" Csub="crm" Cvendor="ArteryTek" Cversion="2.0.0" condition="AT32F403A_407 STDPERIPHERALS MISC"/>
         <package name="AT32F403A_407_DFP" schemaVersion="1.2" vendor="ArteryTek" version="2.0.8"/>
         <targetInfos>
           <targetInfo name="Target 1"/>
         </targetInfos>
       </file>
-      <file attr="config" category="source" name="Device\Firmware\Peripherals\src\at32f403a_407_crm.c" version="2.0.0">
-        <instance index="0">RTE\Device\-AT32F407VGT7\at32f403a_407_crm.c</instance>
-        <component Cclass="Device" Cgroup="at32f403a_407_firmware_library" Csub="crm" Cvendor="ArteryTek" Cversion="2.0.0" condition="AT32F403A_407 STDPERIPHERALS MISC"/>
+      <file attr="config" category="source" name="Device\Firmware\Peripherals\src\at32f403a_407_debug.c" version="2.0.0">
+        <instance index="0">RTE\Device\-AT32F407VGT7\at32f403a_407_debug.c</instance>
+        <component Cclass="Device" Cgroup="at32f403a_407_firmware_library" Csub="debug" Cvendor="ArteryTek" Cversion="2.0.0" condition="AT32F403A_407 STDPERIPHERALS CRM"/>
         <package name="AT32F403A_407_DFP" schemaVersion="1.2" vendor="ArteryTek" version="2.0.8"/>
         <targetInfos>
           <targetInfo name="Target 1"/>
@@ -539,12 +553,10 @@
         </targetInfos>
       </file>
       <file attr="config" category="source" name="Device\Firmware\Peripherals\src\at32f403a_407_misc.c" version="2.0.0">
-        <instance index="0">RTE\Device\-AT32F407VGT7\at32f403a_407_misc.c</instance>
+        <instance index="0" removed="1">RTE\Device\-AT32F407VGT7\at32f403a_407_misc.c</instance>
         <component Cclass="Device" Cgroup="at32f403a_407_firmware_library" Csub="misc" Cvendor="ArteryTek" Cversion="2.0.0" condition="AT32F403A_407 CMSIS"/>
         <package name="AT32F403A_407_DFP" schemaVersion="1.2" vendor="ArteryTek" version="2.0.8"/>
-        <targetInfos>
-          <targetInfo name="Target 1"/>
-        </targetInfos>
+        <targetInfos/>
       </file>
       <file attr="config" category="source" name="Device\Firmware\Peripherals\src\at32f403a_407_usart.c" version="2.0.0">
         <instance index="0" removed="1">RTE\Device\-AT32F407VGT7\at32f403a_407_usart.c</instance>

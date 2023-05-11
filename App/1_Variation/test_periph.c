@@ -4,10 +4,14 @@
 
 #include "test_periph.h"
 #include "led.h"
+#include "clock.h"
+#include "assert.h"
 
 //********************************************************************************
 //Macros
 //********************************************************************************
+
+#define PERIPH_TEST_NUMS 1000
 
 //********************************************************************************
 //Enums
@@ -34,6 +38,10 @@ static void  LedTest(void);
 
 void PeriphTest(void)
 {
+    if(ClockTestHEXTFailFlag()) {
+        LOG("HEXT Clock failure is detected. Switch of the system clock to the HICK clock is occured");
+        ClockResetHEXTFailFlag();
+    }
     LedTest();
 }
 
@@ -49,7 +57,6 @@ static void Delay(void)
 
 static void LedTest(void)
 {
-
     LED_Init(LED_ALL);
     LED_Driver(LED_ALL, FALSE);
     Delay();

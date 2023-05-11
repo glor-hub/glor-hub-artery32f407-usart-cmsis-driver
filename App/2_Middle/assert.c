@@ -1,9 +1,12 @@
 //********************************************************************************
-//NMI-ISR.c
+//assert.c
 //********************************************************************************
 
-#include "clock.h"
+#include "at32f403a_407.h"
+#include <stdio.h>
+#include <stdbool.h>
 #include "assert.h"
+
 
 //********************************************************************************
 //Macros
@@ -30,11 +33,24 @@
 //================================================================================
 //Public
 //================================================================================
-void NMI_Handler(void)
+
+void AssertConfig(void)
 {
-    ClockFailureDetectHandler();
+    DEBUGMCU->ctrl_bit.trace_mode = 0x00;
+    DEBUGMCU->ctrl_bit.trace_ioen = TRUE;
 }
 
+void AssertFailed(uint8_t *func, uint8_t *file, uint32_t line)
+{
+    printf("Assertion failed: expression is false. Function %s in file %s on line %d.\n",
+           func, file, line);
+}
+
+
+void Logger(uint8_t *func, uint8_t *file, uint8_t line, char *report)
+{
+    printf("%s. Function %s in file %s on line %d\r\n", report, func, file, line);
+}
 
 //================================================================================
 //Private

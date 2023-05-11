@@ -5,5 +5,7 @@
 
 error_status ClockInit(void);
 void ClockFailureDetectHandler(void);
+flag_status ClockTestHEXTFailFlag(void);
+void ClockResetHEXTFailFlag(void);
 
 #endif //_CLOCK_H_ 
