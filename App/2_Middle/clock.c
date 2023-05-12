@@ -34,15 +34,13 @@ static flag_status ClockHEXTFailFlag = RESET;
 
 error_status ClockInit(void)
 {
-    uint32_t status, sys_clock;
+    uint32_t status;
     crm_sclk_type sclk_source;
     status = ARM_CRM_HEXT_PLL_SysClock240MHzConfig();
     ARM_CRM_BusClockConfig();
     sclk_source = ARM_CRM_GetClockSourceForSwitch();
     status |= ARM_CRM_SysClockSwitchCmd(sclk_source);
-    sys_clock = system_core_clock;
     system_core_clock_update();
-    sys_clock = system_core_clock;
 //активация защиты системы тактирования: в случае сбоя в работе
 //внешнего кварца HEXT происходит автоматическое переключение
 //на внутренний RC-генератор HICK и возникнет прерывание NMI.
