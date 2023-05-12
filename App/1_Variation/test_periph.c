@@ -6,6 +6,7 @@
 #include "led.h"
 #include "clock.h"
 #include "assert.h"
+#include "timer.h"
 
 //********************************************************************************
 //Macros
@@ -50,26 +51,21 @@ void PeriphTest(void)
 //Private
 //================================================================================
 
-static void Delay(void)
-{
-    for(int i = 0; i < 10000000; i++);
-}
-
 static void LedTest(void)
 {
     LED_Init(LED_ALL);
     LED_Driver(LED_ALL, FALSE);
-    Delay();
+    TimerDoDelay(500);
     LED_Driver(LED_RED, TRUE);
-    Delay();
+    TimerDoDelay(500);
     LED_Driver(LED_RED, FALSE);
     LED_Driver(LED_YELLOW, TRUE);
-    Delay();
+    TimerDoDelay(500);
     LED_Driver(LED_YELLOW, FALSE);
     LED_Driver(LED_GREEN, TRUE);
-    Delay();
+    TimerDoDelay(500);
     LED_Driver(LED_GREEN, FALSE);
-    Delay();
+    TimerDoDelay(500);
     LED_Driver(LED_ALL, TRUE);
-    Delay();
+    TimerDoDelay(500);
 }

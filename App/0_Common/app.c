@@ -5,6 +5,7 @@
 #include "app.h"
 #include "clock.h"
 #include "assert.h"
+#include "timer.h"
 
 //********************************************************************************
 //Macros
@@ -45,6 +46,7 @@ error_status AppInit(void)
 #endif//_APP_DEBUG_
 
     init_result |= ClockInit();
+    init_result |= TimerInit();
     return init_result;
 }
 
