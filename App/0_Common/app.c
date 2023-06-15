@@ -6,6 +6,7 @@
 #include "clock.h"
 #include "assert.h"
 #include "timer.h"
+#include "LCD_2004.h"
 
 //********************************************************************************
 //Macros
@@ -44,9 +45,9 @@ error_status AppInit(void)
 #ifdef _APP_DEBUG_
     AssertConfig();
 #endif//_APP_DEBUG_
-
     init_result |= ClockInit();
-    init_result |= TimerInit();
+    TimerInit();
+    LCD_Init();
     return init_result;
 }
 
