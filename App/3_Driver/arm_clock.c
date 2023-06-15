@@ -166,6 +166,9 @@ static uint32_t ARM_CRM_ClockSourceReady(crm_clock_source_type source)
             }
             break;
         }
+        default: {
+            break;
+        }
     }
     return drv_status;
 }

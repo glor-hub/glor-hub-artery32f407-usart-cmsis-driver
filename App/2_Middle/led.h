@@ -12,5 +12,6 @@ typedef enum {
 
 void LED_Init(eLedColors color);
 void LED_Driver(eLedColors color, uint8_t led_state);
+void LED_Test(void);
 
 #endif //_LED_H_

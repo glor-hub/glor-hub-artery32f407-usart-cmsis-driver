@@ -31,8 +31,6 @@
 //Prototypes
 //********************************************************************************
 
-static void  LedTest(void);
-
 //================================================================================
 //Public
 //================================================================================
@@ -43,7 +41,7 @@ void PeriphTest(void)
         LOG("HEXT Clock failure is detected. Switch of the system clock to the HICK clock is occured");
         ClockResetHEXTFailFlag();
     }
-    LedTest();
+    LED_Test();
 }
 
 
@@ -51,21 +49,3 @@ void PeriphTest(void)
 //Private
 //================================================================================
 
-static void LedTest(void)
-{
-    LED_Init(LED_ALL);
-    LED_Driver(LED_ALL, FALSE);
-    TimerDoDelay(500);
-    LED_Driver(LED_RED, TRUE);
-    TimerDoDelay(500);
-    LED_Driver(LED_RED, FALSE);
-    LED_Driver(LED_YELLOW, TRUE);
-    TimerDoDelay(500);
-    LED_Driver(LED_YELLOW, FALSE);
-    LED_Driver(LED_GREEN, TRUE);
-    TimerDoDelay(500);
-    LED_Driver(LED_GREEN, FALSE);
-    TimerDoDelay(500);
-    LED_Driver(LED_ALL, TRUE);
-    TimerDoDelay(500);
-}

@@ -31,7 +31,7 @@
 
 typedef struct {
     confirm_state state;
-    uint32_t time_ms;
+    uint32_t time;
     uint32_t counter;
     flag_status flag;
 } Timer_t;
@@ -53,7 +53,7 @@ void SysTick_Handler(void)
     eTimerTypes timer;
     for(timer = TIMER_DELAY; timer < NUM_TIMERS; timer++) {
         if(Timer[timer].state) {
-            if(++Timer[timer].counter == Timer[timer].time_ms) {
+            if(++Timer[timer].counter == Timer[timer].time) {
                 Timer[timer].flag = SET;
             }
         }
@@ -79,7 +79,7 @@ error_status TimerInit(void)
 void TimerEnable(eTimerTypes timer, uint32_t time)
 {
     Timer[timer].state = TRUE;
-    Timer[timer].time_ms = time;
+    Timer[timer].time = time;
     Timer[timer].counter = 0;
     Timer[timer].flag = RESET;
 }
@@ -87,7 +87,7 @@ void TimerEnable(eTimerTypes timer, uint32_t time)
 void TimerDisable(eTimerTypes timer)
 {
     Timer[timer].state = FALSE;
-    Timer[timer].time_ms = 0;
+    Timer[timer].time = 0;
     Timer[timer].counter = 0;
     Timer[timer].flag = RESET;
 }
@@ -102,10 +102,10 @@ confirm_state TimerTestSet(eTimerTypes timer)
     return Timer[timer].state;
 }
 
-void TimerDoDelay(uint32_t time)
+void TimerDoDelay_ms(uint32_t time)
 {
     TimerEnable(TIMER_DELAY, time);
-    while(TimerTestFlag(TIMER_DELAY)==RESET);
+    while(TimerTestFlag(TIMER_DELAY) == RESET);
     TimerDisable(TIMER_DELAY);
 }
 

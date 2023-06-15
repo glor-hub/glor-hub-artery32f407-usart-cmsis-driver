@@ -31,7 +31,7 @@
 //Public
 //================================================================================
 
-void ARM_GPIO_Init(gpio_type *pGPIO_X, uint32_t pins, gpio_mode_type mode, gpio_output_type out_type, gpio_pull_type pull, gpio_drive_type drive_strength)
+void ARM_GPIO_Config(gpio_type *pGPIO_X, uint32_t pins, gpio_mode_type mode, gpio_output_type out_type, gpio_pull_type pull, gpio_drive_type drive_strength)
 {
     gpio_init_type GPIO_Cfg;
     GPIO_Cfg.gpio_pins  = pins;
