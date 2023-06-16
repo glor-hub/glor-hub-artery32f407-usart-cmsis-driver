@@ -50,13 +50,6 @@
 //Enums
 //********************************************************************************
 
-typedef enum {
-    LCD_SEND_DATA = 0,
-    LCD_SEND_CMD,
-    NUM_InstrTypes
-} eLCD_InstrTypes;
-
-
 //********************************************************************************
 //Typedefs
 //********************************************************************************
@@ -72,10 +65,11 @@ typedef enum {
 //********************************************************************************
 
 static void LCD_WriteLowTetradByte(uint8_t byte);
-static void LCD_SendByte(uint8_t byte, eLCD_InstrTypes instr_type);
+static void LCD_SendCmd(uint8_t cmd);
+static void LCD_SendData(uint8_t data);
 static void LCD_DoDelay_us(uint32_t time);
 static void LCD_GPIO_Init(void);
-static void LCD_Strobe(void);
+static void LCD_DoStrobe(void);
 
 //================================================================================
 //Public
@@ -88,32 +82,30 @@ void LCD_Init(void)
     ARM_GPIO_BitsReset(LCD_PORT_REG_ADDR, LCD_PIN_RS);
     ARM_GPIO_BitsReset(LCD_PORT_REG_ADDR, LCD_PIN_RW);
     LCD_WriteLowTetradByte(0x03);
-    LCD_Strobe();
+    LCD_DoStrobe();
     TimerDoDelay_ms(5);
     LCD_WriteLowTetradByte(0x03);
-    LCD_Strobe();
+    LCD_DoStrobe();
     LCD_DoDelay_us(100);
     LCD_WriteLowTetradByte(0x03);
-    LCD_Strobe();
+    LCD_DoStrobe();
     TimerDoDelay_ms(1);
     LCD_WriteLowTetradByte(0x02);
-    LCD_Strobe();
+    LCD_DoStrobe();
     TimerDoDelay_ms(1);
-    LCD_SendByte(LCD_CMD_SET_4BIT_INTERFACE_MODE, LCD_SEND_CMD);
+    LCD_SendCmd(LCD_CMD_SET_4BIT_INTERFACE_MODE);
     TimerDoDelay_ms(1);
-    LCD_SendByte(LCD_CMD_DISPLAY_OFF, LCD_SEND_CMD);
+    LCD_SendCmd(LCD_CMD_DISPLAY_OFF);
     TimerDoDelay_ms(1);
-    LCD_SendByte(LCD_CMD_CLEAR_DISPLAY, LCD_SEND_CMD);
+    LCD_SendCmd(LCD_CMD_CLEAR_DISPLAY);
     TimerDoDelay_ms(2);
-    LCD_SendByte(LCD_CMD_SET_ENTRY_MODE, LCD_SEND_CMD);
+    LCD_SendCmd(LCD_CMD_SET_ENTRY_MODE);
     TimerDoDelay_ms(1);
-    LCD_SendByte(LCD_CMD_DISPLAY_ON | LCD_CMD_CURSOR_ON | LCD_CMD_BLINK_CURSOR_SET, LCD_SEND_CMD);
+    LCD_SendCmd(LCD_CMD_DISPLAY_ON | LCD_CMD_CURSOR_ON | LCD_CMD_BLINK_CURSOR_SET);
     TimerDoDelay_ms(1);
-    LCD_SendByte(LCD_CMD_DISPLAY_RETURN_HOME, LCD_SEND_CMD);
+    LCD_SendCmd(LCD_CMD_DISPLAY_RETURN_HOME);
     TimerDoDelay_ms(2);
-    // LCD_SendByte('s', LCD_SEND_DATA);
 }
-
 
 //================================================================================
 //Private
@@ -177,7 +169,7 @@ static void LCD_WriteLowTetradByte(uint8_t byte)
     }
 }
 
-static void LCD_Strobe(void)
+static void LCD_DoStrobe(void)
 {
     ARM_GPIO_BitsSet(LCD_PORT_REG_ADDR, LCD_PIN_E);
     LCD_DoDelay_us(1);
@@ -185,28 +177,29 @@ static void LCD_Strobe(void)
 }
 
 
-static void LCD_SendByte(uint8_t byte, eLCD_InstrTypes instr_type)
+static void LCD_SendCmd(uint8_t cmd)
 {
-    switch(instr_type) {
-        case LCD_SEND_CMD: {
-            ARM_GPIO_BitsReset(LCD_PORT_REG_ADDR, LCD_PIN_RS);
-            break;
-        }
-        case LCD_SEND_DATA: {
-            ARM_GPIO_BitsSet(LCD_PORT_REG_ADDR, LCD_PIN_RS);
-            break;
-        }
-        default: {
-            break;
-        }
-    }
+    ARM_GPIO_BitsReset(LCD_PORT_REG_ADDR, LCD_PIN_RS);
     ARM_GPIO_BitsReset(LCD_PORT_REG_ADDR, LCD_PIN_RW);
-    LCD_WriteLowTetradByte(byte >> 4);
+    LCD_WriteLowTetradByte(cmd >> 4);
     LCD_DoDelay_us(1);
-    LCD_Strobe();
+    LCD_DoStrobe();
     LCD_DoDelay_us(1);
-    LCD_WriteLowTetradByte(byte);
-    LCD_Strobe();
+    LCD_WriteLowTetradByte(cmd);
+    LCD_DoStrobe();
+    LCD_DoDelay_us(40);
+}
+
+static void LCD_SendData(uint8_t data)
+{
+    ARM_GPIO_BitsSet(LCD_PORT_REG_ADDR, LCD_PIN_RS);
+    ARM_GPIO_BitsReset(LCD_PORT_REG_ADDR, LCD_PIN_RW);
+    LCD_WriteLowTetradByte(data >> 4);
+    LCD_DoDelay_us(1);
+    LCD_DoStrobe();
+    LCD_DoDelay_us(1);
+    LCD_WriteLowTetradByte(data);
+    LCD_DoStrobe();
     LCD_DoDelay_us(40);
 }
 
