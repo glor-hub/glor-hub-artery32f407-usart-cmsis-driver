@@ -16,7 +16,8 @@ typedef enum {
     UART_7,
     UART_8,
     DMA_1,
-    DMA_2
+    DMA_2,
+    NUM_PERIPH_TYPES
 } ePeriphTypes;
 
 #endif //_COMMON_H_

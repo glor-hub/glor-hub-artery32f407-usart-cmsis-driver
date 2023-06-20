@@ -7,7 +7,7 @@ typedef enum {
     LED_RED = 0,
     LED_YELLOW,
     LED_GREEN,
-    LED_ALL
+    LEDS
 } eLedColors;
 
 void LED_Init(eLedColors color);

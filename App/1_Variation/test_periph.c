@@ -42,6 +42,7 @@ void PeriphTest(void)
         ClockResetHEXTFailFlag();
     }
     LED_Test();
+    LCD_Test();
 }
 
 
