@@ -5,5 +5,6 @@
 
 void LCD_Init(void);
 int8_t LCD_Printf(uint8_t row, uint8_t col, flag_status refresh, char *fmt, ...);
+void LCD_Test(void);
 
 #endif //_LCD_2004_H_ 

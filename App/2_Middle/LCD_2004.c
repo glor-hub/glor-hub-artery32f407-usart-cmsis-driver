@@ -16,7 +16,6 @@
 //Macros
 //********************************************************************************
 
-#define LCD_PORT GPIO_PORT_E
 #define LCD_PORT_REG_ADDR (gpio_type *)GPIOE
 
 // five volt tolerant pins only
@@ -215,32 +214,7 @@ void LCD_Test(void)
 
 static void LCD_GPIO_Init(void)
 {
-    switch(LCD_PORT) {
-        case GPIO_PORT_A: {
-            ARM_CRM_ClockPeriphEnable(CRM_GPIOA_PERIPH_CLOCK, TRUE);
-            break;
-        }
-        case GPIO_PORT_B: {
-            ARM_CRM_ClockPeriphEnable(CRM_GPIOB_PERIPH_CLOCK, TRUE);
-            break;
-        }
-        case GPIO_PORT_C: {
-            ARM_CRM_ClockPeriphEnable(CRM_GPIOC_PERIPH_CLOCK, TRUE);
-            break;
-        }
-        case GPIO_PORT_D: {
-            ARM_CRM_ClockPeriphEnable(CRM_GPIOD_PERIPH_CLOCK, TRUE);
-            break;
-        }
-        case GPIO_PORT_E: {
-            ARM_CRM_ClockPeriphEnable(CRM_GPIOE_PERIPH_CLOCK, TRUE);
-            break;
-        }
-        default: {
-            break;
-        }
-    }
-
+    ARM_CRM_GPIO_ClockEnable(LCD_PORT_REG_ADDR, TRUE);
     ARM_GPIO_Config(LCD_PORT_REG_ADDR, LCD_PIN_RS | LCD_PIN_RW | LCD_PIN_E | LCD_PIN_D4 |
                     LCD_PIN_D5 | LCD_PIN_D6 | LCD_PIN_D7, GPIO_MODE_OUTPUT,
                     GPIO_OUTPUT_PUSH_PULL, GPIO_PULL_NONE, GPIO_DRIVE_STRENGTH_MODERATE);

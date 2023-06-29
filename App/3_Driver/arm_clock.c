@@ -112,9 +112,42 @@ uint32_t ARM_CRM_SysClockSwitchCmd(crm_sclk_type value)
 
 //включение/отключение тактирования периферии
 
-void ARM_CRM_ClockPeriphEnable(crm_periph_clock_type value, confirm_state state)
+void ARM_CRM_GPIO_ClockEnable(gpio_type *pGPIO_x, confirm_state new_state)
 {
-    crm_periph_clock_enable(value, state);
+    if(pGPIO_x == GPIOA) {
+        crm_periph_clock_enable(CRM_GPIOA_PERIPH_CLOCK, new_state);
+    } else if(pGPIO_x == GPIOB) {
+        crm_periph_clock_enable(CRM_GPIOB_PERIPH_CLOCK, new_state);
+    } else if(pGPIO_x == GPIOC) {
+        crm_periph_clock_enable(CRM_GPIOC_PERIPH_CLOCK, new_state);
+    } else if(pGPIO_x == GPIOD) {
+        crm_periph_clock_enable(CRM_GPIOD_PERIPH_CLOCK, new_state);
+    } else if(pGPIO_x == GPIOE) {
+        crm_periph_clock_enable(CRM_GPIOE_PERIPH_CLOCK, new_state);
+    } else {
+#ifdef _APP_DEBUG_
+        LOG("GPIO clock error");
+#endif//_APP_DEBUG_
+        return;
+    }
+}
+
+void ARM_CRM_USART_ClockEnable(usart_type *pUSART_x, confirm_state new_state)
+{
+    if(pUSART_x == UART4) {
+        crm_periph_clock_enable(CRM_UART4_PERIPH_CLOCK, new_state);
+    } else if(pUSART_x == UART5) {
+        crm_periph_clock_enable(CRM_UART5_PERIPH_CLOCK, new_state);
+    } else if(pUSART_x == UART7) {
+        crm_periph_clock_enable(CRM_UART7_PERIPH_CLOCK, new_state);
+    } else if(pUSART_x == UART8) {
+        crm_periph_clock_enable(CRM_UART8_PERIPH_CLOCK, new_state);
+    } else {
+#ifdef _APP_DEBUG_
+        LOG("USART clock error");
+#endif//_APP_DEBUG_
+        return;
+    }
 }
 
 //сброс периферии

@@ -5,6 +5,7 @@
 #include "led.h"
 #include "arm_gpio.h"
 #include "arm_clock.h"
+#include "timer.h"
 
 //********************************************************************************
 //Macros
@@ -33,7 +34,7 @@
 
 void LED_Init(eLedColors color)
 {
-    ARM_CRM_ClockPeriphEnable(CRM_GPIOD_PERIPH_CLOCK, TRUE);
+    ARM_CRM_GPIO_ClockEnable(GPIOD, TRUE);
     switch(color) {
         case LED_RED: {
             ARM_GPIO_Config(GPIOD, GPIO_PINS_13, GPIO_MODE_OUTPUT, GPIO_OUTPUT_PUSH_PULL, GPIO_PULL_NONE, GPIO_DRIVE_STRENGTH_MODERATE);

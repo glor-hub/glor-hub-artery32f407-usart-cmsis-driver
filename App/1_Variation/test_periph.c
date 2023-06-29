@@ -7,6 +7,7 @@
 #include "clock.h"
 #include "assert.h"
 #include "timer.h"
+#include "LCD_2004.h"
 
 //********************************************************************************
 //Macros
