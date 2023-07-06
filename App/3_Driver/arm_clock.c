@@ -12,13 +12,14 @@
 
 //статус системы тактирования
 
-#define ARM_CRM_STA_READY                ((uint32_t)0UL)
+#define ARM_CRM_STA_READY                   ((uint32_t)0UL)
 //высокочастотный внешний тактовый генератор HEXT
-#define ARM_CRM_STA_HEXT_READY_ERR        ((uint32_t)1UL << 0)
+#define ARM_CRM_STA_HEXT_READY_ERR          ((uint32_t)1UL << 0)
 ////высокочастотный внутренный RC-генератор HICK
-#define ARM_CRM_STA_HICK_READY_ERR        ((uint32_t)1UL << 1)
-#define ARM_CRM_STA_PLL_READY_ERR        ((uint32_t)1UL << 2)
-#define ARM_CRM_STA_PLL_CLOCK_SWITCH_ERR ((uint32_t)1UL << 3)
+#define ARM_CRM_STA_HICK_READY_ERR          ((uint32_t)1UL << 1)
+#define ARM_CRM_STA_PLL_READY_ERR           ((uint32_t)1UL << 2)
+#define ARM_CRM_STA_PLL_CLOCK_SWITCH_ERR    ((uint32_t)1UL << 3)
+#define ARM_CRM_STA_PERIPH_CLOCK_ERR        ((uint32_t)1UL << 4)
 
 //********************************************************************************
 //Enums
@@ -112,8 +113,9 @@ uint32_t ARM_CRM_SysClockSwitchCmd(crm_sclk_type value)
 
 //включение/отключение тактирования периферии
 
-void ARM_CRM_GPIO_ClockEnable(gpio_type *pGPIO_x, confirm_state new_state)
+bool ARM_CRM_GPIO_ClockEnable(gpio_type *pGPIO_x, confirm_state new_state)
 {
+    uint32_t drv_status = ARM_CRM_STA_READY;
     if(pGPIO_x == GPIOA) {
         crm_periph_clock_enable(CRM_GPIOA_PERIPH_CLOCK, new_state);
     } else if(pGPIO_x == GPIOB) {
@@ -128,12 +130,14 @@ void ARM_CRM_GPIO_ClockEnable(gpio_type *pGPIO_x, confirm_state new_state)
 #ifdef _APP_DEBUG_
         LOG("GPIO clock error");
 #endif//_APP_DEBUG_
-        return;
+        drv_status |= ARM_CRM_STA_PERIPH_CLOCK_ERR;
     }
+    return ARM_CRM_isReady(drv_status);
 }
 
-void ARM_CRM_USART_ClockEnable(usart_type *pUSART_x, confirm_state new_state)
+bool ARM_CRM_USART_ClockEnable(usart_type *pUSART_x, confirm_state new_state)
 {
+    uint32_t drv_status = ARM_CRM_STA_READY;
     if(pUSART_x == UART4) {
         crm_periph_clock_enable(CRM_UART4_PERIPH_CLOCK, new_state);
     } else if(pUSART_x == UART5) {
@@ -146,8 +150,9 @@ void ARM_CRM_USART_ClockEnable(usart_type *pUSART_x, confirm_state new_state)
 #ifdef _APP_DEBUG_
         LOG("USART clock error");
 #endif//_APP_DEBUG_
-        return;
+        drv_status |= ARM_CRM_STA_PERIPH_CLOCK_ERR;
     }
+    return ARM_CRM_isReady(drv_status);
 }
 
 //сброс периферии

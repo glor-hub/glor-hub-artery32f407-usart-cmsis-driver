@@ -439,6 +439,11 @@
               <FileType>1</FileType>
               <FilePath>.\App\2_Middle\LCD_2004.c</FilePath>
             </File>
+            <File>
+              <FileName>usart.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>.\App\2_Middle\usart.c</FilePath>
+            </File>
           </Files>
         </Group>
         <Group>
@@ -453,6 +458,11 @@
               <FileName>arm_gpio.c</FileName>
               <FileType>1</FileType>
               <FilePath>.\App\3_Driver\arm_gpio.c</FilePath>
+            </File>
+            <File>
+              <FileName>arm_usart.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>.\App\3_Driver\arm_usart.c</FilePath>
             </File>
           </Files>
         </Group>

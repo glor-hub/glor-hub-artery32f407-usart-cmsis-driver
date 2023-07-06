@@ -7,6 +7,7 @@
 #include "assert.h"
 #include "timer.h"
 #include "LCD_2004.h"
+#include "usart.h"
 
 //********************************************************************************
 //Macros
@@ -48,6 +49,7 @@ error_status AppInit(void)
     init_result |= ClockInit();
     TimerInit();
     LCD_Init();
+    init_result |= USART_Init();
     return init_result;
 }
 
