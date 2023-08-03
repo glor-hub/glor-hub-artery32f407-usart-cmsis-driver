@@ -37,19 +37,20 @@
 
 void AppIdleTask(void)
 {
+    USART_Event_cb();
 }
 
 error_status AppInit(void)
 {
-    error_status init_result = ERROR;
+    error_status init_result = SUCCESS;
 
 #ifdef _APP_DEBUG_
     AssertConfig();
 #endif//_APP_DEBUG_
-    init_result |= ClockInit();
+    init_result &= ClockInit();
     TimerInit();
     LCD_Init();
-    init_result |= USART_Init();
+    init_result &= USART_Init();
     return init_result;
 }
 

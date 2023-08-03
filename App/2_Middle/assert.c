@@ -40,14 +40,14 @@ void AssertConfig(void)
     DEBUGMCU->ctrl_bit.trace_ioen = TRUE;
 }
 
-void AssertFailed(uint8_t *func, uint8_t *file, uint32_t line)
+void AssertFailed(char *func, char *file, uint32_t line)
 {
     printf("Assertion failed: expression is false. Function %s in file %s on line %d.\n",
            func, file, line);
 }
 
 
-void Logger(uint8_t *func, uint8_t *file, uint8_t line, char *report)
+void Logger(char *func, char *file, uint32_t line, char *report)
 {
     printf("%s. Function %s in file %s on line %d\r\n", report, func, file, line);
 }

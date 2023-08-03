@@ -8,6 +8,7 @@
 #include "assert.h"
 #include "timer.h"
 #include "LCD_2004.h"
+#include "usart.h"
 
 //********************************************************************************
 //Macros
@@ -42,8 +43,13 @@ void PeriphTest(void)
         LOG("HEXT Clock failure is detected. Switch of the system clock to the HICK clock is occured");
         ClockResetHEXTFailFlag();
     }
-    LED_Test();
-    LCD_Test();
+#ifdef _APP_DEBUG_
+    // LED_Test();
+    // LCD_Test();
+    if(USART_Test() == ERROR) {
+        LOG("USART Test not passed");
+    };
+#endif//_APP_DEBUG_
 }
 
 

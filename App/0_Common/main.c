@@ -15,12 +15,9 @@ int main(void)
     //after switching the clock source to HEXT
     ASSERT(init_result == SUCCESS);
 #endif//_APP_DEBUG_
+    PeriphTest();
     while(1) {
-
-#ifdef _APP_DEBUG_
-        PeriphTest();
-#endif//_APP_DEBUG_
-
+        // PeriphTest();
         AppIdleTask();
     }
 }
