@@ -4,6 +4,9 @@
 #include "at32f403a_407.h"
 #include <stdbool.h>
 
+#define ARM_USART_TX_BUFF_SIZE 256
+#define ARM_USART_RX_BUFF_SIZE 256
+
 //USART Driver Status
 #define ARM_USART_DRIVER_OK                 ((uint32_t)0UL)
 #define ARM_USART_DRIVER_ERROR              ((uint32_t)1UL << 0)
@@ -64,7 +67,7 @@ typedef struct {
 } ARM_USART_Status_t;
 
 typedef struct {
-    const void              *p_tx_buff;
+    void              *p_tx_buff;
     void                    *p_rx_buff;
     volatile uint32_t       tx_num;
     volatile uint32_t       rx_num;
@@ -95,7 +98,7 @@ typedef struct {
                            usart_parity_selection_type parity);
     uint32_t (*Uninitialize)(void);
     void (*Event_cb)(void);
-    uint32_t (*Send)(const void *pdata, uint32_t num);
+    uint32_t (*Send)(void *pdata, uint32_t num);
     uint32_t (*Recieve)(void *pdata, uint32_t num);
     ARM_USART_Transfer_t (*GetTransfer)(void);
     ARM_USART_Status_t (*GetStatus)(void);
@@ -110,12 +113,12 @@ uint32_t ARM_USART_SetResources(ARM_USART_Resources_t *p_res, usart_type *p_usar
                                 usart_data_bit_num_type data_bit,
                                 usart_stop_bit_num_type stop_bit,
                                 usart_parity_selection_type parity);
-uint32_t ARM_USART_ResetResources(ARM_USART_Resources_t *p_res, usart_type *p_usartx,
-                                  void *p_tx_buff, void *p_rx_buff);
+void ARM_USART_IRQHandler(ARM_USART_Driver_t *p_drv, ARM_USART_Resources_t *p_res);
+void ARM_USART_Event_cb(ARM_USART_Driver_t *p_drv, ARM_USART_Resources_t *p_res);
 void ARM_USART_WriteByte(ARM_USART_Resources_t *p_res, uint8_t *pByte);
 uint8_t ARM_USART_ReadByte(ARM_USART_Resources_t *p_res);
 uint32_t ARM_USART_Recieve(ARM_USART_Resources_t *p_res, void *pdata, uint32_t num);
-uint32_t ARM_USART_Send(ARM_USART_Resources_t *p_res, const void *pdata, uint32_t num);
+uint32_t ARM_USART_Send(ARM_USART_Resources_t *p_res, void *pdata, uint32_t num);
 ARM_USART_Status_t ARM_USART_GetStatus(ARM_USART_Resources_t *p_res);
 ARM_USART_Transfer_t ARM_USART_GetTransfer(ARM_USART_Resources_t *p_res);
 

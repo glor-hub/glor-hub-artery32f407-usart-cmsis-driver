@@ -100,8 +100,7 @@ uint32_t ARM_USART_Uninit(ARM_USART_Resources_t *p_res)
     return status_ready;
 }
 
-uint32_t ARM_USART_SetResources(ARM_USART_Resources_t *p_res, usart_type *p_usartx,
-                                void *p_tx_buff,
+uint32_t ARM_USART_SetResources(ARM_USART_Resources_t *p_res, usart_type *p_usartx, void *p_tx_buff,
                                 void *p_rx_buff, uint32_t baud_rate,
                                 usart_data_bit_num_type data_bit,
                                 usart_stop_bit_num_type stop_bit,
@@ -140,15 +139,15 @@ uint32_t ARM_USART_SetResources(ARM_USART_Resources_t *p_res, usart_type *p_usar
     } else if(p_res->pUSART_x == UART7) {
         p_res->irq_num = UART7_IRQn;
         p_res->gpio.p_tx_gpio = GPIOE;
-        p_res->gpio.tx_pin = GPIO_PINS_7;
+        p_res->gpio.tx_pin = GPIO_PINS_8;
         p_res->gpio.p_rx_gpio = GPIOE;
-        p_res->gpio.rx_pin = GPIO_PINS_8;
+        p_res->gpio.rx_pin = GPIO_PINS_7;
     } else if(p_res->pUSART_x == UART8) {
         p_res->irq_num = UART8_IRQn;
         p_res->gpio.p_tx_gpio = GPIOE;
-        p_res->gpio.tx_pin = GPIO_PINS_0;
+        p_res->gpio.tx_pin = GPIO_PINS_1;
         p_res->gpio.p_rx_gpio = GPIOE;
-        p_res->gpio.rx_pin = GPIO_PINS_1;
+        p_res->gpio.rx_pin = GPIO_PINS_0;
     } else {
 #ifdef _APP_DEBUG_
         LOG("USART configuration error");
@@ -158,58 +157,87 @@ uint32_t ARM_USART_SetResources(ARM_USART_Resources_t *p_res, usart_type *p_usar
     return ARM_USART_DRIVER_OK;
 }
 
-uint32_t ARM_USART_ResetResources(ARM_USART_Resources_t *p_res, usart_type *p_usartx,
-                                  void *p_tx_buff, void *p_rx_buff)
+void ARM_USART_IRQHandler(ARM_USART_Driver_t *p_drv, ARM_USART_Resources_t *p_res)
 {
-    p_res->pUSART_x = p_usartx;
-    p_res->config.baud_rate = 0;
-    p_res->config.data_bit = USART_DATA_8BITS;
-    p_res->config.stop_bit = USART_STOP_1_BIT;
-    p_res->config.parity = USART_PARITY_NONE;
-    p_res->sta.xfer_sta.tx_busy = 0;
-    p_res->sta.xfer_sta.rx_busy = 0;
-    p_res->sta.xfer_sta.tx_underflow = 0;
-    p_res->sta.xfer_sta.rx_overflow = 0;
-    p_res->sta.xfer_sta.rx_break = 0;
-    p_res->sta.xfer_sta.rx_framing_error = 0;
-    p_res->sta.xfer_sta.rx_parity_error = 0;
-    p_res->xfer.p_tx_buff = p_tx_buff;
-    p_res->xfer.p_rx_buff = p_rx_buff;
-    p_res->xfer.tx_num = 0;
-    p_res->xfer.rx_num = 0;
-    p_res->xfer.tx_cnt = 0;
-    p_res->xfer.rx_cnt = 0;
-    if(p_res->pUSART_x == UART4) {
-        p_res->irq_num = UART4_IRQn;
-        p_res->gpio.p_tx_gpio = GPIOC;
-        p_res->gpio.tx_pin = GPIO_PINS_10;
-        p_res->gpio.p_rx_gpio = GPIOC;
-        p_res->gpio.rx_pin = GPIO_PINS_11;
-    } else if(p_res->pUSART_x == UART5) {
-        p_res->irq_num = UART5_IRQn;
-        p_res->gpio.p_tx_gpio = GPIOC;
-        p_res->gpio.tx_pin = GPIO_PINS_12;
-        p_res->gpio.p_rx_gpio = GPIOD;
-        p_res->gpio.rx_pin = GPIO_PINS_2;
-    } else if(p_res->pUSART_x == UART7) {
-        p_res->irq_num = UART7_IRQn;
-        p_res->gpio.p_tx_gpio = GPIOE;
-        p_res->gpio.tx_pin = GPIO_PINS_7;
-        p_res->gpio.p_rx_gpio = GPIOE;
-        p_res->gpio.rx_pin = GPIO_PINS_8;
-    } else if(p_res->pUSART_x == UART8) {
-        p_res->irq_num = UART8_IRQn;
-        p_res->gpio.p_tx_gpio = GPIOE;
-        p_res->gpio.tx_pin = GPIO_PINS_0;
-        p_res->gpio.p_rx_gpio = GPIOE;
-        p_res->gpio.rx_pin = GPIO_PINS_1;
-    } else {
-#ifdef _APP_DEBUG_
-        LOG("USART configuration error");
-#endif//_APP_DEBUG_
-        return ARM_USART_DRIVER_ERROR_UNSUPPORTED;
+    uint32_t event = 0;
+    if((usart_flag_get(p_res->pUSART_x, USART_RDBF_FLAG) == SET) &&
+       (p_res->sta.xfer_sta.rx_busy == 1)) {
+        *((uint8_t *)p_res->xfer.p_rx_buff + p_res->xfer.rx_cnt) = ARM_USART_ReadByte(p_res);
+        p_res->xfer.rx_cnt++;
+        if(usart_flag_get(p_res->pUSART_x, USART_ROERR_FLAG) == SET) {
+            p_res->sta.xfer_sta.rx_overflow = 1;
+            event |= ARM_USART_EVENT_RX_OVERFLOW;
+        }
+        if(usart_flag_get(p_res->pUSART_x, USART_FERR_FLAG) == SET) {
+            p_res->sta.xfer_sta.rx_framing_error = 1;
+            event |= ARM_USART_EVENT_RX_FRAMING_ERROR;
+        }
+        if(usart_flag_get(p_res->pUSART_x, USART_PERR_FLAG) == SET) {
+            p_res->sta.xfer_sta.rx_parity_error = 1;
+            event |= ARM_USART_EVENT_RX_PARITY_ERROR;
+        }
+        if(p_res->xfer.rx_cnt == p_res->xfer.rx_num) {
+            event |= ARM_USART_EVENT_RX_COMPLETE;
+            p_res->sta.xfer_sta.rx_busy = 0;
+            usart_interrupt_enable(p_res->pUSART_x, USART_RDBF_INT, FALSE);
+        }
     }
-    return ARM_USART_DRIVER_OK;
+    if((usart_flag_get(p_res->pUSART_x, USART_TDBE_FLAG) == SET) &&
+       (p_res->sta.xfer_sta.tx_busy == 1))  {
+        ARM_USART_WriteByte(p_res,
+                            ((uint8_t *)p_res->xfer.p_tx_buff + p_res->xfer.tx_cnt));
+        p_res->xfer.tx_cnt++;
+        if(p_res->xfer.tx_cnt == p_res->xfer.tx_num) {
+            while(usart_flag_get(p_res->pUSART_x, USART_TDC_FLAG != SET));
+            event |= ARM_USART_EVENT_TX_COMPLETE;
+            p_res->sta.xfer_sta.tx_busy = 0;
+            usart_interrupt_enable(p_res->pUSART_x, USART_TDBE_INT, FALSE);
+        }
+    }
+    if(event) {
+        p_drv->event = event;
+    }
+}
+
+void ARM_USART_Event_cb(ARM_USART_Driver_t *p_drv, ARM_USART_Resources_t *p_res)
+{
+    uint32_t event;
+    event = p_drv->event;
+    p_drv->event = 0;
+    if(event & ARM_USART_EVENT_RX_COMPLETE) {
+        p_res->xfer.rx_cnt = 0;
+        p_res->xfer.rx_num = 0;
+        p_res->sta.xfer_sta.rx_busy = 0;
+#ifdef _APP_DEBUG_
+        LCD_Printf(0, 0, SET, "%s", p_res->xfer.p_rx_buff);
+        LOG("USART recieved test data");
+        memcpy(p_res->xfer.p_tx_buff, p_res->xfer.p_rx_buff, ARM_USART_RX_BUFF_SIZE);
+        p_drv->Send(p_res->xfer.p_tx_buff, 8);
+#endif//_APP_DEBUG_          
+    }
+    if(event & ARM_USART_EVENT_TX_COMPLETE) {
+        p_res->xfer.tx_cnt = 0;
+        p_res->xfer.tx_num = 0;
+        p_res->sta.xfer_sta.tx_busy = 0;
+#ifdef _APP_DEBUG_
+        p_drv->Recieve(p_res->xfer.p_rx_buff, 8);
+#endif//_APP_DEBUG_                 
+    }
+    if(event & ARM_USART_EVENT_RX_OVERFLOW) {
+#ifdef _APP_DEBUG_
+        LOG("USART receiver overflow");
+#endif//_APP_DEBUG_                
+    }
+    if(event & ARM_USART_EVENT_RX_FRAMING_ERROR) {
+#ifdef _APP_DEBUG_
+        LOG("USART receiver framing error");
+#endif//_APP_DEBUG_                
+    }
+    if(event & ARM_USART_EVENT_RX_PARITY_ERROR) {
+#ifdef _APP_DEBUG_
+        LOG("USART receiver parity error");
+#endif//_APP_DEBUG_                
+    }
 }
 
 uint32_t ARM_USART_Recieve(ARM_USART_Resources_t *p_res, void *pdata, uint32_t num)
@@ -236,7 +264,7 @@ void ARM_USART_WriteByte(ARM_USART_Resources_t *p_res, uint8_t *pByte)
     p_res->pUSART_x->dt = *pByte;
 }
 
-uint32_t ARM_USART_Send(ARM_USART_Resources_t *p_res, const void *pdata, uint32_t num)
+uint32_t ARM_USART_Send(ARM_USART_Resources_t *p_res, void *pdata, uint32_t num)
 {
     if(!(p_res->sta.status & ARM_USART_FLAG_TX_ENABLED)) {
         return ARM_USART_DRIVER_ERROR;
