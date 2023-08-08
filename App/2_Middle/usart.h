@@ -17,9 +17,9 @@ int8_t USART_printf(ARM_USART_Driver_t *p_drv, char *fmt, ...);
 
 
 #define _UART4_PERIPH_
-#define _UART5_PERIPH_
-#define _UART7_PERIPH_
-#define _UART8_PERIPH_
+// #define _UART5_PERIPH_
+// #define _UART7_PERIPH_
+// #define _UART8_PERIPH_
 
 
 #endif //_USART_H_ 

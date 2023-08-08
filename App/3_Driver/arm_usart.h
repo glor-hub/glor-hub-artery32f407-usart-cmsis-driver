@@ -3,9 +3,12 @@
 
 #include "at32f403a_407.h"
 #include <stdbool.h>
+#include "ringbuffer.h"
 
 #define ARM_USART_TX_BUFF_SIZE 256
 #define ARM_USART_RX_BUFF_SIZE 256
+
+#define ARM_USART_EVENT_BUFF_SIZE 8
 
 //USART Driver Status
 #define ARM_USART_DRIVER_OK                 ((uint32_t)0UL)
@@ -67,7 +70,7 @@ typedef struct {
 } ARM_USART_Status_t;
 
 typedef struct {
-    void              *p_tx_buff;
+    void                    *p_tx_buff;
     void                    *p_rx_buff;
     volatile uint32_t       tx_num;
     volatile uint32_t       rx_num;
@@ -85,14 +88,16 @@ typedef struct {
 typedef struct {
     usart_type                  *pUSART_x;
     IRQn_Type                   irq_num;         // USART IRQ Number
-    ARM_USART_Config_t          config;
-    ARM_USART_GPIO_t            gpio;
-    ARM_USART_Transfer_t        xfer;
-    ARM_USART_Status_t          sta;
+    RingBuffer_t                Event;
+    ARM_USART_Config_t          Config;
+    ARM_USART_GPIO_t            Gpio;
+    ARM_USART_Transfer_t        Transfer;
+    ARM_USART_Status_t          Status;
 } ARM_USART_Resources_t;
 
+
+
 typedef struct {
-    volatile uint32_t           event;
     uint32_t (*Initialize)(uint32_t baud_rate, usart_data_bit_num_type data_bit,
                            usart_stop_bit_num_type stop_bit,
                            usart_parity_selection_type parity);
@@ -108,7 +113,7 @@ uint32_t ARM_USART_Init(ARM_USART_Resources_t *p_res);
 uint32_t ARM_USART_Uninit(ARM_USART_Resources_t *p_res);
 bool ARM_USART_isReady(uint32_t status);
 uint32_t ARM_USART_SetResources(ARM_USART_Resources_t *p_res, usart_type *p_usartx,
-                                void *p_tx_buff,
+                                void *p_event_buff, void *p_tx_buff,
                                 void *p_rx_buff, uint32_t baud_rate,
                                 usart_data_bit_num_type data_bit,
                                 usart_stop_bit_num_type stop_bit,

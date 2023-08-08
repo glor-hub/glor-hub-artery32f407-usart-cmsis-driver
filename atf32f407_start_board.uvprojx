@@ -444,6 +444,11 @@
               <FileType>1</FileType>
               <FilePath>.\App\2_Middle\usart.c</FilePath>
             </File>
+            <File>
+              <FileName>ringbuffer.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>.\App\2_Middle\ringbuffer.c</FilePath>
+            </File>
           </Files>
         </Group>
         <Group>
