@@ -106,6 +106,7 @@ static uint8_t UART4_Rx_Buff[ARM_USART_RX_BUFF_SIZE];
 
 #ifdef _UART5_PERIPH_
 static ARM_USART_Resources_t        UART5_Resources;
+static uint32_t UART5_EventBuff[ARM_USART_EVENT_BUFF_SIZE];
 static ARM_USART_Driver_t UART5_Driver = {
     UART5_Initialize,
     UART5_Uninitialize,
@@ -121,6 +122,7 @@ static uint8_t UART5_Rx_Buff[ARM_USART_RX_BUFF_SIZE];
 
 #ifdef _UART7_PERIPH_
 static ARM_USART_Resources_t        UART7_Resources;
+static uint32_t UART7_EventBuff[ARM_USART_EVENT_BUFF_SIZE];
 static ARM_USART_Driver_t UART7_Driver = {
     UART7_Initialize,
     UART7_Uninitialize,
@@ -137,6 +139,7 @@ static uint8_t UART7_Rx_Buff[ARM_USART_RX_BUFF_SIZE];
 
 #ifdef _UART8_PERIPH_
 static ARM_USART_Resources_t        UART8_Resources;
+static uint32_t UART8_EventBuff[ARM_USART_EVENT_BUFF_SIZE];
 static ARM_USART_Driver_t UART8_Driver = {
     UART8_Initialize,
     UART8_Uninitialize,
@@ -194,39 +197,39 @@ error_status USART_Uninitialize(ARM_USART_Driver_t *p_drv)
 
 void USART_Event_cb(void)
 {
-    uint32_t event;
-
 #ifdef _UART4_PERIPH_
     ARM_USART_Driver_t *p4_drv = &UART4_Driver;
     ARM_USART_Resources_t *p4_res = &UART4_Resources;
-    RingBuffer_Read(&(p4_res->Event), &event);
-    if(event) {
+    if(RingBuffer_GetCount(&(p4_res->Event))) {
         p4_drv->Event_cb();
     }
+
 #endif//_UART4_PERIPH_
 
 #ifdef _UART5_PERIPH_
     ARM_USART_Driver_t *p5_drv = &UART5_Driver;
-    event = p5_drv->event;
-    if(event) {
+    ARM_USART_Resources_t *p5_res = &UART5_Resources;
+    if(RingBuffer_GetCount(&(p5_res->Event))) {
         p5_drv->Event_cb();
     }
 #endif//_UART5_PERIPH_
 
 #ifdef _UART7_PERIPH_
     ARM_USART_Driver_t *p7_drv = &UART7_Driver;
-    event = p7_drv->event;
-    if(event) {
+    ARM_USART_Resources_t *p7_res = &UART7_Resources;
+    if(RingBuffer_GetCount(&(p7_res->Event))) {
         p7_drv->Event_cb();
     }
+
 #endif//_UART7_PERIPH_
 
 #ifdef _UART8_PERIPH_
     ARM_USART_Driver_t *p8_drv = &UART8_Driver;
-    event = p8_drv->event;
-    if(event) {
+    ARM_USART_Resources_t *p8_res = &UART8_Resources;
+    if(RingBuffer_GetCount(&(p8_res->Event))) {
         p8_drv->Event_cb();
     }
+
 #endif//_UART8_PERIPH_
 
 }
@@ -397,7 +400,7 @@ static uint32_t UART5_Initialize(uint32_t baud_rate, usart_data_bit_num_type dat
     uint32_t status_ready = ARM_USART_DRIVER_OK;
     ARM_USART_Resources_t *p_res = &UART5_Resources;
     p_res->Status.status = 0U;
-    status_ready |= ARM_USART_SetResources(p_res, UART5,
+    status_ready |= ARM_USART_SetResources(p_res, UART5, UART5_EventBuff,
                                            UART5_Tx_Buff, UART5_Rx_Buff,
                                            baud_rate, data_bit, stop_bit, parity);
     status_ready |= ARM_USART_Init(p_res);
@@ -408,7 +411,7 @@ static uint32_t UART5_Uninitialize(void)
 {
     uint32_t status_ready = ARM_USART_DRIVER_OK;
     ARM_USART_Resources_t *p_res = &UART5_Resources;
-    status_ready |= ARM_USART_SetResources(p_res, UART5,
+    status_ready |= ARM_USART_SetResources(p_res, UART5, UART5_EventBuff,
                                            UART5_Tx_Buff, UART5_Rx_Buff,
                                            0, USART_DATA_8BITS,
                                            USART_STOP_1_BIT,
@@ -451,7 +454,7 @@ static uint32_t UART7_Initialize(uint32_t baud_rate, usart_data_bit_num_type dat
     uint32_t status_ready = ARM_USART_DRIVER_OK;
     ARM_USART_Resources_t *p_res = &UART7_Resources;
     p_res->Status.status = 0U;
-    status_ready |= ARM_USART_SetResources(p_res, UART7,
+    status_ready |= ARM_USART_SetResources(p_res, UART7, UART7_EventBuff,
                                            UART7_Tx_Buff, UART7_Rx_Buff,
                                            baud_rate, data_bit, stop_bit, parity);
     status_ready |= ARM_USART_Init(p_res);
@@ -462,7 +465,7 @@ static uint32_t UART7_Uninitialize(void)
 {
     uint32_t status_ready = ARM_USART_DRIVER_OK;
     ARM_USART_Resources_t *p_res = &UART7_Resources;
-    status_ready |= ARM_USART_SetResources(p_res, UART7,
+    status_ready |= ARM_USART_SetResources(p_res, UART7, UART7_EventBuff,
                                            UART7_Tx_Buff, UART7_Rx_Buff,
                                            0, USART_DATA_8BITS,
                                            USART_STOP_1_BIT,
@@ -505,7 +508,7 @@ static uint32_t UART8_Initialize(uint32_t baud_rate, usart_data_bit_num_type dat
     uint32_t status_ready = ARM_USART_DRIVER_OK;
     ARM_USART_Resources_t *p_res = &UART8_Resources;
     p_res->Status.status = 0U;
-    status_ready |= ARM_USART_SetResources(p_res, UART8,
+    status_ready |= ARM_USART_SetResources(p_res, UART8, UART8_EventBuff,
                                            UART8_Tx_Buff, UART8_Rx_Buff,
                                            baud_rate, data_bit, stop_bit, parity);
     status_ready |= ARM_USART_Init(p_res);
@@ -516,7 +519,7 @@ static uint32_t UART8_Uninitialize(void)
 {
     uint32_t status_ready = ARM_USART_DRIVER_OK;
     ARM_USART_Resources_t *p_res = &UART8_Resources;
-    status_ready |= ARM_USART_SetResources(p_res, UART8,
+    status_ready |= ARM_USART_SetResources(p_res, UART8, UART8_EventBuff,
                                            UART8_Tx_Buff, UART8_Rx_Buff,
                                            0, USART_DATA_8BITS,
                                            USART_STOP_1_BIT,
