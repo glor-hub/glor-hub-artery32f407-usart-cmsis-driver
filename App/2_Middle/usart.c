@@ -238,7 +238,7 @@ int8_t USART_printf(ARM_USART_Driver_t *p_drv, char *fmt, ...)
 {
     uint32_t status_ready;
     int8_t res, len;
-    char *strbuff = (char *)p_drv->GetTransfer().p_tx_buff;
+    char *strbuff = (char *)p_drv->GetTransfer().pTxData;
     va_list args;
     va_start(args, fmt);
     res = vsprintf(strbuff, fmt, args);
@@ -260,7 +260,7 @@ error_status USART_Test(void)
 #ifdef _UART4_PERIPH_
     ARM_USART_Driver_t *p4_drv = &UART4_Driver;
     ARM_USART_Resources_t *p4_res = &UART4_Resources;
-    p4_res->Transfer.p_tx_buff = UART4_Tx_Buff;
+    p4_res->Transfer.pTxData = UART4_Tx_Buff;
     USART_printf(p4_drv, "%s", "Hello, World, from UART4!\n");
     status_ready |= p4_drv->Recieve(UART4_Rx_Buff, 8);
 #endif//_UART4_PERIPH_
@@ -268,7 +268,7 @@ error_status USART_Test(void)
 #ifdef _UART5_PERIPH_
     ARM_USART_Driver_t *p5_drv = &UART5_Driver;
     ARM_USART_Resources_t *p5_res = &UART5_Resources;
-    p5_res->Transfer.p_tx_buff = UART5_Tx_Buff;
+    p5_res->Transfer.pTxData = UART5_Tx_Buff;
     USART_printf(p5_drv, "%s", "Hello, World, from UART5!\n");
     status_ready |= p5_drv->Recieve(UART5_Rx_Buff, 8);
 #endif//_UART5_PERIPH_
@@ -276,7 +276,7 @@ error_status USART_Test(void)
 #ifdef _UART7_PERIPH_
     ARM_USART_Driver_t *p7_drv = &UART7_Driver;
     ARM_USART_Resources_t *p7_res = &UART7_Resources;
-    p7_res->Transfer.p_tx_buff = UART7_Tx_Buff;
+    p7_res->Transfer.pTxData = UART7_Tx_Buff;
     USART_printf(p7_drv, "%s", "Hello, World, from UART7!\n");
     status_ready |= p7_drv->Recieve(UART7_Rx_Buff, 8);
 #endif//_UART7_PERIPH_
@@ -284,7 +284,7 @@ error_status USART_Test(void)
 #ifdef _UART8_PERIPH_
     ARM_USART_Driver_t *p8_drv = &UART8_Driver;
     ARM_USART_Resources_t *p8_res = &UART8_Resources;
-    p8_res->Transfer.p_tx_buff = UART8_Tx_Buff;
+    p8_res->Transfer.pTxData = UART8_Tx_Buff;
     USART_printf(p8_drv, "%s", "Hello, World, from UART8!\n");
     status_ready |= p8_drv->Recieve(UART8_Rx_Buff, 8);
 #endif//_UART8_PERIPH_
@@ -344,7 +344,7 @@ static uint32_t UART4_Initialize(uint32_t baud_rate, usart_data_bit_num_type dat
 {
     uint32_t status_ready = ARM_USART_DRIVER_OK;
     ARM_USART_Resources_t *p_res = &UART4_Resources;
-    p_res->Status.status = 0U;
+    p_res->Status.Status = 0U;
     status_ready |= ARM_USART_SetResources(p_res, UART4, UART4_EventBuff,
                                            UART4_Tx_Buff, UART4_Rx_Buff,
                                            baud_rate, data_bit, stop_bit,
@@ -399,7 +399,7 @@ static uint32_t UART5_Initialize(uint32_t baud_rate, usart_data_bit_num_type dat
 {
     uint32_t status_ready = ARM_USART_DRIVER_OK;
     ARM_USART_Resources_t *p_res = &UART5_Resources;
-    p_res->Status.status = 0U;
+    p_res->Status.Status = 0U;
     status_ready |= ARM_USART_SetResources(p_res, UART5, UART5_EventBuff,
                                            UART5_Tx_Buff, UART5_Rx_Buff,
                                            baud_rate, data_bit, stop_bit, parity);
@@ -453,7 +453,7 @@ static uint32_t UART7_Initialize(uint32_t baud_rate, usart_data_bit_num_type dat
 {
     uint32_t status_ready = ARM_USART_DRIVER_OK;
     ARM_USART_Resources_t *p_res = &UART7_Resources;
-    p_res->Status.status = 0U;
+    p_res->Status.Status = 0U;
     status_ready |= ARM_USART_SetResources(p_res, UART7, UART7_EventBuff,
                                            UART7_Tx_Buff, UART7_Rx_Buff,
                                            baud_rate, data_bit, stop_bit, parity);
@@ -507,7 +507,7 @@ static uint32_t UART8_Initialize(uint32_t baud_rate, usart_data_bit_num_type dat
 {
     uint32_t status_ready = ARM_USART_DRIVER_OK;
     ARM_USART_Resources_t *p_res = &UART8_Resources;
-    p_res->Status.status = 0U;
+    p_res->Status.Status = 0U;
     status_ready |= ARM_USART_SetResources(p_res, UART8, UART8_EventBuff,
                                            UART8_Tx_Buff, UART8_Rx_Buff,
                                            baud_rate, data_bit, stop_bit, parity);

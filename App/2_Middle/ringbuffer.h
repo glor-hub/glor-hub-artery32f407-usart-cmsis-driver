@@ -8,11 +8,11 @@
 #define RING_BUFF_UNDERFLOW_ERR -2
 
 typedef struct {
-    uint8_t in;
-    uint8_t out;
-    uint8_t count;
-    void *p_buff;
-    uint8_t buff_size;
+    uint8_t In;
+    uint8_t Out;
+    uint8_t Count;
+    void *pBuff;
+    uint8_t BuffSize;
 } RingBuffer_t;
 
 void RingBuffer_Init(RingBuffer_t *p_struct,  void *p_buffer, uint8_t size);

@@ -30,10 +30,10 @@
 //********************************************************************************
 
 typedef struct {
-    confirm_state state;
-    uint32_t time;
-    uint32_t counter;
-    flag_status flag;
+    confirm_state State;
+    uint32_t Time;
+    uint32_t Counter;
+    flag_status Flag;
 } Timer_t;
 
 static Timer_t Timer[NUM_TIMERS];
@@ -52,9 +52,9 @@ void SysTick_Handler(void)
 {
     eTimerTypes timer;
     for(timer = TIMER_DELAY; timer < NUM_TIMERS; timer++) {
-        if(Timer[timer].state) {
-            if(++Timer[timer].counter == Timer[timer].time) {
-                Timer[timer].flag = SET;
+        if(Timer[timer].State) {
+            if(++Timer[timer].Counter == Timer[timer].Time) {
+                Timer[timer].Flag = SET;
             }
         }
     }
@@ -78,28 +78,28 @@ error_status TimerInit(void)
 
 void TimerEnable(eTimerTypes timer, uint32_t time)
 {
-    Timer[timer].state = TRUE;
-    Timer[timer].time = time;
-    Timer[timer].counter = 0;
-    Timer[timer].flag = RESET;
+    Timer[timer].State = TRUE;
+    Timer[timer].Time = time;
+    Timer[timer].Counter = 0;
+    Timer[timer].Flag = RESET;
 }
 
 void TimerDisable(eTimerTypes timer)
 {
-    Timer[timer].state = FALSE;
-    Timer[timer].time = 0;
-    Timer[timer].counter = 0;
-    Timer[timer].flag = RESET;
+    Timer[timer].State = FALSE;
+    Timer[timer].Time = 0;
+    Timer[timer].Counter = 0;
+    Timer[timer].Flag = RESET;
 }
 
 flag_status TimerTestFlag(eTimerTypes timer)
 {
-    return Timer[timer].flag;
+    return Timer[timer].Flag;
 }
 
 confirm_state TimerTestSet(eTimerTypes timer)
 {
-    return Timer[timer].state;
+    return Timer[timer].State;
 }
 
 void TimerDoDelay_ms(uint32_t time)

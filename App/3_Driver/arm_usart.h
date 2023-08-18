@@ -48,46 +48,47 @@
 #define ARM_USART_EVENT_RX_PARITY_ERROR     ((uint32_t)1UL << 7)  //Parity error detected on receive
 
 typedef struct {
-    uint32_t                    baud_rate;
-    usart_data_bit_num_type     data_bit;
-    usart_stop_bit_num_type     stop_bit;
-    usart_parity_selection_type parity;
+    uint32_t                    BaudRate;
+    usart_data_bit_num_type     DataBit;
+    usart_stop_bit_num_type     StopBit;
+    usart_parity_selection_type Parity;
 } ARM_USART_Config_t;
 
 typedef struct {
-    uint32_t tx_busy;
-    uint32_t rx_busy;
-    uint32_t tx_underflow;
-    uint32_t rx_overflow;
-    uint32_t rx_break;
-    uint32_t rx_framing_error;
-    uint32_t rx_parity_error;
+    uint32_t TxBusy;
+    uint32_t RxBusy;
+    uint32_t TxUnderflow;
+    uint32_t RxOverflow;
+    uint32_t RxBreak;
+    uint32_t RxFramingError;
+    uint32_t RxParityError;
 } ARM_USART_XferStatus_t;
 
 typedef struct {
-    uint32_t status;
-    ARM_USART_XferStatus_t xfer_sta;
+    uint32_t Status;
+    ARM_USART_XferStatus_t XferSta;
 } ARM_USART_Status_t;
 
 typedef struct {
-    void                    *p_tx_buff;
-    void                    *p_rx_buff;
-    volatile uint32_t       tx_num;
-    volatile uint32_t       rx_num;
-    volatile uint32_t       tx_cnt;         // Number of data received
-    volatile uint32_t       rx_cnt;         // Number of data sent
+    void                    *pTxData;
+    void                    *pRxData;
+    volatile uint32_t       TxNum;
+    volatile uint32_t       RxNum;
+    volatile uint32_t       TxCnt;         // Number of data received
+    volatile uint32_t       RxCnt;         // Number of data sent
 } ARM_USART_Transfer_t;
 
 typedef struct {
-    gpio_type               *p_tx_gpio;
-    gpio_type               *p_rx_gpio;
-    uint32_t                 tx_pin;
-    uint32_t                 rx_pin;
+    gpio_type               *pTxGpio;
+    gpio_type               *pRxGpio;
+    uint32_t                 TxPin;
+    uint32_t                 RxPin;
 } ARM_USART_GPIO_t;
 
 typedef struct {
-    usart_type                  *pUSART_x;
-    IRQn_Type                   irq_num;         // USART IRQ Number
+    usart_type                  *pUSARTx;
+    dma_channel_type            *pDMAxChany;
+    IRQn_Type                   IrqNum;         // USART IRQ Number
     RingBuffer_t                Event;
     ARM_USART_Config_t          Config;
     ARM_USART_GPIO_t            Gpio;
@@ -98,8 +99,8 @@ typedef struct {
 
 
 typedef struct {
-    uint32_t (*Initialize)(uint32_t baud_rate, usart_data_bit_num_type data_bit,
-                           usart_stop_bit_num_type stop_bit,
+    uint32_t (*Initialize)(uint32_t BaudRate, usart_data_bit_num_type DataBit,
+                           usart_stop_bit_num_type StopBit,
                            usart_parity_selection_type parity);
     uint32_t (*Uninitialize)(void);
     void (*Event_cb)(void);
@@ -114,9 +115,9 @@ uint32_t ARM_USART_Uninit(ARM_USART_Resources_t *p_res);
 bool ARM_USART_isReady(uint32_t status);
 uint32_t ARM_USART_SetResources(ARM_USART_Resources_t *p_res, usart_type *p_usartx,
                                 void *p_event_buff, void *p_tx_buff,
-                                void *p_rx_buff, uint32_t baud_rate,
-                                usart_data_bit_num_type data_bit,
-                                usart_stop_bit_num_type stop_bit,
+                                void *p_rx_buff, uint32_t BaudRate,
+                                usart_data_bit_num_type DataBit,
+                                usart_stop_bit_num_type StopBit,
                                 usart_parity_selection_type parity);
 void ARM_USART_IRQHandler(ARM_USART_Driver_t *p_drv, ARM_USART_Resources_t *p_res);
 void ARM_USART_Event_cb(ARM_USART_Driver_t *p_drv, ARM_USART_Resources_t *p_res);

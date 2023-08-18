@@ -155,6 +155,24 @@ bool ARM_CRM_USART_ClockEnable(usart_type *pUSART_x, confirm_state new_state)
     return ARM_CRM_isReady(drv_status);
 }
 
+bool ARM_CRM_DMA_ClockEnable(dma_channel_type *pDMAxChan_y, confirm_state new_state)
+{
+    uint32_t drv_status = ARM_CRM_STA_READY;
+    dma_channel_type *reg_addr;
+    reg_addr = pDMAxChan_y;
+    if((reg_addr < DMA1_CHANNEL1) || (reg_addr > DMA2_CHANNEL7)) {
+#ifdef _APP_DEBUG_
+        LOG("DMA clock error");
+#endif//_APP_DEBUG_
+        drv_status |= ARM_CRM_STA_PERIPH_CLOCK_ERR;
+    } else if(reg_addr <= DMA1_CHANNEL7) {
+        crm_periph_clock_enable(CRM_DMA1_PERIPH_CLOCK, new_state);
+    } else {
+        crm_periph_clock_enable(CRM_DMA2_PERIPH_CLOCK, new_state);
+    }
+    return ARM_CRM_isReady(drv_status);
+}
+
 //сброс периферии
 
 void ARM_CRM_ClockPeriphReset(crm_periph_reset_type value, confirm_state state)
