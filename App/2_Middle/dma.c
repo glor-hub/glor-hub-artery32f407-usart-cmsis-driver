@@ -1,13 +1,8 @@
 //********************************************************************************
-//app.c
+//dma.c
 //********************************************************************************
-
-#include "app.h"
-#include "clock.h"
-#include "assert.h"
-#include "timer.h"
-#include "LCD_2004.h"
-#include "usart.h"
+#include "dma.h"
+#include "arm_dma.h"
 
 //********************************************************************************
 //Macros
@@ -17,7 +12,6 @@
 //Enums
 //********************************************************************************
 
-
 //********************************************************************************
 //Typedefs
 //********************************************************************************
@@ -25,7 +19,6 @@
 //********************************************************************************
 //Variables
 //********************************************************************************
-
 
 //********************************************************************************
 //Prototypes
@@ -35,25 +28,67 @@
 //Public
 //================================================================================
 
-void AppIdleTask(void)
+void DMA1_Channel1_IRQHandler(void)
 {
-    USART_cb();
+    ARM_DMA_IRQHandlerChannel(DMA1_CHANNEL1);
 }
 
-error_status AppInit(void)
+void DMA1_Channel2_IRQHandler(void)
 {
-    error_status init_result = SUCCESS;
-
-#ifdef _APP_DEBUG_
-    AssertConfig();
-#endif//_APP_DEBUG_
-    init_result &= ClockInit();
-    TimerInit();
-    LCD_Init();
-    init_result &= USART_Init();
-    return init_result;
+    ARM_DMA_IRQHandlerChannel(DMA1_CHANNEL2);
 }
 
-//================================================================================
+void DMA1_Channel3_IRQHandler(void)
+{
+    ARM_DMA_IRQHandlerChannel(DMA1_CHANNEL3);
+}
+
+void DMA1_Channel4_IRQHandler(void)
+{
+    ARM_DMA_IRQHandlerChannel(DMA1_CHANNEL4);
+}
+
+void DMA1_Channel5_IRQHandler(void)
+{
+    ARM_DMA_IRQHandlerChannel(DMA1_CHANNEL5);
+}
+
+void DMA1_Channel6_IRQHandler(void)
+{
+    ARM_DMA_IRQHandlerChannel(DMA1_CHANNEL6);
+}
+
+void DMA1_Channel7_IRQHandler(void)
+{
+    ARM_DMA_IRQHandlerChannel(DMA1_CHANNEL7);
+}
+
+void DMA2_Channel1_IRQHandler(void)
+{
+    ARM_DMA_IRQHandlerChannel(DMA2_CHANNEL1);
+}
+
+void DMA2_Channel2_IRQHandler(void)
+{
+    ARM_DMA_IRQHandlerChannel(DMA2_CHANNEL2);
+}
+
+void DMA2_Channel3_IRQHandler(void)
+{
+    ARM_DMA_IRQHandlerChannel(DMA2_CHANNEL3);
+}
+
+void DMA2_Channel4_5_IRQHandler(void)
+{
+    ARM_DMA_IRQHandlerChannel_y_z(DMA2_CHANNEL4, DMA2_CHANNEL5);
+}
+
+void DMA2_Channel6_7_IRQHandler(void)
+{
+    ARM_DMA_IRQHandlerChannel_y_z(DMA2_CHANNEL6, DMA2_CHANNEL7);
+}
+
+//===============================================================================
 //Private
 //================================================================================
+

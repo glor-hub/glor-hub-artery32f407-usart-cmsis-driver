@@ -45,7 +45,14 @@
 #define ARM_USART_EVENT_RX_TIMEOUT          ((uint32_t)1UL << 4)  //Receive character timeout (optional)
 #define ARM_USART_EVENT_RX_BREAK            ((uint32_t)1UL << 5)  //Break detected on receive
 #define ARM_USART_EVENT_RX_FRAMING_ERROR    ((uint32_t)1UL << 6)  //Framing error detected on receive
-#define ARM_USART_EVENT_RX_PARITY_ERROR     ((uint32_t)1UL << 7)  //Parity error detected on receive
+#define ARM_USART_EVENT_RX_NOISE_ERROR      ((uint32_t)1UL << 7)  //Noise error detected on receive
+#define ARM_USART_EVENT_RX_PARITY_ERROR     ((uint32_t)1UL << 8)  //Parity error detected on receive
+
+//DMA Enable
+#define ARM_USART_DMA_TX_ENABLE     TRUE
+#define ARM_USART_DMA_TX_DISABLE    FALSE
+#define ARM_USART_DMA_RX_ENABLE     TRUE
+#define ARM_USART_DMA_RX_DISABLE    FALSE
 
 typedef struct {
     uint32_t                    BaudRate;
@@ -55,13 +62,14 @@ typedef struct {
 } ARM_USART_Config_t;
 
 typedef struct {
-    uint32_t TxBusy;
-    uint32_t RxBusy;
-    uint32_t TxUnderflow;
-    uint32_t RxOverflow;
-    uint32_t RxBreak;
-    uint32_t RxFramingError;
-    uint32_t RxParityError;
+    uint8_t TxBusy;
+    uint8_t RxBusy;
+    uint8_t TxUnderflow;
+    uint8_t RxOverflow;
+    uint8_t RxBreak;
+    uint8_t RxFramingError;
+    uint8_t RxNoiseError;
+    uint8_t RxParityError;
 } ARM_USART_XferStatus_t;
 
 typedef struct {
@@ -86,17 +94,28 @@ typedef struct {
 } ARM_USART_GPIO_t;
 
 typedef struct {
+    confirm_state               TxEnable;
+    confirm_state               RxEnable;
+    dma_channel_type            *pTxDMAxChany;
+    dma_channel_type            *pRxDMAxChany;
+    IRQn_Type                   TxIrqNum;         // DMA Tx channel IRQ Number
+    IRQn_Type                   RxIrqNum;         // DMA Rx channel IRQ Number
+    uint32_t                    *pTxEvent;     // ringbuffer
+    uint32_t                    *pRxEvent;     // ringbuffer
+    dma_init_type               TxCfg;
+    dma_init_type               RxCfg;
+} ARM_USART_DMA_t;
+
+typedef struct {
     usart_type                  *pUSARTx;
-    dma_channel_type            *pDMAxChany;
     IRQn_Type                   IrqNum;         // USART IRQ Number
     RingBuffer_t                Event;
     ARM_USART_Config_t          Config;
     ARM_USART_GPIO_t            Gpio;
     ARM_USART_Transfer_t        Transfer;
     ARM_USART_Status_t          Status;
+    ARM_USART_DMA_t             DMA;
 } ARM_USART_Resources_t;
-
-
 
 typedef struct {
     uint32_t (*Initialize)(uint32_t BaudRate, usart_data_bit_num_type DataBit,
@@ -120,7 +139,7 @@ uint32_t ARM_USART_SetResources(ARM_USART_Resources_t *p_res, usart_type *p_usar
                                 usart_stop_bit_num_type StopBit,
                                 usart_parity_selection_type parity);
 void ARM_USART_IRQHandler(ARM_USART_Driver_t *p_drv, ARM_USART_Resources_t *p_res);
-void ARM_USART_Event_cb(ARM_USART_Driver_t *p_drv, ARM_USART_Resources_t *p_res);
+void ARM_USART_cb(ARM_USART_Driver_t *p_drv, ARM_USART_Resources_t *p_res);
 void ARM_USART_WriteByte(ARM_USART_Resources_t *p_res, uint8_t *pByte);
 uint8_t ARM_USART_ReadByte(ARM_USART_Resources_t *p_res);
 uint32_t ARM_USART_Recieve(ARM_USART_Resources_t *p_res, void *pdata, uint32_t num);
