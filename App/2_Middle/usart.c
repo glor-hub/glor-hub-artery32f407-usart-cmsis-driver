@@ -199,11 +199,7 @@ void USART_cb(void)
 {
 #ifdef _UART4_PERIPH_ENABLE_
     ARM_USART_Driver_t *p4_drv = &UART4_Driver;
-    ARM_USART_Resources_t *p4_res = &UART4_Resources;
-    if(RingBuffer_GetCount(&(p4_res->Event))) {
-        p4_drv ->Event_cb();
-    }
-
+    p4_drv ->Event_cb();
 #endif//_UART4_PERIPH_ENABLE_
 
 #ifdef _UART5_PERIPH_ENABLE_

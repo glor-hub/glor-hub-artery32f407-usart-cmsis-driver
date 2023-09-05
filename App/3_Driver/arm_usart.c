@@ -65,6 +65,8 @@ uint32_t ARM_USART_Init(ARM_USART_Resources_t *p_res)
 #endif//_APP_DEBUG_
             return ARM_USART_DRIVER_ERROR;
         }
+        RingBuffer_t *pbuff_str_tx = ARM_DMA_GetEventBuffStr(p_res->DMA.pTxDMAxChany);
+        p_res->DMA.pTxEvent = pbuff_str_tx->pBuff;
         //clear and enable DMAxChany IRQ
         NVIC_ClearPendingIRQ(p_res->DMA.TxIrqNum);
         NVIC_EnableIRQ(p_res->DMA.TxIrqNum);
@@ -78,6 +80,8 @@ uint32_t ARM_USART_Init(ARM_USART_Resources_t *p_res)
 #endif//_APP_DEBUG_
             return ARM_USART_DRIVER_ERROR;
         }
+        RingBuffer_t *pbuff_str_rx = ARM_DMA_GetEventBuffStr(p_res->DMA.pRxDMAxChany);
+        p_res->DMA.pRxEvent = pbuff_str_rx->pBuff;
         //clear and enable DMAxChany IRQ
         NVIC_ClearPendingIRQ(p_res->DMA.RxIrqNum);
         NVIC_EnableIRQ(p_res->DMA.RxIrqNum);
@@ -97,6 +101,7 @@ uint32_t ARM_USART_Init(ARM_USART_Resources_t *p_res)
     p_res->Status.Status |= status;
     return status_ready;
 }
+
 
 uint32_t ARM_USART_Uninit(ARM_USART_Resources_t *p_res)
 {
@@ -326,10 +331,7 @@ uint32_t ARM_USART_SetResources(ARM_USART_Resources_t *p_res, usart_type *p_usar
 #endif//_APP_DEBUG_
         return ARM_USART_DRIVER_ERROR_UNSUPPORTED;
     }
-    RingBuffer_t *pbuff_str_tx = ARM_DMA_GetEventBuffStr(p_res->DMA.pTxDMAxChany);
-    p_res->DMA.pTxEvent = pbuff_str_tx->pBuff;
-    RingBuffer_t *pbuff_str_rx = ARM_DMA_GetEventBuffStr(p_res->DMA.pRxDMAxChany);
-    p_res->DMA.pRxEvent = pbuff_str_rx->pBuff;
+
     return ARM_USART_DRIVER_OK;
 }
 
@@ -366,7 +368,6 @@ void ARM_USART_IRQHandler(ARM_USART_Driver_t *p_drv, ARM_USART_Resources_t *p_re
         }
     }
     if(p_res->Status.XferSta.TxBusy == 1) {
-
         if(usart_flag_get(p_res->pUSARTx, USART_TDBE_FLAG) == SET) {
             ARM_USART_WriteByte(p_res,
                                 ((uint8_t *)p_res->Transfer.pTxData + p_res->Transfer.TxCnt));
@@ -398,27 +399,40 @@ void ARM_USART_cb(ARM_USART_Driver_t *p_drv, ARM_USART_Resources_t *p_res)
         RingBuffer_t *pbuff_str_rx = ARM_DMA_GetEventBuffStr(p_res->DMA.pRxDMAxChany);
         RingBuffer_Read(pbuff_str_rx, &dma_rx_event);
     }
-    if((event & ARM_USART_EVENT_RX_COMPLETE) || (dma_rx_event & ARM_DMA_EVENT_FULL_DATA)) {
+    if(event & ARM_USART_EVENT_RX_COMPLETE) {
         p_res->Transfer.RxCnt = 0;
         p_res->Transfer.RxNum = 0;
         p_res->Status.XferSta.RxBusy = 0;
-        if(p_res->DMA.RxEnable) {
-            dma_channel_enable(p_res->DMA.pRxDMAxChany, FALSE);
-        }
 #ifdef _APP_DEBUG_
         LCD_Printf(0, 0, SET, "%s", p_res->Transfer.pRxData);
         LOG("USART recieved test data");
         memcpy(p_res->Transfer.pTxData, p_res->Transfer.pRxData, ARM_USART_RX_BUFF_SIZE);
         p_drv->Send(p_res->Transfer.pTxData, 8);
-#endif//_APP_DEBUG_          
+#endif//_APP_DEBUG_ 
     }
-    if((event & ARM_USART_EVENT_TX_COMPLETE) || (dma_tx_event & ARM_DMA_EVENT_FULL_DATA)) {
+    if((dma_rx_event & ARM_DMA_EVENT_FULL_DATA) &&
+       (p_res->Status.XferSta.RxBusy == 1)) {
+        dma_channel_enable(p_res->DMA.pRxDMAxChany, FALSE);
+        p_res->Status.XferSta.RxBusy = 0;
+#ifdef _APP_DEBUG_
+        LCD_Printf(0, 0, SET, "%s", p_res->Transfer.pRxData);
+        LOG("USART via DMA recieved test data");
+        memcpy(p_res->Transfer.pTxData, p_res->Transfer.pRxData, ARM_USART_RX_BUFF_SIZE);
+        p_drv->Send(p_res->Transfer.pTxData, 8);
+#endif//_APP_DEBUG_                
+    }
+    if(event & ARM_USART_EVENT_TX_COMPLETE) {
         p_res->Transfer.TxCnt = 0;
         p_res->Transfer.TxNum = 0;
         p_res->Status.XferSta.TxBusy = 0;
-        if(p_res->DMA.TxEnable) {
-            dma_channel_enable(p_res->DMA.pTxDMAxChany, FALSE);
-        }
+#ifdef _APP_DEBUG_
+        p_drv->Recieve(p_res->Transfer.pRxData, 8);
+#endif//_APP_DEBUG_                 
+    }
+    if((dma_tx_event & ARM_DMA_EVENT_FULL_DATA) &&
+       (p_res->Status.XferSta.TxBusy == 1)) {
+        dma_channel_enable(p_res->DMA.pTxDMAxChany, FALSE);
+        p_res->Status.XferSta.TxBusy = 0;
 #ifdef _APP_DEBUG_
         p_drv->Recieve(p_res->Transfer.pRxData, 8);
 #endif//_APP_DEBUG_                 
@@ -466,17 +480,18 @@ uint32_t ARM_USART_Recieve(ARM_USART_Resources_t *p_res, void *pdata, uint32_t n
     if(p_res->Status.XferSta.RxBusy) {
         return ARM_USART_DRIVER_ERROR_BUSY;
     }
-    p_res->Transfer.RxCnt = 0;
-    p_res->Transfer.RxNum = num;
-    p_res->Transfer.pRxData = pdata;
     p_res->Status.XferSta.RxBusy = 1;
     if(p_res->DMA.RxEnable) {
-        ARM_DMA_Config(p_res->DMA.pRxDMAxChany, &p_res->DMA.RxCfg, p_res->pUSARTx->dt,
+        ARM_DMA_Config(p_res->DMA.pRxDMAxChany, &p_res->DMA.RxCfg, (uint32_t)(&p_res->pUSARTx->dt),
                        (uint32_t)pdata, num, DMA_PRIORITY_LOW);
         dma_channel_enable(p_res->DMA.pRxDMAxChany, TRUE);
         dma_interrupt_enable(p_res->DMA.pRxDMAxChany, DMA_FDT_INT, TRUE);
         dma_interrupt_enable(p_res->DMA.pRxDMAxChany, DMA_DTERR_INT, TRUE);
     } else {
+        p_res->Transfer.RxCnt = 0;
+        p_res->Transfer.RxNum = num;
+        p_res->Transfer.pRxData = pdata;
+        p_res->Status.XferSta.RxBusy = 1;
         usart_interrupt_enable(p_res->pUSARTx, USART_RDBF_INT, TRUE);
     }
     usart_interrupt_enable(p_res->pUSARTx, USART_ERR_INT, TRUE);
@@ -501,17 +516,17 @@ uint32_t ARM_USART_Send(ARM_USART_Resources_t *p_res, void *pdata, uint32_t num)
     if(p_res->Status.XferSta.TxBusy) {
         return ARM_USART_DRIVER_ERROR_BUSY;
     }
-    p_res->Transfer.TxCnt = 0;
-    p_res->Transfer.TxNum = num;
-    p_res->Transfer.pTxData = pdata;
     p_res->Status.XferSta.TxBusy = 1;
     if(p_res->DMA.TxEnable) {
-        ARM_DMA_Config(p_res->DMA.pTxDMAxChany, &p_res->DMA.TxCfg, p_res->pUSARTx->dt,
+        ARM_DMA_Config(p_res->DMA.pTxDMAxChany, &p_res->DMA.TxCfg, (uint32_t)(&p_res->pUSARTx->dt),
                        (uint32_t)pdata, num, DMA_PRIORITY_LOW);
         dma_channel_enable(p_res->DMA.pTxDMAxChany, TRUE);
         dma_interrupt_enable(p_res->DMA.pTxDMAxChany, DMA_FDT_INT, TRUE);
         dma_interrupt_enable(p_res->DMA.pTxDMAxChany, DMA_DTERR_INT, TRUE);
     } else {
+        p_res->Transfer.TxCnt = 0;
+        p_res->Transfer.TxNum = num;
+        p_res->Transfer.pTxData = pdata;
         usart_interrupt_enable(p_res->pUSARTx, USART_TDBE_INT, TRUE);
     }
 

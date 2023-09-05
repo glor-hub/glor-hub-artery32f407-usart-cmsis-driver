@@ -117,18 +117,17 @@ void ARM_DMA_IRQHandlerChannel(dma_channel_type *pDMAxChan_y)
 void ARM_DMA_IRQHandlerChannel_y_z(dma_channel_type *pDMAxChan_y, dma_channel_type *pDMAxChan_z)
 {
     ARM_DMA_Resources_t *p_res_y = ARM_DMA_GetResourcesStr(pDMAxChan_y);
-    ARM_DMA_Resources_t *p_res_z = ARM_DMA_GetResourcesStr(pDMAxChan_y);
+    ARM_DMA_Resources_t *p_res_z = ARM_DMA_GetResourcesStr(pDMAxChan_z);
     uint32_t event_y = 0;
     if(dma_flag_get(p_res_y->FullDataFlagDef)) {
         event_y |= ARM_DMA_EVENT_FULL_DATA;
         dma_interrupt_enable(pDMAxChan_y, DMA_FDT_INT, FALSE);
-        dma_interrupt_enable(pDMAxChan_y, DMA_DTERR_INT, TRUE);
+        dma_interrupt_enable(pDMAxChan_y, DMA_DTERR_INT, FALSE);
         dma_flag_clear(p_res_y->FullDataFlagDef);
     }
     if(dma_flag_get(p_res_y->HalfDataFlagDef)) {
         event_y |= ARM_DMA_EVENT_HALF_DATA;
-        dma_interrupt_enable(pDMAxChan_y, DMA_FDT_INT, FALSE);
-        dma_interrupt_enable(pDMAxChan_y, DMA_FDT_INT, TRUE);
+        dma_interrupt_enable(pDMAxChan_y, DMA_HDT_INT, FALSE);
         dma_flag_clear(p_res_y->HalfDataFlagDef);
     }
     if(dma_flag_get(p_res_y->DataErrFlagDef)) {
@@ -141,14 +140,13 @@ void ARM_DMA_IRQHandlerChannel_y_z(dma_channel_type *pDMAxChan_y, dma_channel_ty
     uint32_t event_z = 0;
     if(dma_flag_get(p_res_z->FullDataFlagDef)) {
         event_z |= ARM_DMA_EVENT_FULL_DATA;
-        dma_interrupt_enable(pDMAxChan_y, DMA_FDT_INT, FALSE);
-        dma_interrupt_enable(pDMAxChan_y, DMA_DTERR_INT, TRUE);
+        dma_interrupt_enable(pDMAxChan_z, DMA_FDT_INT, FALSE);
+        dma_interrupt_enable(pDMAxChan_z, DMA_DTERR_INT, FALSE);
         dma_flag_clear(p_res_z->FullDataFlagDef);
     }
     if(dma_flag_get(p_res_z->HalfDataFlagDef)) {
         event_z |= ARM_DMA_EVENT_HALF_DATA;
-        dma_interrupt_enable(pDMAxChan_y, DMA_FDT_INT, FALSE);
-        dma_interrupt_enable(pDMAxChan_y, DMA_FDT_INT, TRUE);
+        dma_interrupt_enable(pDMAxChan_z, DMA_HDT_INT, FALSE);
         dma_flag_clear(p_res_z->HalfDataFlagDef);
     }
     if(dma_flag_get(p_res_z->DataErrFlagDef)) {
@@ -222,36 +220,36 @@ static bool ARM_DMA_SetResources(dma_channel_type *pDMAxChan_y)
         p_res->HalfDataFlagDef = DMA1_HDT2_FLAG;
         p_res->DataErrFlagDef = DMA1_DTERR2_FLAG;
     } else if(pDMAxChan_y == DMA1_CHANNEL3) {
-        p_res->pEventBuffStr = &DMA1_EventBuffStr[DMA1_CHAN1];
-        p_res->pEventBuff = &DMA1_EventBuff[DMA1_CHAN1];
+        p_res->pEventBuffStr = &DMA1_EventBuffStr[DMA1_CHAN3];
+        p_res->pEventBuff = &DMA1_EventBuff[DMA1_CHAN3];
         p_res->GlobalFlagDef = DMA1_GL3_FLAG;
         p_res->FullDataFlagDef = DMA1_FDT3_FLAG;
         p_res->HalfDataFlagDef = DMA1_HDT3_FLAG;
         p_res->DataErrFlagDef = DMA1_DTERR3_FLAG;
     } else if(pDMAxChan_y == DMA1_CHANNEL4) {
-        p_res->pEventBuffStr = &DMA1_EventBuffStr[DMA1_CHAN1];
-        p_res->pEventBuff = &DMA1_EventBuff[DMA1_CHAN1];
+        p_res->pEventBuffStr = &DMA1_EventBuffStr[DMA1_CHAN4];
+        p_res->pEventBuff = &DMA1_EventBuff[DMA1_CHAN4];
         p_res->GlobalFlagDef = DMA1_GL4_FLAG;
         p_res->FullDataFlagDef = DMA1_FDT4_FLAG;
         p_res->HalfDataFlagDef = DMA1_HDT4_FLAG;
         p_res->DataErrFlagDef = DMA1_DTERR4_FLAG;
     } else if(pDMAxChan_y == DMA1_CHANNEL5) {
-        p_res->pEventBuffStr = &DMA1_EventBuffStr[DMA1_CHAN1];
-        p_res->pEventBuff = &DMA1_EventBuff[DMA1_CHAN1];
+        p_res->pEventBuffStr = &DMA1_EventBuffStr[DMA1_CHAN5];
+        p_res->pEventBuff = &DMA1_EventBuff[DMA1_CHAN5];
         p_res->GlobalFlagDef = DMA1_GL5_FLAG;
         p_res->FullDataFlagDef = DMA1_FDT5_FLAG;
         p_res->HalfDataFlagDef = DMA1_HDT5_FLAG;
         p_res->DataErrFlagDef = DMA1_DTERR5_FLAG;
     } else if(pDMAxChan_y == DMA1_CHANNEL6) {
-        p_res->pEventBuffStr = &DMA1_EventBuffStr[DMA1_CHAN1];
-        p_res->pEventBuff = &DMA1_EventBuff[DMA1_CHAN1];
+        p_res->pEventBuffStr = &DMA1_EventBuffStr[DMA1_CHAN6];
+        p_res->pEventBuff = &DMA1_EventBuff[DMA1_CHAN6];
         p_res->GlobalFlagDef = DMA1_GL6_FLAG;
         p_res->FullDataFlagDef = DMA1_FDT6_FLAG;
         p_res->HalfDataFlagDef = DMA1_HDT6_FLAG;
         p_res->DataErrFlagDef = DMA1_DTERR6_FLAG;
     } else if(pDMAxChan_y == DMA1_CHANNEL7) {
-        p_res->pEventBuffStr = &DMA1_EventBuffStr[DMA1_CHAN1];
-        p_res->pEventBuff = &DMA1_EventBuff[DMA1_CHAN1];
+        p_res->pEventBuffStr = &DMA1_EventBuffStr[DMA1_CHAN7];
+        p_res->pEventBuff = &DMA1_EventBuff[DMA1_CHAN7];
         p_res->GlobalFlagDef = DMA1_GL7_FLAG;
         p_res->FullDataFlagDef = DMA1_FDT7_FLAG;
         p_res->HalfDataFlagDef = DMA1_HDT7_FLAG;
