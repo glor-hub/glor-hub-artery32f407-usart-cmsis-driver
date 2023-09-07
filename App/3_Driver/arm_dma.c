@@ -24,7 +24,8 @@
 //********************************************************************************
 
 typedef struct {
-//DMA Flag Definitions
+    confirm_state circular_mode;
+    //DMA Flag Definitions
     uint32_t GlobalFlagDef;
     uint32_t FullDataFlagDef;
     uint32_t HalfDataFlagDef;
@@ -82,6 +83,12 @@ RingBuffer_t *ARM_DMA_GetEventBuffStr(dma_channel_type *pDMAxChan_y)
 void ARM_DMA_Config(dma_channel_type *pDMAxChan_y, dma_init_type *pDMA_Cfg, uint32_t periph_addr,
                     uint32_t mem_addr, uint16_t buff_size, dma_priority_level_type priority)
 {
+    ARM_DMA_Resources_t *p_res = ARM_DMA_GetResourcesStr(pDMAxChan_y);
+    if(pDMA_Cfg->loop_mode_enable) {
+        p_res->circular_mode = TRUE;
+    } else {
+        p_res->circular_mode = FALSE;
+    }
     pDMA_Cfg->peripheral_base_addr = periph_addr;
     pDMA_Cfg->memory_base_addr = mem_addr;
     pDMA_Cfg->buffer_size = buff_size;
@@ -95,14 +102,17 @@ void ARM_DMA_IRQHandlerChannel(dma_channel_type *pDMAxChan_y)
     uint32_t event = 0;
     if(dma_flag_get(p_res->FullDataFlagDef)) {
         event |= ARM_DMA_EVENT_FULL_DATA;
-        dma_interrupt_enable(pDMAxChan_y, DMA_FDT_INT, FALSE);
-        dma_interrupt_enable(pDMAxChan_y, DMA_DTERR_INT, FALSE);
+        if(!p_res->circular_mode) {
+            dma_interrupt_enable(pDMAxChan_y, DMA_FDT_INT, FALSE);
+            dma_interrupt_enable(pDMAxChan_y, DMA_DTERR_INT, FALSE);
+        }
         dma_flag_clear(p_res->FullDataFlagDef);
     }
     if(dma_flag_get(p_res->HalfDataFlagDef)) {
         event |= ARM_DMA_EVENT_HALF_DATA;
-        dma_interrupt_enable(pDMAxChan_y, DMA_FDT_INT, FALSE);
-        dma_interrupt_enable(pDMAxChan_y, DMA_FDT_INT, FALSE);
+        if(!p_res->circular_mode) {
+            dma_interrupt_enable(pDMAxChan_y, DMA_HDT_INT, FALSE);
+        }
         dma_flag_clear(p_res->HalfDataFlagDef);
     }
     if(dma_flag_get(p_res->DataErrFlagDef)) {
@@ -121,13 +131,18 @@ void ARM_DMA_IRQHandlerChannel_y_z(dma_channel_type *pDMAxChan_y, dma_channel_ty
     uint32_t event_y = 0;
     if(dma_flag_get(p_res_y->FullDataFlagDef)) {
         event_y |= ARM_DMA_EVENT_FULL_DATA;
-        dma_interrupt_enable(pDMAxChan_y, DMA_FDT_INT, FALSE);
-        dma_interrupt_enable(pDMAxChan_y, DMA_DTERR_INT, FALSE);
+        if(!p_res_y->circular_mode) {
+            dma_interrupt_enable(pDMAxChan_y, DMA_FDT_INT, FALSE);
+            dma_interrupt_enable(pDMAxChan_y, DMA_DTERR_INT, FALSE);
+        }
+
         dma_flag_clear(p_res_y->FullDataFlagDef);
     }
     if(dma_flag_get(p_res_y->HalfDataFlagDef)) {
         event_y |= ARM_DMA_EVENT_HALF_DATA;
-        dma_interrupt_enable(pDMAxChan_y, DMA_HDT_INT, FALSE);
+        if(!p_res_y->circular_mode) {
+            dma_interrupt_enable(pDMAxChan_y, DMA_HDT_INT, FALSE);
+        }
         dma_flag_clear(p_res_y->HalfDataFlagDef);
     }
     if(dma_flag_get(p_res_y->DataErrFlagDef)) {
@@ -140,13 +155,17 @@ void ARM_DMA_IRQHandlerChannel_y_z(dma_channel_type *pDMAxChan_y, dma_channel_ty
     uint32_t event_z = 0;
     if(dma_flag_get(p_res_z->FullDataFlagDef)) {
         event_z |= ARM_DMA_EVENT_FULL_DATA;
-        dma_interrupt_enable(pDMAxChan_z, DMA_FDT_INT, FALSE);
-        dma_interrupt_enable(pDMAxChan_z, DMA_DTERR_INT, FALSE);
+        if(!p_res_z->circular_mode) {
+            dma_interrupt_enable(pDMAxChan_z, DMA_FDT_INT, FALSE);
+            dma_interrupt_enable(pDMAxChan_z, DMA_DTERR_INT, FALSE);
+        }
         dma_flag_clear(p_res_z->FullDataFlagDef);
     }
     if(dma_flag_get(p_res_z->HalfDataFlagDef)) {
         event_z |= ARM_DMA_EVENT_HALF_DATA;
-        dma_interrupt_enable(pDMAxChan_z, DMA_HDT_INT, FALSE);
+        if(!p_res_z->circular_mode) {
+            dma_interrupt_enable(pDMAxChan_z, DMA_HDT_INT, FALSE);
+        }
         dma_flag_clear(p_res_z->HalfDataFlagDef);
     }
     if(dma_flag_get(p_res_z->DataErrFlagDef)) {

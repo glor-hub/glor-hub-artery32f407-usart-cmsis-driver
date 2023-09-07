@@ -29,11 +29,11 @@ For DMA:
 DMA1 CHANNEL4 (with flexible mapping) - Tx
 DMA1_CHANNEL5 (with flexible mapping) - Rx
 ********************************************/
-#define _UART5_PERIPH_
-#define _UART5_TX_USE_DMA_
-#define _UART5_TX_DMA_CIRCULAR_MODE_
-#define _UART5_RX_USE_DMA_
-#define _UART5_RX_DMA_CIRCULAR_MODE_
+// #define _UART5_PERIPH_ENABLE_
+// #define _UART5_TX_USE_DMA_
+// #define _UART5_TX_DMA_CIRCULAR_MODE_
+// #define _UART5_RX_USE_DMA_
+// #define _UART5_RX_DMA_CIRCULAR_MODE_
 
 /*******************************************
 UART7
@@ -42,11 +42,11 @@ For DMA:
 DMA1 CHANNEL2 (with flexible mapping) - Tx
 DMA1_CHANNEL3 (with flexible mapping) - Rx
 ********************************************/
-#define _UART7_PERIPH_
-#define _UART7_TX_USE_DMA_
-#define _UART7_TX_DMA_CIRCULAR_MODE_
-#define _UART7_RX_USE_DMA_
-#define _UART7_RX_DMA_CIRCULAR_MODE_
+// #define _UART7_PERIPH_ENABLE_
+// #define _UART7_TX_USE_DMA_
+// #define _UART7_TX_DMA_CIRCULAR_MODE_
+// #define _UART7_RX_USE_DMA_
+// #define _UART7_RX_DMA_CIRCULAR_MODE_
 
 /*******************************************
 UART8
@@ -55,11 +55,11 @@ For DMA:
 DMA2 CHANNEL6 (with flexible mapping) - Tx
 DMA2_CHANNEL4 (with flexible mapping) - Rx
 ********************************************/
-#define _UART8_PERIPH_
-#define _UART8_TX_USE_DMA_
-#define _UART8_TX_DMA_CIRCULAR_MODE_
-#define _UART8_RX_USE_DMA_
-#define _UART8_RX_DMA_CIRCULAR_MODE_
+// #define _UART8_PERIPH_ENABLE_
+// #define _UART8_TX_USE_DMA_
+// #define _UART8_TX_DMA_CIRCULAR_MODE_
+// #define _UART8_RX_USE_DMA_
+// #define _UART8_RX_DMA_CIRCULAR_MODE_
 
 /*******************************************
 
