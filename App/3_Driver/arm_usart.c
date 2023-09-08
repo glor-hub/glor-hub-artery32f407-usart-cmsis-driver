@@ -186,6 +186,10 @@ uint32_t ARM_USART_SetResources(ARM_USART_Resources_t *p_res, usart_type *p_usar
     p_res->DMA.RxCfg.direction = DMA_DIR_PERIPHERAL_TO_MEMORY;
     p_res->DMA.RxCfg.memory_inc_enable = TRUE;
     if(p_res->pUSARTx == UART4) {
+
+        /****************************************************************
+            UART4
+         ***************************************************************/
         p_res->IrqNum = UART4_IRQn;
         p_res->Gpio.pTxGpio = GPIOC;
         p_res->Gpio.TxPin = GPIO_PINS_10;
@@ -220,10 +224,17 @@ uint32_t ARM_USART_SetResources(ARM_USART_Resources_t *p_res, usart_type *p_usar
         p_res->DMA.pRxDMAx = DMA2;
         p_res->DMA.pTxDMAxChany = DMA2_CHANNEL5;
         p_res->DMA.pRxDMAxChany = DMA2_CHANNEL3;
-        p_res->DMA.TxFlexModeEnable = FALSE;
-        p_res->DMA.RxFlexModeEnable = FALSE;
-
+        p_res->DMA.TxFlexModeEnable = TRUE;
+        p_res->DMA.RxFlexModeEnable = TRUE;
+        p_res->DMA.TxFlexChannelx = FLEX_CHANNEL5;
+        p_res->DMA.RxFlexChannelx = FLEX_CHANNEL3;
+        p_res->DMA.TxFlexPeriphReq = DMA_FLEXIBLE_UART4_TX;
+        p_res->DMA.RxFlexPeriphReq = DMA_FLEXIBLE_UART4_RX;
     } else if(p_res->pUSARTx == UART5) {
+
+        /****************************************************************
+            UART5
+         ***************************************************************/
         p_res->IrqNum = UART5_IRQn;
         p_res->Gpio.pTxGpio = GPIOC;
         p_res->Gpio.TxPin = GPIO_PINS_12;
@@ -231,10 +242,6 @@ uint32_t ARM_USART_SetResources(ARM_USART_Resources_t *p_res, usart_type *p_usar
         p_res->Gpio.RxPin = GPIO_PINS_2;
         p_res->DMA.TxIrqNum = DMA1_Channel5_IRQn;
         p_res->DMA.RxIrqNum = DMA1_Channel4_IRQn;
-        p_res->DMA.TxFlexChannelx = 0;
-        p_res->DMA.RxFlexChannelx = 0;
-        p_res->DMA.TxFlexPeriphReq = DMA_FLEXIBLE_UART4_TX;
-        p_res->DMA.RxFlexPeriphReq = DMA_FLEXIBLE_UART4_RX;
 #ifdef _UART5_TX_USE_DMA_
         p_res->DMA.TxEnable = TRUE;
 #ifdef _UART5_TX_DMA_CIRCULAR_MODE_
@@ -269,6 +276,9 @@ uint32_t ARM_USART_SetResources(ARM_USART_Resources_t *p_res, usart_type *p_usar
         p_res->DMA.TxFlexPeriphReq = DMA_FLEXIBLE_UART5_TX;
         p_res->DMA.RxFlexPeriphReq = DMA_FLEXIBLE_UART5_RX;
     } else if(p_res->pUSARTx == UART7) {
+        /****************************************************************
+            UART7
+         ***************************************************************/
         p_res->IrqNum = UART7_IRQn;
         p_res->Gpio.pTxGpio = GPIOE;
         p_res->Gpio.TxPin = GPIO_PINS_8;
@@ -308,8 +318,11 @@ uint32_t ARM_USART_SetResources(ARM_USART_Resources_t *p_res, usart_type *p_usar
         p_res->DMA.RxFlexChannelx = FLEX_CHANNEL2;
         p_res->DMA.TxFlexPeriphReq = DMA_FLEXIBLE_UART7_TX;
         p_res->DMA.RxFlexPeriphReq = DMA_FLEXIBLE_UART7_RX;
-
     } else if(p_res->pUSARTx == UART8) {
+
+        /****************************************************************
+                    UART8
+        ***************************************************************/
         p_res->IrqNum = UART8_IRQn;
         p_res->Gpio.pTxGpio = GPIOE;
         p_res->Gpio.TxPin = GPIO_PINS_1;
