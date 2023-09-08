@@ -204,28 +204,17 @@ void USART_cb(void)
 
 #ifdef _UART5_PERIPH_ENABLE_
     ARM_USART_Driver_t *p5_drv = &UART5_Driver;
-    ARM_USART_Resources_t *p5_res = &UART5_Resources;
-    if(RingBuffer_GetCount(&(p5_res->Event))) {
-        p5_drv ->Event_cb();
-    }
+    p5_drv ->Event_cb();
 #endif//_UART5_PERIPH_ENABLE_
 
 #ifdef _UART7_PERIPH_ENABLE_
     ARM_USART_Driver_t *p7_drv = &UART7_Driver;
-    ARM_USART_Resources_t *p7_res = &UART7_Resources;
-    if(RingBuffer_GetCount(&(p7_res->Event))) {
-        p7_drv ->Event_cb();
-    }
-
+    p7_drv ->Event_cb();
 #endif//_UART7_PERIPH_ENABLE_
 
 #ifdef _UART8_PERIPH_ENABLE_
     ARM_USART_Driver_t *p8_drv = &UART8_Driver;
-    ARM_USART_Resources_t *p8_res = &UART8_Resources;
-    if(RingBuffer_GetCount(&(p8_res->Event))) {
-        p8_drv ->Event_cb();
-    }
-
+    p8_drv ->Event_cb();
 #endif//_UART8_PERIPH_ENABLE_
 
 }

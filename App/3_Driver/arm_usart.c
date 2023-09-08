@@ -65,6 +65,10 @@ uint32_t ARM_USART_Init(ARM_USART_Resources_t *p_res)
 #endif//_APP_DEBUG_
             return ARM_USART_DRIVER_ERROR;
         }
+        if(p_res->DMA.TxFlexModeEnable) {
+            dma_flexible_config(p_res->DMA.pTxDMAx, p_res->DMA.TxFlexChannelx,
+                                p_res->DMA.TxFlexPeriphReq);
+        }
         RingBuffer_t *pbuff_str_tx = ARM_DMA_GetEventBuffStr(p_res->DMA.pTxDMAxChany);
         p_res->DMA.pTxEvent = pbuff_str_tx->pBuff;
         //clear and enable DMAxChany IRQ
@@ -79,6 +83,10 @@ uint32_t ARM_USART_Init(ARM_USART_Resources_t *p_res)
             LOG("USART DMA driver error");
 #endif//_APP_DEBUG_
             return ARM_USART_DRIVER_ERROR;
+        }
+        if(p_res->DMA.RxFlexModeEnable) {
+            dma_flexible_config(p_res->DMA.pRxDMAx, p_res->DMA.RxFlexChannelx,
+                                p_res->DMA.RxFlexPeriphReq);
         }
         RingBuffer_t *pbuff_str_rx = ARM_DMA_GetEventBuffStr(p_res->DMA.pRxDMAxChany);
         p_res->DMA.pRxEvent = pbuff_str_rx->pBuff;
@@ -208,8 +216,12 @@ uint32_t ARM_USART_SetResources(ARM_USART_Resources_t *p_res, usart_type *p_usar
 #endif //_UART4_RX_DMA_CIRCULAR_MODE_
         p_res->DMA.RxEnable = FALSE;
 #endif //_UART4_RX_USE_DMA_
+        p_res->DMA.pTxDMAx = DMA2;
+        p_res->DMA.pRxDMAx = DMA2;
         p_res->DMA.pTxDMAxChany = DMA2_CHANNEL5;
         p_res->DMA.pRxDMAxChany = DMA2_CHANNEL3;
+        p_res->DMA.TxFlexModeEnable = FALSE;
+        p_res->DMA.RxFlexModeEnable = FALSE;
 
     } else if(p_res->pUSARTx == UART5) {
         p_res->IrqNum = UART5_IRQn;
@@ -217,10 +229,13 @@ uint32_t ARM_USART_SetResources(ARM_USART_Resources_t *p_res, usart_type *p_usar
         p_res->Gpio.TxPin = GPIO_PINS_12;
         p_res->Gpio.pRxGpio = GPIOD;
         p_res->Gpio.RxPin = GPIO_PINS_2;
-        p_res->DMA.TxIrqNum = DMA1_Channel4_IRQn;
-        p_res->DMA.RxIrqNum = DMA1_Channel5_IRQn;
+        p_res->DMA.TxIrqNum = DMA1_Channel5_IRQn;
+        p_res->DMA.RxIrqNum = DMA1_Channel4_IRQn;
+        p_res->DMA.TxFlexChannelx = 0;
+        p_res->DMA.RxFlexChannelx = 0;
+        p_res->DMA.TxFlexPeriphReq = DMA_FLEXIBLE_UART4_TX;
+        p_res->DMA.RxFlexPeriphReq = DMA_FLEXIBLE_UART4_RX;
 #ifdef _UART5_TX_USE_DMA_
-        dma_flexible_config(DMA1, FLEX_CHANNEL4, DMA_FLEXIBLE_UART5_TX);
         p_res->DMA.TxEnable = TRUE;
 #ifdef _UART5_TX_DMA_CIRCULAR_MODE_
         p_res->DMA.TxCfg.loop_mode_enable = TRUE;
@@ -233,7 +248,6 @@ uint32_t ARM_USART_SetResources(ARM_USART_Resources_t *p_res, usart_type *p_usar
 #endif //_UART5_TX_USE_DMA_
 
 #ifdef _UART5_RX_USE_DMA_
-        dma_flexible_config(DMA1, FLEX_CHANNEL5, DMA_FLEXIBLE_UART5_RX);
         p_res->DMA.RxEnable = TRUE;
 #ifdef _UART5_RX_DMA_CIRCULAR_MODE_
         p_res->DMA.RxCfg.loop_mode_enable = TRUE;
@@ -244,19 +258,25 @@ uint32_t ARM_USART_SetResources(ARM_USART_Resources_t *p_res, usart_type *p_usar
 #endif //_UART5_RX_DMA_CIRCULAR_MODE_
         p_res->DMA.RxEnable = FALSE;
 #endif //_UART5_RX_USE_DMA_
-        p_res->DMA.pTxDMAxChany = DMA1_CHANNEL4;
-        p_res->DMA.pRxDMAxChany = DMA1_CHANNEL5;
-
+        p_res->DMA.pTxDMAx = DMA1;
+        p_res->DMA.pRxDMAx = DMA1;
+        p_res->DMA.pTxDMAxChany = DMA1_CHANNEL5;
+        p_res->DMA.pRxDMAxChany = DMA1_CHANNEL4;
+        p_res->DMA.TxFlexModeEnable = TRUE;
+        p_res->DMA.RxFlexModeEnable = TRUE;
+        p_res->DMA.TxFlexChannelx = FLEX_CHANNEL5;
+        p_res->DMA.RxFlexChannelx = FLEX_CHANNEL4;
+        p_res->DMA.TxFlexPeriphReq = DMA_FLEXIBLE_UART5_TX;
+        p_res->DMA.RxFlexPeriphReq = DMA_FLEXIBLE_UART5_RX;
     } else if(p_res->pUSARTx == UART7) {
         p_res->IrqNum = UART7_IRQn;
         p_res->Gpio.pTxGpio = GPIOE;
         p_res->Gpio.TxPin = GPIO_PINS_8;
         p_res->Gpio.pRxGpio = GPIOE;
         p_res->Gpio.RxPin = GPIO_PINS_7;
-        p_res->DMA.TxIrqNum = DMA1_Channel2_IRQn;
-        p_res->DMA.RxIrqNum = DMA1_Channel3_IRQn;
+        p_res->DMA.TxIrqNum = DMA1_Channel3_IRQn;
+        p_res->DMA.RxIrqNum = DMA1_Channel2_IRQn;
 #ifdef _UART7_TX_USE_DMA_
-        dma_flexible_config(DMA1, FLEX_CHANNEL2, DMA_FLEXIBLE_UART7_TX);
         p_res->DMA.TxEnable = TRUE;
 #ifdef _UART7_TX_DMA_CIRCULAR_MODE_
         p_res->DMA.TxCfg.loop_mode_enable = TRUE;
@@ -268,7 +288,6 @@ uint32_t ARM_USART_SetResources(ARM_USART_Resources_t *p_res, usart_type *p_usar
         p_res->DMA.TxEnable = FALSE;
 #endif //_UART7_TX_USE_DMA_
 #ifdef _UART7_RX_USE_DMA_
-        dma_flexible_config(DMA1, FLEX_CHANNEL3, DMA_FLEXIBLE_UART7_RX);
         p_res->DMA.RxEnable = TRUE;
 #ifdef _UART7_RX_DMA_CIRCULAR_MODE_
         p_res->DMA.RxCfg.loop_mode_enable = TRUE;
@@ -279,8 +298,16 @@ uint32_t ARM_USART_SetResources(ARM_USART_Resources_t *p_res, usart_type *p_usar
 #endif //_UART7_RX_DMA_CIRCULAR_MODE_
         p_res->DMA.RxEnable = FALSE;
 #endif //_UART7_RX_USE_DMA_
-        p_res->DMA.pTxDMAxChany = DMA1_CHANNEL2;
-        p_res->DMA.pRxDMAxChany = DMA1_CHANNEL3;
+        p_res->DMA.pTxDMAx = DMA1;
+        p_res->DMA.pRxDMAx = DMA1;
+        p_res->DMA.pTxDMAxChany = DMA1_CHANNEL3;
+        p_res->DMA.pRxDMAxChany = DMA1_CHANNEL2;
+        p_res->DMA.TxFlexModeEnable = TRUE;
+        p_res->DMA.RxFlexModeEnable = TRUE;
+        p_res->DMA.TxFlexChannelx = FLEX_CHANNEL3;
+        p_res->DMA.RxFlexChannelx = FLEX_CHANNEL2;
+        p_res->DMA.TxFlexPeriphReq = DMA_FLEXIBLE_UART7_TX;
+        p_res->DMA.RxFlexPeriphReq = DMA_FLEXIBLE_UART7_RX;
 
     } else if(p_res->pUSARTx == UART8) {
         p_res->IrqNum = UART8_IRQn;
@@ -291,7 +318,6 @@ uint32_t ARM_USART_SetResources(ARM_USART_Resources_t *p_res, usart_type *p_usar
         p_res->DMA.TxIrqNum = DMA2_Channel6_7_IRQn;
         p_res->DMA.RxIrqNum = DMA2_Channel4_5_IRQn;
 #ifdef _UART8_TX_USE_DMA_
-        dma_flexible_config(DMA2, FLEX_CHANNEL6, DMA_FLEXIBLE_UART8_TX);
         p_res->DMA.TxEnable = TRUE;
 #ifdef _UART8_TX_DMA_CIRCULAR_MODE_
         p_res->DMA.TxCfg.loop_mode_enable = TRUE;
@@ -304,7 +330,6 @@ uint32_t ARM_USART_SetResources(ARM_USART_Resources_t *p_res, usart_type *p_usar
 #endif //_UART8_TX_USE_DMA_
 
 #ifdef _UART8_RX_USE_DMA_
-        dma_flexible_config(DMA2, FLEX_CHANNEL4, DMA_FLEXIBLE_UART8_RX);
         p_res->DMA.RxEnable = TRUE;
 #ifdef _UART8_RX_DMA_CIRCULAR_MODE_
         p_res->DMA.RxCfg.loop_mode_enable = TRUE;
@@ -315,8 +340,16 @@ uint32_t ARM_USART_SetResources(ARM_USART_Resources_t *p_res, usart_type *p_usar
 #endif //_UART8_RX_DMA_CIRCULAR_MODE_
         p_res->DMA.RxEnable = FALSE;
 #endif //_UART8_RX_USE_DMA_
+        p_res->DMA.pTxDMAx = DMA2;
+        p_res->DMA.pRxDMAx = DMA2;
         p_res->DMA.pTxDMAxChany = DMA2_CHANNEL6;
         p_res->DMA.pRxDMAxChany = DMA2_CHANNEL4;
+        p_res->DMA.TxFlexModeEnable = TRUE;
+        p_res->DMA.RxFlexModeEnable = TRUE;
+        p_res->DMA.TxFlexChannelx = FLEX_CHANNEL6;
+        p_res->DMA.RxFlexChannelx = FLEX_CHANNEL4;
+        p_res->DMA.TxFlexPeriphReq = DMA_FLEXIBLE_UART8_TX;
+        p_res->DMA.RxFlexPeriphReq = DMA_FLEXIBLE_UART8_RX;
     } else {
 #ifdef _APP_DEBUG_
         LOG("USART configuration error");
@@ -473,7 +506,7 @@ uint32_t ARM_USART_Recieve(ARM_USART_Resources_t *p_res, void *pdata, uint32_t n
     if(num == 0) {
         return ARM_USART_DRIVER_ERROR_PARAMETER;
     }
-    if(p_res->Status.XferSta.RxBusy && (p_res->DMA.RxCfg.loop_mode_enable == FALSE))  {
+    if(p_res->Status.XferSta.RxBusy)  {
         return ARM_USART_DRIVER_ERROR_BUSY;
     }
     p_res->Status.XferSta.RxBusy = 1;
@@ -510,7 +543,7 @@ uint32_t ARM_USART_Send(ARM_USART_Resources_t *p_res, void *pdata, uint32_t num)
     if(num == 0) {
         return ARM_USART_DRIVER_ERROR_PARAMETER;
     }
-    if(p_res->Status.XferSta.TxBusy && (p_res->DMA.TxCfg.loop_mode_enable == FALSE)) {
+    if(p_res->Status.XferSta.TxBusy) {
         return ARM_USART_DRIVER_ERROR_BUSY;
     }
     p_res->Status.XferSta.TxBusy = 1;
