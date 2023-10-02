@@ -33,7 +33,7 @@
 //================================================================================
 
 
-void ARM_GPIO_Config(gpio_type *pGPIO_x, uint32_t pins, gpio_mode_type mode, gpio_output_type out_type, gpio_pull_type pull, gpio_drive_type drive_strength)
+void TEST_APP_ARM_GPIO_Config(gpio_type *pGPIO_x, uint32_t pins, gpio_mode_type mode, gpio_output_type out_type, gpio_pull_type pull, gpio_drive_type drive_strength)
 {
     gpio_init_type GPIO_Cfg;
     GPIO_Cfg.gpio_pins  = pins;
@@ -44,12 +44,12 @@ void ARM_GPIO_Config(gpio_type *pGPIO_x, uint32_t pins, gpio_mode_type mode, gpi
     gpio_init(pGPIO_x, &GPIO_Cfg);
 }
 
-void ARM_GPIO_BitsSet(gpio_type *pGPIO_x, uint32_t pins)
+void TEST_APP_ARM_GPIO_BitsSet(gpio_type *pGPIO_x, uint32_t pins)
 {
     gpio_bits_set(pGPIO_x, pins);
 }
 
-void ARM_GPIO_BitsReset(gpio_type *pGPIO_x, uint32_t pins)
+void TEST_APP_ARM_GPIO_BitsReset(gpio_type *pGPIO_x, uint32_t pins)
 {
     gpio_bits_reset(pGPIO_x, pins);
 }

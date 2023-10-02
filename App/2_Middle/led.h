@@ -8,10 +8,10 @@ typedef enum {
     LED_YELLOW,
     LED_GREEN,
     LEDS
-} eLedColors;
+} eTEST_APP_LedColors_t;
 
-void LED_Init(eLedColors color);
-void LED_Driver(eLedColors color, uint8_t led_state);
-void LED_Test(void);
+void TEST_APP_LED_Init(eTEST_APP_LedColors_t color);
+void TEST_APP_LED_Driver(eTEST_APP_LedColors_t color, uint8_t led_state);
+void TEST_APP_LED_Test(void);
 
 #endif //_LED_H_

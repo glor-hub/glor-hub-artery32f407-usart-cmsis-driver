@@ -4,13 +4,13 @@
 typedef enum {
     TIMER_DELAY = 0,
     NUM_TIMERS
-} eTimerTypes;
+} eTEST_APP_TimerTypes_t;
 
 error_status TimerInit(void);
-void TimerEnable(eTimerTypes type, uint32_t time);
-void TimerDisable(eTimerTypes type);
-flag_status TimerTestFlag(eTimerTypes type);
-confirm_state TimerTestSet(eTimerTypes type);
+void TimerEnable(eTEST_APP_TimerTypes_t type, uint32_t time);
+void TimerDisable(eTEST_APP_TimerTypes_t type);
+flag_status TimerTestFlag(eTEST_APP_TimerTypes_t type);
+confirm_state TimerTestSet(eTEST_APP_TimerTypes_t type);
 void TimerDoDelay_ms(uint32_t time);
 
 #endif //_TIMER_H_

@@ -32,24 +32,24 @@
 //Public
 //================================================================================
 
-void LED_Init(eLedColors color)
+void TEST_APP_LED_Init(eTEST_APP_LedColors_t color)
 {
-    ARM_CRM_GPIO_ClockEnable(GPIOD, TRUE);
+    TEST_APP_ARM_CRM_GPIO_ClockEnable(GPIOD, TRUE);
     switch(color) {
         case LED_RED: {
-            ARM_GPIO_Config(GPIOD, GPIO_PINS_13, GPIO_MODE_OUTPUT, GPIO_OUTPUT_PUSH_PULL, GPIO_PULL_NONE, GPIO_DRIVE_STRENGTH_MODERATE);
+            TEST_APP_ARM_GPIO_Config(GPIOD, GPIO_PINS_13, GPIO_MODE_OUTPUT, GPIO_OUTPUT_PUSH_PULL, GPIO_PULL_NONE, GPIO_DRIVE_STRENGTH_MODERATE);
             break;
         }
         case LED_YELLOW: {
-            ARM_GPIO_Config(GPIOD, GPIO_PINS_14, GPIO_MODE_OUTPUT, GPIO_OUTPUT_PUSH_PULL, GPIO_PULL_NONE, GPIO_DRIVE_STRENGTH_MODERATE);
+            TEST_APP_ARM_GPIO_Config(GPIOD, GPIO_PINS_14, GPIO_MODE_OUTPUT, GPIO_OUTPUT_PUSH_PULL, GPIO_PULL_NONE, GPIO_DRIVE_STRENGTH_MODERATE);
             break;
         }
         case LED_GREEN: {
-            ARM_GPIO_Config(GPIOD, GPIO_PINS_15, GPIO_MODE_OUTPUT, GPIO_OUTPUT_PUSH_PULL, GPIO_PULL_NONE, GPIO_DRIVE_STRENGTH_MODERATE);
+            TEST_APP_ARM_GPIO_Config(GPIOD, GPIO_PINS_15, GPIO_MODE_OUTPUT, GPIO_OUTPUT_PUSH_PULL, GPIO_PULL_NONE, GPIO_DRIVE_STRENGTH_MODERATE);
             break;
         }
         case LEDS: {
-            ARM_GPIO_Config(GPIOD, GPIO_PINS_13 | GPIO_PINS_14 | GPIO_PINS_15, GPIO_MODE_OUTPUT, GPIO_OUTPUT_PUSH_PULL, GPIO_PULL_NONE, GPIO_DRIVE_STRENGTH_MODERATE);
+            TEST_APP_ARM_GPIO_Config(GPIOD, GPIO_PINS_13 | GPIO_PINS_14 | GPIO_PINS_15, GPIO_MODE_OUTPUT, GPIO_OUTPUT_PUSH_PULL, GPIO_PULL_NONE, GPIO_DRIVE_STRENGTH_MODERATE);
             break;
         }
         default: {
@@ -57,38 +57,38 @@ void LED_Init(eLedColors color)
         }
     }
 }
-void LED_Driver(eLedColors color, uint8_t led_state)
+void TEST_APP_LED_Driver(eTEST_APP_LedColors_t color, uint8_t led_state)
 {
     switch(color) {
         case LED_RED: {
             if(!led_state) {
-                ARM_GPIO_BitsSet(GPIOD, GPIO_PINS_13);
+                TEST_APP_ARM_GPIO_BitsSet(GPIOD, GPIO_PINS_13);
             } else {
-                ARM_GPIO_BitsReset(GPIOD, GPIO_PINS_13);
+                TEST_APP_ARM_GPIO_BitsReset(GPIOD, GPIO_PINS_13);
             }
             break;
         }
         case LED_YELLOW: {
             if(!led_state) {
-                ARM_GPIO_BitsSet(GPIOD, GPIO_PINS_14);
+                TEST_APP_ARM_GPIO_BitsSet(GPIOD, GPIO_PINS_14);
             } else {
-                ARM_GPIO_BitsReset(GPIOD, GPIO_PINS_14);
+                TEST_APP_ARM_GPIO_BitsReset(GPIOD, GPIO_PINS_14);
             }
             break;
         }
         case LED_GREEN: {
             if(!led_state) {
-                ARM_GPIO_BitsSet(GPIOD, GPIO_PINS_15);
+                TEST_APP_ARM_GPIO_BitsSet(GPIOD, GPIO_PINS_15);
             } else {
-                ARM_GPIO_BitsReset(GPIOD, GPIO_PINS_15);
+                TEST_APP_ARM_GPIO_BitsReset(GPIOD, GPIO_PINS_15);
             }
             break;
         }
         case LEDS: {
             if(!led_state) {
-                ARM_GPIO_BitsSet(GPIOD, GPIO_PINS_13 | GPIO_PINS_14 | GPIO_PINS_15);
+                TEST_APP_ARM_GPIO_BitsSet(GPIOD, GPIO_PINS_13 | GPIO_PINS_14 | GPIO_PINS_15);
             } else {
-                ARM_GPIO_BitsReset(GPIOD, GPIO_PINS_13 | GPIO_PINS_14 | GPIO_PINS_15);
+                TEST_APP_ARM_GPIO_BitsReset(GPIOD, GPIO_PINS_13 | GPIO_PINS_14 | GPIO_PINS_15);
             }
             break;
         }
@@ -98,22 +98,22 @@ void LED_Driver(eLedColors color, uint8_t led_state)
     }
 }
 
-void LED_Test(void)
+void TEST_APP_LED_Test(void)
 {
-    LED_Init(LEDS);
-    LED_Driver(LEDS, FALSE);
+    TEST_APP_LED_Init(LEDS);
+    TEST_APP_LED_Driver(LEDS, FALSE);
     TimerDoDelay_ms(500);
-    LED_Driver(LED_RED, TRUE);
+    TEST_APP_LED_Driver(LED_RED, TRUE);
     TimerDoDelay_ms(500);
-    LED_Driver(LED_RED, FALSE);
-    LED_Driver(LED_YELLOW, TRUE);
+    TEST_APP_LED_Driver(LED_RED, FALSE);
+    TEST_APP_LED_Driver(LED_YELLOW, TRUE);
     TimerDoDelay_ms(500);
-    LED_Driver(LED_YELLOW, FALSE);
-    LED_Driver(LED_GREEN, TRUE);
+    TEST_APP_LED_Driver(LED_YELLOW, FALSE);
+    TEST_APP_LED_Driver(LED_GREEN, TRUE);
     TimerDoDelay_ms(500);
-    LED_Driver(LED_GREEN, FALSE);
+    TEST_APP_LED_Driver(LED_GREEN, FALSE);
     TimerDoDelay_ms(500);
-    LED_Driver(LEDS, TRUE);
+    TEST_APP_LED_Driver(LEDS, TRUE);
     TimerDoDelay_ms(500);
 }
 

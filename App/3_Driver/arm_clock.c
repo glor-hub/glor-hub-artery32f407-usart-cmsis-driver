@@ -43,7 +43,7 @@ static uint32_t ARM_CRM_ClockSourceReady(crm_clock_source_type source);
 //Public
 //================================================================================
 
-bool ARM_CRM_isReady(uint32_t status)
+bool TEST_APP_ARM_CRM_isReady(uint32_t status)
 {
     return (status == ARM_CRM_STA_READY);
 }
@@ -52,7 +52,7 @@ bool ARM_CRM_isReady(uint32_t status)
 //кварцевого резонатора. Его частота определяется в init.h. Используем ФАБЧ.
 //настраиваем частоту тактирования для резонатора 8 МГц (8/2*60=240 МГц)
 
-uint32_t ARM_CRM_HEXT_PLL_SysClock240MHzConfig(void)
+uint32_t TEST_APP_ARM_CRM_HEXT_PLL_SysClock240MHzConfig(void)
 {
     uint32_t drv_status = ARM_CRM_STA_READY;
     crm_reset();
@@ -69,7 +69,7 @@ uint32_t ARM_CRM_HEXT_PLL_SysClock240MHzConfig(void)
 //конфигурирование системы тактирования с использованием внутреннего
 //RC-генератора 8 МГц. Используем ФАБЧ.
 //настраиваем частоту тактирования (8/2*60=240 МГц)
-uint32_t ARM_CRM_HICK_PLL_SysClock240MHzConfig(void)
+uint32_t TEST_APP_ARM_CRM_HICK_PLL_SysClock240MHzConfig(void)
 {
     uint32_t drv_status = ARM_CRM_STA_READY;
     crm_reset();
@@ -82,7 +82,7 @@ uint32_t ARM_CRM_HICK_PLL_SysClock240MHzConfig(void)
     return drv_status;
 }
 
-void ARM_CRM_BusClockConfig(void)
+void TEST_APP_ARM_CRM_BusClockConfig(void)
 {
 //240МГц - шина AHB
     crm_ahb_div_set(CRM_AHB_DIV_1);
@@ -92,12 +92,12 @@ void ARM_CRM_BusClockConfig(void)
     crm_apb2_div_set(CRM_APB2_DIV_2);
 }
 
-crm_sclk_type ARM_CRM_GetClockSourceForSwitch(void)
+crm_sclk_type TEST_APP_ARM_CRM_GetClockSourceForSwitch(void)
 {
     return CRM_SCLK_PLL;
 }
 
-uint32_t ARM_CRM_SysClockSwitchCmd(crm_sclk_type value)
+uint32_t TEST_APP_ARM_CRM_SysClockSwitchCmd(crm_sclk_type value)
 {
     uint32_t drv_status = ARM_CRM_STA_READY;
 //включаем режим автоматического переключения частоты (для частот
@@ -113,7 +113,7 @@ uint32_t ARM_CRM_SysClockSwitchCmd(crm_sclk_type value)
 
 //включение/отключение тактирования периферии
 
-bool ARM_CRM_GPIO_ClockEnable(gpio_type *pGPIO_x, confirm_state new_state)
+bool TEST_APP_ARM_CRM_GPIO_ClockEnable(gpio_type *pGPIO_x, confirm_state new_state)
 {
     uint32_t drv_status = ARM_CRM_STA_READY;
     if(pGPIO_x == GPIOA) {
@@ -127,15 +127,15 @@ bool ARM_CRM_GPIO_ClockEnable(gpio_type *pGPIO_x, confirm_state new_state)
     } else if(pGPIO_x == GPIOE) {
         crm_periph_clock_enable(CRM_GPIOE_PERIPH_CLOCK, new_state);
     } else {
-#ifdef _APP_DEBUG_
+#ifdef _TEST_APP_DEBUG_
         LOG("GPIO clock error");
-#endif//_APP_DEBUG_
+#endif//_TEST_APP_DEBUG_
         drv_status |= ARM_CRM_STA_PERIPH_CLOCK_ERR;
     }
-    return ARM_CRM_isReady(drv_status);
+    return TEST_APP_ARM_CRM_isReady(drv_status);
 }
 
-bool ARM_CRM_USART_ClockEnable(usart_type *pUSART_x, confirm_state new_state)
+bool TEST_APP_ARM_CRM_USART_ClockEnable(usart_type *pUSART_x, confirm_state new_state)
 {
     uint32_t drv_status = ARM_CRM_STA_READY;
     if(pUSART_x == UART4) {
@@ -147,35 +147,35 @@ bool ARM_CRM_USART_ClockEnable(usart_type *pUSART_x, confirm_state new_state)
     } else if(pUSART_x == UART8) {
         crm_periph_clock_enable(CRM_UART8_PERIPH_CLOCK, new_state);
     } else {
-#ifdef _APP_DEBUG_
+#ifdef _TEST_APP_DEBUG_
         LOG("USART clock error");
-#endif//_APP_DEBUG_
+#endif//_TEST_APP_DEBUG_
         drv_status |= ARM_CRM_STA_PERIPH_CLOCK_ERR;
     }
-    return ARM_CRM_isReady(drv_status);
+    return TEST_APP_ARM_CRM_isReady(drv_status);
 }
 
-bool ARM_CRM_DMA_ClockEnable(dma_channel_type *pDMAxChan_y, confirm_state new_state)
+bool TEST_APP_ARM_CRM_DMA_ClockEnable(dma_channel_type *pDMAxChan_y, confirm_state new_state)
 {
     uint32_t drv_status = ARM_CRM_STA_READY;
     dma_channel_type *reg_addr;
     reg_addr = pDMAxChan_y;
     if((reg_addr < DMA1_CHANNEL1) || (reg_addr > DMA2_CHANNEL7)) {
-#ifdef _APP_DEBUG_
+#ifdef _TEST_APP_DEBUG_
         LOG("DMA clock error");
-#endif//_APP_DEBUG_
+#endif//_TEST_APP_DEBUG_
         drv_status |= ARM_CRM_STA_PERIPH_CLOCK_ERR;
     } else if(reg_addr <= DMA1_CHANNEL7) {
         crm_periph_clock_enable(CRM_DMA1_PERIPH_CLOCK, new_state);
     } else {
         crm_periph_clock_enable(CRM_DMA2_PERIPH_CLOCK, new_state);
     }
-    return ARM_CRM_isReady(drv_status);
+    return TEST_APP_ARM_CRM_isReady(drv_status);
 }
 
 //сброс периферии
 
-void ARM_CRM_ClockPeriphReset(crm_periph_reset_type value, confirm_state state)
+void TEST_APP_ARM_CRM_ClockPeriphReset(crm_periph_reset_type value, confirm_state state)
 {
     crm_periph_reset(value, state);
 }

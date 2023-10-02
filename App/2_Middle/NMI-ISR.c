@@ -32,7 +32,7 @@
 //================================================================================
 void NMI_Handler(void)
 {
-    ClockFailureDetectHandler();
+    TEST_APP_ClockFailureDetectHandler();
 }
 
 

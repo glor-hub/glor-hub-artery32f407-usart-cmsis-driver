@@ -4,9 +4,9 @@
 #include <stdbool.h>
 #include "ringbuffer.h"
 
-#ifdef _APP_DEBUG_
+#ifdef _TEST_APP_DEBUG_
 #include "assert.h"
-#endif//_APP_DEBUG_
+#endif//_TEST_APP_DEBUG_
 
 //********************************************************************************
 //Macros
@@ -30,15 +30,15 @@
 //Prototypes
 //********************************************************************************
 
-static bool RingBuffer_isEmpty(RingBuffer_t *p_struct);
+static bool RingBuffer_isEmpty(TEST_APP_RingBuffer_t *p_struct);
 
-static bool RingBuffer_isFull(RingBuffer_t *p_struct);
+static bool RingBuffer_isFull(TEST_APP_RingBuffer_t *p_struct);
 
 //================================================================================
 //Public
 //================================================================================
 
-void RingBuffer_Init(RingBuffer_t *p_struct,  void *p_buffer, uint8_t size)
+void TEST_APP_RingBuffer_Init(TEST_APP_RingBuffer_t *p_struct,  void *p_buffer, uint8_t size)
 {
     p_struct->In = 0U;
     p_struct->Out = 0U;
@@ -47,72 +47,72 @@ void RingBuffer_Init(RingBuffer_t *p_struct,  void *p_buffer, uint8_t size)
     p_struct->BuffSize = size;
 }
 
-int8_t RingBuffer_WriteByte(RingBuffer_t *p_struct,  uint8_t *p_data)
+eTEST_APP_RingBufferError_t TEST_APP_RingBuffer_WriteByte(TEST_APP_RingBuffer_t *p_struct,  uint8_t *p_data)
 {
     if(RingBuffer_isFull(p_struct)) {
-#ifdef _APP_DEBUG_
+#ifdef _TEST_APP_DEBUG_
         LOG("Ring Buffer overflow error");
-#endif//_APP_DEBUG_
+#endif//_TEST_APP_DEBUG_
         return RING_BUFF_OVERFLOW_ERR;
     } else {
         *((uint8_t *)p_struct->pBuff + p_struct->In++) = *p_data;
         p_struct->In %= p_struct->BuffSize;
         p_struct->Count++;
-        return RING_BUFF_OK;
+        return RING_BUFF_NO_ERROR;
     }
 }
 
-int8_t RingBuffer_Write(RingBuffer_t *p_struct,  uint32_t *p_data)
+eTEST_APP_RingBufferError_t TEST_APP_RingBuffer_Write(TEST_APP_RingBuffer_t *p_struct,  uint32_t *p_data)
 {
     if(RingBuffer_isFull(p_struct)) {
-#ifdef _APP_DEBUG_
+#ifdef _TEST_APP_DEBUG_
         LOG("Ring Buffer overflow error");
-#endif//_APP_DEBUG_
+#endif//_TEST_APP_DEBUG_
         return RING_BUFF_OVERFLOW_ERR;
     } else {
         *((uint32_t *)p_struct->pBuff + p_struct->In++) = *p_data;
         p_struct->In %= p_struct->BuffSize;
         p_struct->Count++;
-        return RING_BUFF_OK;
+        return RING_BUFF_NO_ERROR;
     }
 }
 
-int8_t RingBuffer_ReadByte(RingBuffer_t *p_struct,  uint8_t *p_data)
+eTEST_APP_RingBufferError_t TEST_APP_RingBuffer_ReadByte(TEST_APP_RingBuffer_t *p_struct,  uint8_t *p_data)
 {
     if(RingBuffer_isEmpty(p_struct)) {
-#ifdef _APP_DEBUG_
+#ifdef _TEST_APP_DEBUG_
         LOG("Ring Buffer underflow error");
-#endif//_APP_DEBUG_
+#endif//_TEST_APP_DEBUG_
         return RING_BUFF_UNDERFLOW_ERR;
     } else {
         *p_data = *((uint8_t *)p_struct->pBuff + p_struct->Out++);
         p_struct->Out %= p_struct->BuffSize;
         p_struct->Count--;
-        return RING_BUFF_OK;
+        return RING_BUFF_NO_ERROR;
     }
 }
 
-int8_t RingBuffer_Read(RingBuffer_t *p_struct,  uint32_t *p_data)
+eTEST_APP_RingBufferError_t TEST_APP_RingBuffer_Read(TEST_APP_RingBuffer_t *p_struct,  uint32_t *p_data)
 {
     if(RingBuffer_isEmpty(p_struct)) {
-#ifdef _APP_DEBUG_
+#ifdef _TEST_APP_DEBUG_
         LOG("Ring Buffer underflow error");
-#endif//_APP_DEBUG_
+#endif//_TEST_APP_DEBUG_
         return RING_BUFF_UNDERFLOW_ERR;
     } else {
         *p_data = *((uint32_t *)p_struct->pBuff + p_struct->Out++);
         p_struct->Out %= p_struct->BuffSize;
         p_struct->Count--;
-        return RING_BUFF_OK;
+        return RING_BUFF_NO_ERROR;
     }
 }
 
-uint8_t RingBuffer_GetCount(RingBuffer_t *p_struct)
+uint8_t TEST_APP_RingBuffer_GetCount(TEST_APP_RingBuffer_t *p_struct)
 {
     return p_struct->Count;
 }
 
-void RingBuffer_Reset(RingBuffer_t *p_struct)
+void TEST_APP_RingBuffer_Reset(TEST_APP_RingBuffer_t *p_struct)
 {
     p_struct->Out = p_struct->In;
     p_struct->Count = 0U;
@@ -122,12 +122,12 @@ void RingBuffer_Reset(RingBuffer_t *p_struct)
 //Private
 //================================================================================
 
-static bool RingBuffer_isEmpty(RingBuffer_t *p_struct)
+static bool RingBuffer_isEmpty(TEST_APP_RingBuffer_t *p_struct)
 {
     return p_struct->Count == 0U;
 }
 
-static bool RingBuffer_isFull(RingBuffer_t *p_struct)
+static bool RingBuffer_isFull(TEST_APP_RingBuffer_t *p_struct)
 {
     return p_struct->Count == p_struct->BuffSize;
 }

@@ -35,22 +35,22 @@
 //Public
 //================================================================================
 
-void AppIdleTask(void)
+void TEST_APP_AppIdleTask(void)
 {
-    USART_cb();
+    TEST_APP_USART_cb();
 }
 
-error_status AppInit(void)
+error_status TEST_APP_AppInit(void)
 {
     error_status init_result = SUCCESS;
 
-#ifdef _APP_DEBUG_
-    AssertConfig();
-#endif//_APP_DEBUG_
-    init_result &= ClockInit();
+#ifdef _TEST_APP_DEBUG_
+    TEST_APP_AssertConfig();
+#endif//_TEST_APP_DEBUG_
+    init_result &= TEST_APP_ClockInit();
     TimerInit();
-    LCD_Init();
-    init_result &= USART_Init();
+    TEST_APP_LCD2004_Init();
+    init_result &= TEST_APP_USART_Init();
     return init_result;
 }
 

@@ -50,7 +50,7 @@ static bool SysTick_isReady(uint32_t status);
 
 void SysTick_Handler(void)
 {
-    eTimerTypes timer;
+    eTEST_APP_TimerTypes_t timer;
     for(timer = TIMER_DELAY; timer < NUM_TIMERS; timer++) {
         if(Timer[timer].State) {
             if(++Timer[timer].Counter == Timer[timer].Time) {
@@ -66,9 +66,9 @@ error_status TimerInit(void)
 
     uint32_t status = TIMER_STA_READY;
     if(SysTick_Config(system_core_clock / 1000)) {
-#ifdef _APP_DEBUG_
+#ifdef _TEST_APP_DEBUG_
         LOG("In SysTick configuration error is occured.");
-#endif//_APP_DEBUG_
+#endif//_TEST_APP_DEBUG_
 
 
         status |= TIMER_STA_SYSTICK_ERR;
@@ -76,7 +76,7 @@ error_status TimerInit(void)
     return SysTick_isReady(status) ? SUCCESS : ERROR;
 }
 
-void TimerEnable(eTimerTypes timer, uint32_t time)
+void TimerEnable(eTEST_APP_TimerTypes_t timer, uint32_t time)
 {
     Timer[timer].State = TRUE;
     Timer[timer].Time = time;
@@ -84,7 +84,7 @@ void TimerEnable(eTimerTypes timer, uint32_t time)
     Timer[timer].Flag = RESET;
 }
 
-void TimerDisable(eTimerTypes timer)
+void TimerDisable(eTEST_APP_TimerTypes_t timer)
 {
     Timer[timer].State = FALSE;
     Timer[timer].Time = 0;
@@ -92,12 +92,12 @@ void TimerDisable(eTimerTypes timer)
     Timer[timer].Flag = RESET;
 }
 
-flag_status TimerTestFlag(eTimerTypes timer)
+flag_status TimerTestFlag(eTEST_APP_TimerTypes_t timer)
 {
     return Timer[timer].Flag;
 }
 
-confirm_state TimerTestSet(eTimerTypes timer)
+confirm_state TimerTestSet(eTEST_APP_TimerTypes_t timer)
 {
     return Timer[timer].State;
 }

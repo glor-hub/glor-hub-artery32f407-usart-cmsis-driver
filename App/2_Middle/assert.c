@@ -34,20 +34,20 @@
 //Public
 //================================================================================
 
-void AssertConfig(void)
+void TEST_APP_AssertConfig(void)
 {
     DEBUGMCU->ctrl_bit.trace_mode = 0x00;
     DEBUGMCU->ctrl_bit.trace_ioen = TRUE;
 }
 
-void AssertFailed(char *func, char *file, uint32_t line)
+void TEST_APP_AssertFailed(char *func, char *file, uint32_t line)
 {
     printf("Assertion failed: expression is false. Function %s in file %s on line %d.\n",
            func, file, line);
 }
 
 
-void Logger(char *func, char *file, uint32_t line, char *report)
+void TEST_APP_Logger(char *func, char *file, uint32_t line, char *report)
 {
     printf("%s. Function %s in file %s on line %d\r\n", report, func, file, line);
 }

@@ -3,9 +3,9 @@
 
 #include "at32f403a_407.h"
 
-#define _APP_DEBUG_
+#define _TEST_APP_DEBUG_
 
-void AppIdleTask(void);
-error_status AppInit(void);
+void TEST_APP_AppIdleTask(void);
+error_status TEST_APP_AppInit(void);
 
 #endif //_APP_H_

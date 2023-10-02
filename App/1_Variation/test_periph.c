@@ -37,19 +37,17 @@
 //Public
 //================================================================================
 
-void PeriphTest(void)
+void TEST_APP_PeriphTest(void)
 {
-    if(ClockTestHEXTFailFlag()) {
+    if(TEST_APP_ClockTestHEXTFailFlag()) {
         LOG("HEXT Clock failure is detected. Switch of the system clock to the HICK clock is occured");
-        ClockResetHEXTFailFlag();
+        TEST_APP_ClockResetHEXTFailFlag();
     }
-#ifdef _APP_DEBUG_
-    // LED_Test();
-    // LCD_Test();
-    if(USART_Test() == ERROR) {
+#ifdef _TEST_APP_DEBUG_
+    if(TEST_APP_USART_Test() == ERROR) {
         LOG("USART Test not passed");
-    };
-#endif//_APP_DEBUG_
+    }
+#endif//_TEST_APP_DEBUG_
 }
 
 

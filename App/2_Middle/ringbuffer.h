@@ -3,9 +3,12 @@
 
 #include "at32f403a_407.h"
 
-#define RING_BUFF_OK             0
-#define RING_BUFF_OVERFLOW_ERR  -1
-#define RING_BUFF_UNDERFLOW_ERR -2
+typedef enum {
+    RING_BUFF_NO_ERROR = 0,
+    RING_BUFF_OVERFLOW_ERR,
+    RING_BUFF_UNDERFLOW_ERR,
+    RING_BUFF_LAST_ERROR_CODE
+} eTEST_APP_RingBufferError_t;
 
 typedef struct {
     uint8_t In;
@@ -13,12 +16,12 @@ typedef struct {
     uint8_t Count;
     void *pBuff;
     uint8_t BuffSize;
-} RingBuffer_t;
+} TEST_APP_RingBuffer_t;
 
-void RingBuffer_Init(RingBuffer_t *p_struct,  void *p_buffer, uint8_t size);
-int8_t RingBuffer_Write(RingBuffer_t *p_struct,  uint32_t *p_data);
-int8_t RingBuffer_Read(RingBuffer_t *p_struct,  uint32_t *p_data);
-uint8_t RingBuffer_GetCount(RingBuffer_t *p_struct);
-void RingBuffer_Reset(RingBuffer_t *p_struct);
+void TEST_APP_RingBuffer_Init(TEST_APP_RingBuffer_t *p_struct,  void *p_buffer, uint8_t size);
+eTEST_APP_RingBufferError_t TEST_APP_RingBuffer_Write(TEST_APP_RingBuffer_t *p_struct,  uint32_t *p_data);
+eTEST_APP_RingBufferError_t TEST_APP_RingBuffer_Read(TEST_APP_RingBuffer_t *p_struct,  uint32_t *p_data);
+uint8_t TEST_APP_RingBuffer_GetCount(TEST_APP_RingBuffer_t *p_struct);
+void TEST_APP_RingBuffer_Reset(TEST_APP_RingBuffer_t *p_struct);
 
 #endif //_RINGBUFFER_H_ 

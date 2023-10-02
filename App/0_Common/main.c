@@ -8,16 +8,16 @@
 int main(void)
 {
     error_status init_result;
-    init_result = AppInit();
+    init_result = TEST_APP_AppInit();
 
-#ifdef _APP_DEBUG_
+#ifdef _TEST_APP_DEBUG_
     //set a breakpoint in this line for the Debug(print) function to work correctly
     //after switching the clock source to HEXT
     ASSERT(init_result == SUCCESS);
-#endif//_APP_DEBUG_
-    PeriphTest();
+#endif//_TEST_APP_DEBUG_
+    TEST_APP_PeriphTest();
     while(1) {
         // PeriphTest();
-        AppIdleTask();
+        TEST_APP_AppIdleTask();
     }
 }
