@@ -18,9 +18,9 @@ DMA2_CHANNEL3 (default config) - Rx
 ********************************************/
 #define _TEST_APP_UART4_PERIPH_ENABLE_
 #define _TEST_APP_UART4_TX_USE_DMA_
-#define _TEST_APP_UART4_TX_DMA_CIRCULAR_MODE_
-#define _TEST_APP_UART4_RX_USE_DMA_
-#define _TEST_APP_UART4_RX_DMA_CIRCULAR_MODE_
+// #define _TEST_APP_UART4_TX_DMA_CIRCULAR_MODE_
+// #define _TEST_APP_UART4_RX_USE_DMA_
+// #define _TEST_APP_UART4_RX_DMA_CIRCULAR_MODE_
 
 /*******************************************
 UART5
@@ -29,11 +29,11 @@ For DMA:
 DMA1 CHANNEL5 (with flexible mapping) - Tx
 DMA1_CHANNEL4 (with flexible mapping) - Rx
 ********************************************/
-#define _TEST_APP_UART5_PERIPH_ENABLE_
-#define _TEST_APP_UART5_TX_USE_DMA_
-#define _TEST_APP_UART5_TX_DMA_CIRCULAR_MODE_
-#define _TEST_APP_UART5_RX_USE_DMA_
-#define _TEST_APP_UART5_RX_DMA_CIRCULAR_MODE_
+// #define _TEST_APP_UART5_PERIPH_ENABLE_
+// #define _TEST_APP_UART5_TX_USE_DMA_
+// #define _TEST_APP_UART5_TX_DMA_CIRCULAR_MODE_
+// #define _TEST_APP_UART5_RX_USE_DMA_
+// #define _TEST_APP_UART5_RX_DMA_CIRCULAR_MODE_
 
 /*******************************************
 UART7
@@ -42,11 +42,11 @@ For DMA:
 DMA1 CHANNEL3 (with flexible mapping) - Tx
 DMA1_CHANNEL2 (with flexible mapping) - Rx
 ********************************************/
-#define _TEST_APP_UART7_PERIPH_ENABLE_
-#define _TEST_APP_UART7_TX_USE_DMA_
-#define _TEST_APP_UART7_TX_DMA_CIRCULAR_MODE_
-#define _TEST_APP_UART7_RX_USE_DMA_
-#define _TEST_APP_UART7_RX_DMA_CIRCULAR_MODE_
+// #define _TEST_APP_UART7_PERIPH_ENABLE_
+// #define _TEST_APP_UART7_TX_USE_DMA_
+// #define _TEST_APP_UART7_TX_DMA_CIRCULAR_MODE_
+// #define _TEST_APP_UART7_RX_USE_DMA_
+// #define _TEST_APP_UART7_RX_DMA_CIRCULAR_MODE_
 
 /*******************************************
 UART8
@@ -55,11 +55,11 @@ For DMA:
 DMA2 CHANNEL6 (with flexible mapping) - Tx
 DMA2_CHANNEL4 (with flexible mapping) - Rx
 ********************************************/
-#define _TEST_APP_UART8_PERIPH_ENABLE_
-#define _TEST_APP_UART8_TX_USE_DMA_
-#define _TEST_APP_UART8_TX_DMA_CIRCULAR_MODE_
-#define _TEST_APP_UART8_RX_USE_DMA_
-#define _TEST_APP_UART8_RX_DMA_CIRCULAR_MODE_
+// #define _TEST_APP_UART8_PERIPH_ENABLE_
+// #define _TEST_APP_UART8_TX_USE_DMA_
+// #define _TEST_APP_UART8_TX_DMA_CIRCULAR_MODE_
+// #define _TEST_APP_UART8_RX_USE_DMA_
+// #define _TEST_APP_UART8_RX_DMA_CIRCULAR_MODE_
 
 /*******************************************
 
@@ -71,7 +71,7 @@ DMA2_CHANNEL4 (with flexible mapping) - Rx
 #define TEST_APP_ARM_USART_EVENT_BUFF_SIZE 8
 
 //USART Driver Status
-#define TEST_APP_ARM_USART_DRIVER_NO_ERROR  ((uint32_t)0UL)
+#define TEST_APP_ARM_USART_DRIVER_NO_ERROR           ((uint32_t)0UL)
 #define TEST_APP_ARM_USART_DRIVER_ERROR              ((uint32_t)1UL << 0)
 #define TEST_APP_ARM_USART_DRIVER_ERROR_PARAMETER    ((uint32_t)1UL << 1)
 #define TEST_APP_ARM_USART_DRIVER_ERROR_BUSY         ((uint32_t)1UL << 2)
@@ -93,11 +93,6 @@ DMA2_CHANNEL4 (with flexible mapping) - Rx
 
 //USART Event
 
-// #define TEST_APP_ARM_USART_EVENT_SEND                ((uint32_t)1UL << 0)  //Send active
-// #define TEST_APP_ARM_USART_EVENT_RECEIVE             ((uint32_t)1UL << 1)  //Receive active
-// #define TEST_APP_ARM_USART_EVENT_DATA_REG_EMPTY       ((uint32_t)1UL << 0)  //Send completed; however USART may still transmit data
-// #define TEST_APP_ARM_USART_EVENT_RECEIVE_COMPLETE    ((uint32_t)1UL << 1)  //Receive completed
-// #define TEST_APP_ARM_USART_EVENT_TRANSFER_COMPLETE   ((uint32_t)1UL << 2)  //Transfer completed
 #define TEST_APP_ARM_USART_EVENT_RX_COMPLETE         ((uint32_t)1UL << 0)  //Receive completed
 #define TEST_APP_ARM_USART_EVENT_TX_COMPLETE         ((uint32_t)1UL << 1)  //Transmit completed (optional)
 #define TEST_APP_ARM_USART_EVENT_TX_UNDERFLOW        ((uint32_t)1UL << 2)  //Transmit data not available (Synchronous Slave)
@@ -180,8 +175,8 @@ typedef struct {
 } TEST_APP_ARM_USART_Resources_t;
 
 typedef struct {
-    uint32_t (*Initialize)(uint32_t BaudRate, usart_data_bit_num_type DataBit,
-                           usart_stop_bit_num_type StopBit,
+    uint32_t (*Initialize)(uint32_t baudRate, usart_data_bit_num_type dataBit,
+                           usart_stop_bit_num_type stopBit,
                            usart_parity_selection_type parity);
     uint32_t (*Uninitialize)(void);
     void (*Event_cb)(void);

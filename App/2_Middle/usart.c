@@ -32,10 +32,6 @@
 //Prototypes
 //********************************************************************************
 
-static uint32_t USART_Initialize(TEST_APP_ARM_USART_Driver_t *p_drv, uint32_t baud_rate, usart_data_bit_num_type data_bit,
-                                 usart_stop_bit_num_type stop_bit,
-                                 usart_parity_selection_type parity);
-
 #ifdef _TEST_APP_UART4_PERIPH_ENABLE_
 static uint32_t UART4_Initialize(uint32_t baud_rate, usart_data_bit_num_type data_bit,
                                  usart_stop_bit_num_type stop_bit,
@@ -162,27 +158,23 @@ error_status TEST_APP_USART_Init(void)
     uint32_t status_ready = TEST_APP_ARM_USART_DRIVER_NO_ERROR;
 
 #ifdef _TEST_APP_UART4_PERIPH_ENABLE_
-    status_ready |= USART_Initialize(&UART4_Driver, TEST_APP_ARM_USART_BAUDRATE_57600, USART_DATA_8BITS,
-                                     USART_STOP_1_BIT,
-                                     USART_PARITY_NONE);
+    status_ready |= TEST_APP_USART_Initialize(&UART4_Driver, TEST_APP_ARM_USART_BAUDRATE_57600, USART_DATA_8BITS,
+                    USART_STOP_1_BIT, USART_PARITY_NONE);
 #endif//_TEST_APP_UART4_PERIPH_ENABLE_
 
 #ifdef _TEST_APP_UART5_PERIPH_ENABLE_
-    status_ready |= USART_Initialize(&UART5_Driver, TEST_APP_ARM_USART_BAUDRATE_57600, USART_DATA_8BITS,
-                                     USART_STOP_1_BIT,
-                                     USART_PARITY_NONE);
+    status_ready |= TEST_APP_USART_Initialize(&UART5_Driver, TEST_APP_ARM_USART_BAUDRATE_57600, USART_DATA_8BITS,
+                    USART_STOP_1_BIT, USART_PARITY_NONE);
 #endif//_TEST_APP_UART5_PERIPH_ENABLE_
 
 #ifdef _TEST_APP_UART7_PERIPH_ENABLE_
-    status_ready |= USART_Initialize(&UART7_Driver, TEST_APP_ARM_USART_BAUDRATE_57600, USART_DATA_8BITS,
-                                     USART_STOP_1_BIT,
-                                     USART_PARITY_NONE);
+    status_ready |= TEST_APP_USART_Initialize(&UART7_Driver, TEST_APP_ARM_USART_BAUDRATE_57600, USART_DATA_8BITS,
+                    USART_STOP_1_BIT, USART_PARITY_NONE);
 #endif//_TEST_APP_UART7_PERIPH_ENABLE_
 
 #ifdef _TEST_APP_UART8_PERIPH_ENABLE_
-    status_ready |= USART_Initialize(&UART8_Driver, TEST_APP_ARM_USART_BAUDRATE_57600, USART_DATA_8BITS,
-                                     USART_STOP_1_BIT,
-                                     USART_PARITY_NONE);
+    status_ready |= TEST_APP_USART_Initialize(&UART8_Driver, TEST_APP_ARM_USART_BAUDRATE_57600, USART_DATA_8BITS,
+                    USART_STOP_1_BIT, USART_PARITY_NONE);
 #endif//_TEST_APP_UART8_PERIPH_ENABLE_
 
     return TEST_APP_ARM_USART_isReady(status_ready) ? SUCCESS : ERROR;
@@ -312,9 +304,8 @@ void UART8_IRQHandler()
 //Private
 //================================================================================
 
-static uint32_t USART_Initialize(TEST_APP_ARM_USART_Driver_t *p_drv, uint32_t baud_rate, usart_data_bit_num_type data_bit,
-                                 usart_stop_bit_num_type stop_bit,
-                                 usart_parity_selection_type parity)
+static uint32_t TEST_APP_TEST_APP_USART_Initialize(TEST_APP_ARM_USART_Driver_t *p_drv, uint32_t baud_rate, usart_data_bit_num_type data_bit,
+        usart_stop_bit_num_type stop_bit, usart_parity_selection_type parity)
 {
     uint32_t status_ready;
     status_ready = p_drv->Initialize(baud_rate, data_bit,
