@@ -10,12 +10,12 @@
 
 #define ARM_CRM_STARTUP_TIMEOUT ((uint32_t)0x3000)
 
-//статус системы тактирования
+//clock system status
 
 #define ARM_CRM_STA_READY                   ((uint32_t)0UL)
-//высокочастотный внешний тактовый генератор HEXT
+//high speed external clock oscillator HEXT
 #define ARM_CRM_STA_HEXT_READY_ERR          ((uint32_t)1UL << 0)
-////высокочастотный внутренный RC-генератор HICK
+//high speed internal RC-oscillator HICK
 #define ARM_CRM_STA_HICK_READY_ERR          ((uint32_t)1UL << 1)
 #define ARM_CRM_STA_PLL_READY_ERR           ((uint32_t)1UL << 2)
 #define ARM_CRM_STA_PLL_CLOCK_SWITCH_ERR    ((uint32_t)1UL << 3)
@@ -48,9 +48,9 @@ bool TEST_APP_ARM_CRM_isReady(uint32_t status)
     return (status == ARM_CRM_STA_READY);
 }
 
-//конфигурирование системы тактирования с использованием внешнего
-//кварцевого резонатора. Его частота определяется в init.h. Используем ФАБЧ.
-//настраиваем частоту тактирования для резонатора 8 МГц (8/2*60=240 МГц)
+//Configure a clock system using an external quartz resonator.
+//Its frequency is defined in init.h. Use PLL.
+//Customize the clock frequency for 8 MHz resonator (8/2*60=240 MHz)
 
 uint32_t TEST_APP_ARM_CRM_HEXT_PLL_SysClock240MHzConfig(void)
 {
@@ -66,9 +66,9 @@ uint32_t TEST_APP_ARM_CRM_HEXT_PLL_SysClock240MHzConfig(void)
     return drv_status;
 }
 
-//конфигурирование системы тактирования с использованием внутреннего
-//RC-генератора 8 МГц. Используем ФАБЧ.
-//настраиваем частоту тактирования (8/2*60=240 МГц)
+//Configure a clock system using an internal RC-oscillator 8 MHz.
+//Use PLL.
+//Customize the clock frequency (8/2*60=240 MHz)
 uint32_t TEST_APP_ARM_CRM_HICK_PLL_SysClock240MHzConfig(void)
 {
     uint32_t drv_status = ARM_CRM_STA_READY;
@@ -84,11 +84,11 @@ uint32_t TEST_APP_ARM_CRM_HICK_PLL_SysClock240MHzConfig(void)
 
 void TEST_APP_ARM_CRM_BusClockConfig(void)
 {
-//240МГц - шина AHB
+//240 MHz - AHB bus
     crm_ahb_div_set(CRM_AHB_DIV_1);
-//120МГц - шина APB1
+//120 MHz - APB1 bus
     crm_apb1_div_set(CRM_APB1_DIV_2);
-//120МГц - шина APB2
+//120 MHz - APB2 bus
     crm_apb2_div_set(CRM_APB2_DIV_2);
 }
 
@@ -100,18 +100,17 @@ crm_sclk_type TEST_APP_ARM_CRM_GetClockSourceForSwitch(void)
 uint32_t TEST_APP_ARM_CRM_SysClockSwitchCmd(crm_sclk_type value)
 {
     uint32_t drv_status = ARM_CRM_STA_READY;
-//включаем режим автоматического переключения частоты (для частот
-//выше 108 МГц)
+//Enable auto step-by-step system clock switch ( for frequencies - larger than 108 MHz)
     crm_auto_step_mode_enable(TRUE);
     crm_sysclk_switch(value);
-//ждем переключения на источник тактирования
+//Waiting for switch to the clock source
     while(crm_sysclk_switch_status_get() != value);
     crm_auto_step_mode_enable(FALSE);
     return drv_status;
 }
 
 
-//включение/отключение тактирования периферии
+//Enable/disable peripheral clock
 
 bool TEST_APP_ARM_CRM_GPIO_ClockEnable(gpio_type *pGPIO_x, confirm_state new_state)
 {
@@ -173,7 +172,7 @@ bool TEST_APP_ARM_CRM_DMA_ClockEnable(dma_channel_type *pDMAxChan_y, confirm_sta
     return TEST_APP_ARM_CRM_isReady(drv_status);
 }
 
-//сброс периферии
+//peripheral reset
 
 void TEST_APP_ARM_CRM_ClockPeriphReset(crm_periph_reset_type value, confirm_state state)
 {

@@ -41,12 +41,13 @@ error_status TEST_APP_ClockInit(void)
     sclk_source = TEST_APP_ARM_CRM_GetClockSourceForSwitch();
     status |= TEST_APP_ARM_CRM_SysClockSwitchCmd(sclk_source);
     system_core_clock_update();
-//активация защиты системы тактирования: в случае сбоя в работе
-//внешнего кварца HEXT происходит автоматическое переключение
-//на внутренний RC-генератор HICK и возникнет прерывание NMI.
+//Enable clock failure detector: if a failure is detected on the HEXT clock
+//system clock to the HICK clock to be switched of the , the
+//CFD to be disabled , HEXT clock to be stopped, and even PLL to be disabled
+//if the HEXT clock is selected as the system clock through PLL to the internal
+//RC oscillator HICK and the NMI interrupt will occur.
     crm_clock_failure_detection_enable(TRUE);
     return TEST_APP_ARM_CRM_isReady(status) ? SUCCESS : ERROR;
-
 }
 
 void TEST_APP_ClockFailureDetectHandler(void)
