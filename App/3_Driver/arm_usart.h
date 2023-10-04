@@ -122,8 +122,9 @@ typedef struct {
 } TEST_APP_ARM_USART_XferStatus_t;
 
 typedef struct {
-    uint32_t Status;
-    TEST_APP_ARM_USART_XferStatus_t XferSta;
+    uint32_t DrvStatus;
+    uint32_t DrvFlag;
+    TEST_APP_ARM_USART_XferStatus_t XferStatus;
 } TEST_APP_ARM_USART_Status_t;
 
 typedef struct {

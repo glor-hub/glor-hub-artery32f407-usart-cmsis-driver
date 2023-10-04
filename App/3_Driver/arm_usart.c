@@ -39,16 +39,17 @@ static uint32_t ARM_USART_GPIO_Config(TEST_APP_ARM_USART_Resources_t *p_res, con
 //Public
 //================================================================================
 
-bool TEST_APP_ARM_USART_isReady(uint32_t status)
+bool TEST_APP_ARM_USART_isReady(uint32_t drv_status)
 {
-    return (status == TEST_APP_ARM_USART_DRIVER_NO_ERROR);
+    return (drv_status == TEST_APP_ARM_USART_DRIVER_NO_ERROR);
 }
 
 uint32_t TEST_APP_ARM_USART_Init(TEST_APP_ARM_USART_Resources_t *p_res)
 {
-    uint32_t status_ready = TEST_APP_ARM_USART_DRIVER_NO_ERROR;
-    uint32_t status = p_res->Status.Status;
+    uint32_t drv_status = TEST_APP_ARM_USART_DRIVER_NO_ERROR;
+    uint32_t drv_flag = p_res->Status.DrvFlag;
     if(!(TEST_APP_ARM_CRM_USART_ClockEnable(p_res->pUSARTx, TRUE))) {
+        p_res->Status.DrvStatus |= TEST_APP_ARM_USART_DRIVER_ERROR;
         return TEST_APP_ARM_USART_DRIVER_ERROR;
     }
 //asynchronous mode is default
@@ -56,13 +57,14 @@ uint32_t TEST_APP_ARM_USART_Init(TEST_APP_ARM_USART_Resources_t *p_res)
     usart_enable(p_res->pUSARTx, TRUE);
     usart_init(p_res->pUSARTx, p_res->Config.BaudRate, p_res->Config.DataBit, p_res->Config.StopBit);
     usart_parity_selection_config(p_res->pUSARTx, p_res->Config.Parity);
-    status |= TEST_APP_ARM_USART_FLAG_CONFIGURATED;
+    drv_flag |= TEST_APP_ARM_USART_FLAG_CONFIGURATED;
     if(p_res->DMA.TxEnable) {
         //clock and reset DMA
         if(!TEST_APP_ARM_DMA_Init(p_res->DMA.pTxDMAxChany)) {
 #ifdef _TEST_APP_DEBUG_
             LOG("USART DMA driver error");
 #endif//_TEST_APP_DEBUG_
+            p_res->Status.DrvStatus |= TEST_APP_ARM_USART_DRIVER_ERROR;
             return TEST_APP_ARM_USART_DRIVER_ERROR;
         }
         if(p_res->DMA.TxFlexModeEnable) {
@@ -82,6 +84,7 @@ uint32_t TEST_APP_ARM_USART_Init(TEST_APP_ARM_USART_Resources_t *p_res)
 #ifdef _TEST_APP_DEBUG_
             LOG("USART DMA driver error");
 #endif//_TEST_APP_DEBUG_
+            p_res->Status.DrvStatus |= TEST_APP_ARM_USART_DRIVER_ERROR;
             return TEST_APP_ARM_USART_DRIVER_ERROR;
         }
         if(p_res->DMA.RxFlexModeEnable) {
@@ -96,24 +99,25 @@ uint32_t TEST_APP_ARM_USART_Init(TEST_APP_ARM_USART_Resources_t *p_res)
         usart_dma_receiver_enable(p_res->pUSARTx, TRUE);
     }
     usart_transmitter_enable(p_res->pUSARTx, TRUE);
-    status |= TEST_APP_ARM_USART_FLAG_TX_ENABLED;
+    drv_flag |= TEST_APP_ARM_USART_FLAG_TX_ENABLED;
     usart_receiver_enable(p_res->pUSARTx, TRUE);
-    status |= TEST_APP_ARM_USART_FLAG_RX_ENABLED;
-    status_ready |= ARM_USART_GPIO_Config(p_res, TRUE);
+    drv_flag |= TEST_APP_ARM_USART_FLAG_RX_ENABLED;
+    drv_status |= ARM_USART_GPIO_Config(p_res, TRUE);
 //clear and enable UARTx IRQ
     NVIC_ClearPendingIRQ(p_res->IrqNum);
     NVIC_EnableIRQ(p_res->IrqNum);
-    status |= TEST_APP_ARM_USART_FLAG_INITIALIZED;
-    p_res->Status.Status |= status;
-    return status_ready;
+    drv_flag |= TEST_APP_ARM_USART_FLAG_INITIALIZED;
+    p_res->Status.DrvStatus |= drv_status;
+    p_res->Status.DrvFlag |= drv_flag;
+    return drv_status;
 }
 
 
 uint32_t TEST_APP_ARM_USART_Uninit(TEST_APP_ARM_USART_Resources_t *p_res)
 {
-    uint32_t status_ready = TEST_APP_ARM_USART_DRIVER_NO_ERROR;
-    uint32_t status = p_res->Status.Status;
-    if(status & TEST_APP_ARM_USART_FLAG_INITIALIZED) {
+    uint32_t drv_status = TEST_APP_ARM_USART_DRIVER_NO_ERROR;
+    uint32_t drv_flag = p_res->Status.DrvFlag;
+    if(drv_flag & TEST_APP_ARM_USART_FLAG_INITIALIZED) {
         //disable and clear UARTx IRQ
         NVIC_DisableIRQ(p_res->IrqNum);
         NVIC_ClearPendingIRQ(p_res->IrqNum);
@@ -133,24 +137,26 @@ uint32_t TEST_APP_ARM_USART_Uninit(TEST_APP_ARM_USART_Resources_t *p_res)
             dma_channel_enable(p_res->DMA.pRxDMAxChany, FALSE);
         }
         usart_transmitter_enable(p_res->pUSARTx, FALSE);
-        status &= ~TEST_APP_ARM_USART_FLAG_TX_ENABLED;
+        drv_flag &= ~TEST_APP_ARM_USART_FLAG_TX_ENABLED;
         usart_receiver_enable(p_res->pUSARTx, FALSE);
-        status &= ~TEST_APP_ARM_USART_FLAG_RX_ENABLED;
-        status_ready |= ARM_USART_GPIO_Config(p_res, FALSE);
+        drv_flag &= ~TEST_APP_ARM_USART_FLAG_RX_ENABLED;
+        drv_status |= ARM_USART_GPIO_Config(p_res, FALSE);
         usart_enable(p_res->pUSARTx, FALSE);
         usart_reset(p_res->pUSARTx);
-        status &= ~TEST_APP_ARM_USART_FLAG_CONFIGURATED;
+        drv_flag &= ~TEST_APP_ARM_USART_FLAG_CONFIGURATED;
         if(!(TEST_APP_ARM_CRM_USART_ClockEnable(p_res->pUSARTx, FALSE))) {
+            p_res->Status.DrvStatus |= TEST_APP_ARM_USART_DRIVER_ERROR;
             return TEST_APP_ARM_USART_DRIVER_ERROR;
         }
-        status &= ~TEST_APP_ARM_USART_FLAG_INITIALIZED;
+        drv_flag &= ~TEST_APP_ARM_USART_FLAG_INITIALIZED;
     } else {
 #ifdef _TEST_APP_DEBUG_
         LOG("USART not been initialized");
 #endif//_TEST_APP_DEBUG_
     }
-    p_res->Status.Status |= status;
-    return status_ready;
+    p_res->Status.DrvStatus |= drv_status;
+    p_res->Status.DrvFlag |= drv_flag;
+    return drv_status;
 }
 
 uint32_t TEST_APP_ARM_USART_SetResources(TEST_APP_ARM_USART_Resources_t *p_res, usart_type *p_usartx,
@@ -166,13 +172,15 @@ uint32_t TEST_APP_ARM_USART_SetResources(TEST_APP_ARM_USART_Resources_t *p_res, 
     p_res->Config.DataBit = data_bit;
     p_res->Config.StopBit = stop_bit;
     p_res->Config.Parity = parity;
-    p_res->Status.XferSta.TxBusy = 0;
-    p_res->Status.XferSta.RxBusy = 0;
-    p_res->Status.XferSta.TxUnderflow = 0;
-    p_res->Status.XferSta.RxOverflow = 0;
-    p_res->Status.XferSta.RxBreak = 0;
-    p_res->Status.XferSta.RxFramingError = 0;
-    p_res->Status.XferSta.RxParityError = 0;
+    p_res->Status.DrvStatus = TEST_APP_ARM_USART_DRIVER_NO_ERROR;
+    p_res->Status.DrvFlag = 0U;
+    p_res->Status.XferStatus.TxBusy = 0;
+    p_res->Status.XferStatus.RxBusy = 0;
+    p_res->Status.XferStatus.TxUnderflow = 0;
+    p_res->Status.XferStatus.RxOverflow = 0;
+    p_res->Status.XferStatus.RxBreak = 0;
+    p_res->Status.XferStatus.RxFramingError = 0;
+    p_res->Status.XferStatus.RxParityError = 0;
     p_res->Transfer.pTxData = p_tx_buff;
     p_res->Transfer.pRxData = p_rx_buff;
     p_res->Transfer.TxNum = 0;
@@ -367,45 +375,45 @@ uint32_t TEST_APP_ARM_USART_SetResources(TEST_APP_ARM_USART_Resources_t *p_res, 
 #ifdef _TEST_APP_DEBUG_
         LOG("USART configuration error");
 #endif//_TEST_APP_DEBUG_
+        p_res->Status.DrvStatus |= TEST_APP_ARM_USART_DRIVER_ERROR_UNSUPPORTED;
         return TEST_APP_ARM_USART_DRIVER_ERROR_UNSUPPORTED;
     }
-
     return TEST_APP_ARM_USART_DRIVER_NO_ERROR;
 }
 
 void TEST_APP_ARM_USART_IRQHandler(TEST_APP_ARM_USART_Driver_t *p_drv, TEST_APP_ARM_USART_Resources_t *p_res)
 {
     uint32_t event = 0;
-    if(p_res->Status.XferSta.RxBusy == 1) {
+    if(p_res->Status.XferStatus.RxBusy == 1) {
         if(usart_flag_get(p_res->pUSARTx, USART_RDBF_FLAG) == SET) {
             *((uint8_t *)p_res->Transfer.pRxData + p_res->Transfer.RxCnt) = TEST_APP_ARM_USART_ReadByte(p_res);
             p_res->Transfer.RxCnt++;
         }
         if(usart_flag_get(p_res->pUSARTx, USART_ROERR_FLAG) == SET) {
-            p_res->Status.XferSta.RxOverflow = 1;
+            p_res->Status.XferStatus.RxOverflow = 1;
             event |= TEST_APP_ARM_USART_EVENT_RX_OVERFLOW;
         }
         if(usart_flag_get(p_res->pUSARTx, USART_FERR_FLAG) == SET) {
-            p_res->Status.XferSta.RxFramingError = 1;
+            p_res->Status.XferStatus.RxFramingError = 1;
             event |= TEST_APP_ARM_USART_EVENT_RX_FRAMING_ERROR;
         }
         if(usart_flag_get(p_res->pUSARTx, USART_NERR_FLAG) == SET) {
-            p_res->Status.XferSta.RxNoiseError = 1;
+            p_res->Status.XferStatus.RxNoiseError = 1;
             event |= TEST_APP_ARM_USART_EVENT_RX_NOISE_ERROR;
         }
         if(usart_flag_get(p_res->pUSARTx, USART_PERR_FLAG) == SET) {
-            p_res->Status.XferSta.RxParityError = 1;
+            p_res->Status.XferStatus.RxParityError = 1;
             event |= TEST_APP_ARM_USART_EVENT_RX_PARITY_ERROR;
         }
         if(p_res->Transfer.RxCnt == p_res->Transfer.RxNum) {
             event |= TEST_APP_ARM_USART_EVENT_RX_COMPLETE;
-            p_res->Status.XferSta.RxBusy = 0;
+            p_res->Status.XferStatus.RxBusy = 0;
             usart_interrupt_enable(p_res->pUSARTx, USART_RDBF_INT, FALSE);
             usart_interrupt_enable(p_res->pUSARTx, USART_ERR_INT, FALSE);
             usart_interrupt_enable(p_res->pUSARTx, USART_PERR_INT, FALSE);
         }
     }
-    if(p_res->Status.XferSta.TxBusy == 1) {
+    if(p_res->Status.XferStatus.TxBusy == 1) {
         if(usart_flag_get(p_res->pUSARTx, USART_TDBE_FLAG) == SET) {
             TEST_APP_ARM_USART_WriteByte(p_res,
                                          ((uint8_t *)p_res->Transfer.pTxData + p_res->Transfer.TxCnt));
@@ -413,7 +421,7 @@ void TEST_APP_ARM_USART_IRQHandler(TEST_APP_ARM_USART_Driver_t *p_drv, TEST_APP_
             if(p_res->Transfer.TxCnt == p_res->Transfer.TxNum) {
                 while(usart_flag_get(p_res->pUSARTx, USART_TDC_FLAG != SET));
                 event |= TEST_APP_ARM_USART_EVENT_TX_COMPLETE;
-                p_res->Status.XferSta.TxBusy = 0;
+                p_res->Status.XferStatus.TxBusy = 0;
                 usart_interrupt_enable(p_res->pUSARTx, USART_TDBE_INT, FALSE);
             }
         }
@@ -440,7 +448,7 @@ void TEST_APP_ARM_USART_cb(TEST_APP_ARM_USART_Driver_t *p_drv, TEST_APP_ARM_USAR
     if(event & TEST_APP_ARM_USART_EVENT_RX_COMPLETE) {
         p_res->Transfer.RxCnt = 0;
         p_res->Transfer.RxNum = 0;
-        p_res->Status.XferSta.RxBusy = 0;
+        p_res->Status.XferStatus.RxBusy = 0;
 #ifdef _TEST_APP_DEBUG_
         TEST_APP_LCD2004_Printf(0, 0, SET, "%s", p_res->Transfer.pRxData);
         LOG("USART recieved test data");
@@ -449,9 +457,9 @@ void TEST_APP_ARM_USART_cb(TEST_APP_ARM_USART_Driver_t *p_drv, TEST_APP_ARM_USAR
 #endif//_TEST_APP_DEBUG_ 
     }
     if((dma_rx_event & TEST_APP_ARM_DMA_EVENT_FULL_DATA) &&
-       (p_res->Status.XferSta.RxBusy == 1)) {
+       (p_res->Status.XferStatus.RxBusy == 1)) {
         if(p_res->DMA.RxCfg.loop_mode_enable == FALSE) {
-            p_res->Status.XferSta.RxBusy = 0;
+            p_res->Status.XferStatus.RxBusy = 0;
         }
 #ifdef _TEST_APP_DEBUG_
         TEST_APP_LCD2004_Printf(0, 0, SET, "%s", p_res->Transfer.pRxData);
@@ -463,16 +471,16 @@ void TEST_APP_ARM_USART_cb(TEST_APP_ARM_USART_Driver_t *p_drv, TEST_APP_ARM_USAR
     if(event & TEST_APP_ARM_USART_EVENT_TX_COMPLETE) {
         p_res->Transfer.TxCnt = 0;
         p_res->Transfer.TxNum = 0;
-        p_res->Status.XferSta.TxBusy = 0;
+        p_res->Status.XferStatus.TxBusy = 0;
 #ifdef _TEST_APP_DEBUG_
         LOG("USART transmitted test data");
         p_drv->Recieve(p_res->Transfer.pRxData, 8);
 #endif//_TEST_APP_DEBUG_                 
     }
     if((dma_tx_event & TEST_APP_ARM_DMA_EVENT_FULL_DATA) &&
-       (p_res->Status.XferSta.TxBusy == 1)) {
+       (p_res->Status.XferStatus.TxBusy == 1)) {
         if(p_res->DMA.TxCfg.loop_mode_enable == FALSE) {
-            p_res->Status.XferSta.TxBusy = 0;
+            p_res->Status.XferStatus.TxBusy = 0;
         }
 #ifdef _TEST_APP_DEBUG_
         LOG("USART transmitted test data via DMA");
@@ -513,16 +521,19 @@ void TEST_APP_ARM_USART_cb(TEST_APP_ARM_USART_Driver_t *p_drv, TEST_APP_ARM_USAR
 
 uint32_t TEST_APP_ARM_USART_Recieve(TEST_APP_ARM_USART_Resources_t *p_res, void *pdata, uint32_t num)
 {
-    if(!(p_res->Status.Status & TEST_APP_ARM_USART_FLAG_RX_ENABLED)) {
+    if(!(p_res->Status.DrvFlag & TEST_APP_ARM_USART_FLAG_RX_ENABLED)) {
+        p_res->Status.DrvStatus |= TEST_APP_ARM_USART_DRIVER_ERROR;
         return TEST_APP_ARM_USART_DRIVER_ERROR;
     }
     if(num == 0) {
+        p_res->Status.DrvStatus |= TEST_APP_ARM_USART_DRIVER_ERROR_PARAMETER;
         return TEST_APP_ARM_USART_DRIVER_ERROR_PARAMETER;
     }
-    if(p_res->Status.XferSta.RxBusy)  {
+    if(p_res->Status.XferStatus.RxBusy)  {
+        p_res->Status.DrvStatus |= TEST_APP_ARM_USART_DRIVER_ERROR_BUSY;
         return TEST_APP_ARM_USART_DRIVER_ERROR_BUSY;
     }
-    p_res->Status.XferSta.RxBusy = 1;
+    p_res->Status.XferStatus.RxBusy = 1;
     if(p_res->DMA.RxEnable) {
         dma_channel_enable(p_res->DMA.pRxDMAxChany, FALSE);
         TEST_APP_ARM_DMA_Config(p_res->DMA.pRxDMAxChany, &p_res->DMA.RxCfg, (uint32_t)(&p_res->pUSARTx->dt),
@@ -534,12 +545,11 @@ uint32_t TEST_APP_ARM_USART_Recieve(TEST_APP_ARM_USART_Resources_t *p_res, void 
         p_res->Transfer.RxCnt = 0;
         p_res->Transfer.RxNum = num;
         p_res->Transfer.pRxData = pdata;
-        p_res->Status.XferSta.RxBusy = 1;
+        p_res->Status.XferStatus.RxBusy = 1;
         usart_interrupt_enable(p_res->pUSARTx, USART_RDBF_INT, TRUE);
     }
     usart_interrupt_enable(p_res->pUSARTx, USART_ERR_INT, TRUE);
     usart_interrupt_enable(p_res->pUSARTx, USART_PERR_INT, TRUE);
-
     return TEST_APP_ARM_USART_DRIVER_NO_ERROR;
 }
 
@@ -550,16 +560,19 @@ void TEST_APP_ARM_USART_WriteByte(TEST_APP_ARM_USART_Resources_t *p_res, uint8_t
 
 uint32_t TEST_APP_ARM_USART_Send(TEST_APP_ARM_USART_Resources_t *p_res, void *pdata, uint32_t num)
 {
-    if(!(p_res->Status.Status & TEST_APP_ARM_USART_FLAG_TX_ENABLED)) {
+    if(!(p_res->Status.DrvFlag & TEST_APP_ARM_USART_FLAG_TX_ENABLED)) {
+        p_res->Status.DrvStatus |= TEST_APP_ARM_USART_DRIVER_ERROR;
         return TEST_APP_ARM_USART_DRIVER_ERROR;
     }
     if(num == 0) {
+        p_res->Status.DrvStatus |= TEST_APP_ARM_USART_DRIVER_ERROR_PARAMETER;
         return TEST_APP_ARM_USART_DRIVER_ERROR_PARAMETER;
     }
-    if(p_res->Status.XferSta.TxBusy) {
+    if(p_res->Status.XferStatus.TxBusy) {
+        p_res->Status.DrvStatus |= TEST_APP_ARM_USART_DRIVER_ERROR_BUSY;
         return TEST_APP_ARM_USART_DRIVER_ERROR_BUSY;
     }
-    p_res->Status.XferSta.TxBusy = 1;
+    p_res->Status.XferStatus.TxBusy = 1;
     if(p_res->DMA.TxEnable) {
         dma_channel_enable(p_res->DMA.pTxDMAxChany, FALSE);
         TEST_APP_ARM_DMA_Config(p_res->DMA.pTxDMAxChany, &p_res->DMA.TxCfg, (uint32_t)(&p_res->pUSARTx->dt),
@@ -573,7 +586,6 @@ uint32_t TEST_APP_ARM_USART_Send(TEST_APP_ARM_USART_Resources_t *p_res, void *pd
         p_res->Transfer.pTxData = pdata;
         usart_interrupt_enable(p_res->pUSARTx, USART_TDBE_INT, TRUE);
     }
-
     return TEST_APP_ARM_USART_DRIVER_NO_ERROR;
 }
 
@@ -587,14 +599,15 @@ uint8_t TEST_APP_ARM_USART_ReadByte(TEST_APP_ARM_USART_Resources_t *p_res)
 TEST_APP_ARM_USART_Status_t TEST_APP_ARM_USART_GetStatus(TEST_APP_ARM_USART_Resources_t *p_res)
 {
     TEST_APP_ARM_USART_Status_t status;
-    status.Status = p_res->Status.Status;
-    status.XferSta.TxBusy = p_res->Status.XferSta.TxBusy;
-    status.XferSta.RxBusy = p_res->Status.XferSta.RxBusy;
-    status.XferSta.TxUnderflow = p_res->Status.XferSta.TxUnderflow;
-    status.XferSta.RxOverflow = p_res->Status.XferSta.RxOverflow;
-    status.XferSta.RxBreak = p_res->Status.XferSta.RxBreak;
-    status.XferSta.RxFramingError = p_res->Status.XferSta.RxFramingError;
-    status.XferSta.RxParityError = p_res->Status.XferSta.RxParityError;
+    status.DrvStatus = p_res->Status.DrvStatus;
+    status.DrvFlag = p_res->Status.DrvFlag;
+    status.XferStatus.TxBusy = p_res->Status.XferStatus.TxBusy;
+    status.XferStatus.RxBusy = p_res->Status.XferStatus.RxBusy;
+    status.XferStatus.TxUnderflow = p_res->Status.XferStatus.TxUnderflow;
+    status.XferStatus.RxOverflow = p_res->Status.XferStatus.RxOverflow;
+    status.XferStatus.RxBreak = p_res->Status.XferStatus.RxBreak;
+    status.XferStatus.RxFramingError = p_res->Status.XferStatus.RxFramingError;
+    status.XferStatus.RxParityError = p_res->Status.XferStatus.RxParityError;
     return status;
 }
 
@@ -620,6 +633,7 @@ static uint32_t ARM_USART_GPIO_Config(TEST_APP_ARM_USART_Resources_t *p_res, con
 #ifdef _TEST_APP_DEBUG_
         LOG("USART configuration error");
 #endif//_TEST_APP_DEBUG_        
+        p_res->Status.DrvStatus |= TEST_APP_ARM_USART_DRIVER_ERROR;
         return TEST_APP_ARM_USART_DRIVER_ERROR;
     }
     if(new_state) {
@@ -634,6 +648,7 @@ static uint32_t ARM_USART_GPIO_Config(TEST_APP_ARM_USART_Resources_t *p_res, con
 #ifdef _TEST_APP_DEBUG_
         LOG("USART configuration error");
 #endif//_TEST_APP_DEBUG_
+        p_res->Status.DrvStatus |= TEST_APP_ARM_USART_DRIVER_ERROR;
         return TEST_APP_ARM_USART_DRIVER_ERROR;
     }
     if(new_state) {
