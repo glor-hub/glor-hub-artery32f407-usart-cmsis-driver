@@ -5,6 +5,7 @@
 #include <stdarg.h>
 #include <stdio.h>
 #include "usart.h"
+#include "arm_driver.h"
 #include "arm_usart.h"
 #include "arm_gpio.h"
 #include "arm_clock.h"
@@ -155,7 +156,7 @@ static uint8_t UART8_Rx_Buff[TEST_APP_ARM_USART_RX_BUFF_SIZE];
 
 error_status TEST_APP_USART_Init(void)
 {
-    uint32_t drv_status = TEST_APP_ARM_USART_DRIVER_NO_ERROR;
+    uint32_t drv_status = TEST_APP_ARM_DRIVER_NO_ERROR;
 
 #ifdef _TEST_APP_UART4_PERIPH_ENABLE_
     drv_status |= TEST_APP_USART_Initialize(&UART4_Driver, TEST_APP_ARM_USART_BAUDRATE_57600, USART_DATA_8BITS,
@@ -177,13 +178,13 @@ error_status TEST_APP_USART_Init(void)
                                             USART_STOP_1_BIT, USART_PARITY_NONE);
 #endif//_TEST_APP_UART8_PERIPH_ENABLE_
 
-    return TEST_APP_ARM_USART_isReady(drv_status) ? SUCCESS : ERROR;
+    return TEST_APP_ARM_DRIVER_isReady(drv_status) ? SUCCESS : ERROR;
 }
 
 uint32_t TEST_APP_USART_Initialize(TEST_APP_ARM_USART_Driver_t *p_drv, uint32_t baud_rate, usart_data_bit_num_type data_bit,
                                    usart_stop_bit_num_type stop_bit, usart_parity_selection_type parity)
 {
-    uint32_t drv_status = TEST_APP_ARM_USART_DRIVER_NO_ERROR;
+    uint32_t drv_status = TEST_APP_ARM_DRIVER_NO_ERROR;
     drv_status |= p_drv->Initialize(baud_rate, data_bit,
                                     stop_bit, parity);
     return drv_status;
@@ -193,7 +194,7 @@ error_status TEST_APP_USART_Uninitialize(TEST_APP_ARM_USART_Driver_t *p_drv)
 {
     uint32_t drv_status;
     drv_status = p_drv->Uninitialize();
-    return TEST_APP_ARM_USART_isReady(drv_status) ? SUCCESS : ERROR;
+    return TEST_APP_ARM_DRIVER_isReady(drv_status) ? SUCCESS : ERROR;
 }
 
 void TEST_APP_USART_cb(void)
@@ -231,7 +232,7 @@ int8_t TEST_APP_USART_printf(TEST_APP_ARM_USART_Driver_t *p_drv, char *fmt, ...)
     len = strlen(strbuff);
     drv_status = p_drv->Send(strbuff, len);
     va_end(args);
-    if(drv_status == TEST_APP_ARM_USART_DRIVER_NO_ERROR) {
+    if(drv_status == TEST_APP_ARM_DRIVER_NO_ERROR) {
         return res;
     } else {
         return -1;
@@ -241,7 +242,7 @@ int8_t TEST_APP_USART_printf(TEST_APP_ARM_USART_Driver_t *p_drv, char *fmt, ...)
 #ifdef _TEST_APP_DEBUG_
 error_status TEST_APP_USART_Test(void)
 {
-    uint32_t drv_status = TEST_APP_ARM_USART_DRIVER_NO_ERROR;
+    uint32_t drv_status = TEST_APP_ARM_DRIVER_NO_ERROR;
 
 #ifdef _TEST_APP_UART4_PERIPH_ENABLE_
     TEST_APP_ARM_USART_Driver_t *p4_drv = &UART4_Driver;
@@ -275,7 +276,7 @@ error_status TEST_APP_USART_Test(void)
     drv_status |= p8_drv->Recieve(UART8_Rx_Buff, 8);
 #endif//_TEST_APP_UART8_PERIPH_ENABLE_
 
-    return TEST_APP_ARM_USART_isReady(drv_status) ? SUCCESS : ERROR;
+    return TEST_APP_ARM_DRIVER_isReady(drv_status) ? SUCCESS : ERROR;
 }
 #endif//_TEST_APP_DEBUG_
 
@@ -318,7 +319,7 @@ static uint32_t UART4_Initialize(uint32_t baud_rate, usart_data_bit_num_type dat
                                  usart_stop_bit_num_type stop_bit,
                                  usart_parity_selection_type parity)
 {
-    uint32_t drv_status = TEST_APP_ARM_USART_DRIVER_NO_ERROR;
+    uint32_t drv_status = TEST_APP_ARM_DRIVER_NO_ERROR;
     TEST_APP_ARM_USART_Resources_t *p_res = &UART4_Resources;
     drv_status |= TEST_APP_ARM_USART_SetResources(p_res, UART4, UART4_EventBuff,
                   UART4_Tx_Buff, UART4_Rx_Buff,
@@ -330,7 +331,7 @@ static uint32_t UART4_Initialize(uint32_t baud_rate, usart_data_bit_num_type dat
 
 static uint32_t UART4_Uninitialize(void)
 {
-    uint32_t drv_status = TEST_APP_ARM_USART_DRIVER_NO_ERROR;
+    uint32_t drv_status = TEST_APP_ARM_DRIVER_NO_ERROR;
     TEST_APP_ARM_USART_Resources_t *p_res = &UART4_Resources;
     drv_status |= TEST_APP_ARM_USART_SetResources(p_res, UART4, UART4_EventBuff,
                   UART4_Tx_Buff, UART4_Rx_Buff,
@@ -372,7 +373,7 @@ static uint32_t UART5_Initialize(uint32_t baud_rate, usart_data_bit_num_type dat
                                  usart_stop_bit_num_type stop_bit,
                                  usart_parity_selection_type parity)
 {
-    uint32_t drv_status = TEST_APP_ARM_USART_DRIVER_NO_ERROR;
+    uint32_t drv_status = TEST_APP_ARM_DRIVER_NO_ERROR;
     TEST_APP_ARM_USART_Resources_t *p_res = &UART5_Resources;
     drv_status |= TEST_APP_ARM_USART_SetResources(p_res, UART5, UART5_EventBuff,
                   UART5_Tx_Buff, UART5_Rx_Buff,
@@ -384,7 +385,7 @@ static uint32_t UART5_Initialize(uint32_t baud_rate, usart_data_bit_num_type dat
 
 static uint32_t UART5_Uninitialize(void)
 {
-    uint32_t drv_status = TEST_APP_ARM_USART_DRIVER_NO_ERROR;
+    uint32_t drv_status = TEST_APP_ARM_DRIVER_NO_ERROR;
     TEST_APP_ARM_USART_Resources_t *p_res = &UART5_Resources;
     drv_status |= TEST_APP_ARM_USART_SetResources(p_res, UART5, UART5_EventBuff,
                   UART5_Tx_Buff, UART5_Rx_Buff,
@@ -426,7 +427,7 @@ static uint32_t UART7_Initialize(uint32_t baud_rate, usart_data_bit_num_type dat
                                  usart_stop_bit_num_type stop_bit,
                                  usart_parity_selection_type parity)
 {
-    uint32_t drv_status = TEST_APP_ARM_USART_DRIVER_NO_ERROR;
+    uint32_t drv_status = TEST_APP_ARM_DRIVER_NO_ERROR;
     TEST_APP_ARM_USART_Resources_t *p_res = &UART7_Resources;
     drv_status |= TEST_APP_ARM_USART_SetResources(p_res, UART7, UART7_EventBuff,
                   UART7_Tx_Buff, UART7_Rx_Buff,
@@ -438,7 +439,7 @@ static uint32_t UART7_Initialize(uint32_t baud_rate, usart_data_bit_num_type dat
 
 static uint32_t UART7_Uninitialize(void)
 {
-    uint32_t drv_status = TEST_APP_ARM_USART_DRIVER_NO_ERROR;
+    uint32_t drv_status = TEST_APP_ARM_DRIVER_NO_ERROR;
     TEST_APP_ARM_USART_Resources_t *p_res = &UART7_Resources;
     drv_status |= TEST_APP_ARM_USART_SetResources(p_res, UART7, UART7_EventBuff,
                   UART7_Tx_Buff, UART7_Rx_Buff,
@@ -480,7 +481,7 @@ static uint32_t UART8_Initialize(uint32_t baud_rate, usart_data_bit_num_type dat
                                  usart_stop_bit_num_type stop_bit,
                                  usart_parity_selection_type parity)
 {
-    uint32_t drv_status = TEST_APP_ARM_USART_DRIVER_NO_ERROR;
+    uint32_t drv_status = TEST_APP_ARM_DRIVER_NO_ERROR;
     TEST_APP_ARM_USART_Resources_t *p_res = &UART8_Resources;
     drv_status |= TEST_APP_ARM_USART_SetResources(p_res, UART8, UART8_EventBuff,
                   UART8_Tx_Buff, UART8_Rx_Buff,
@@ -492,7 +493,7 @@ static uint32_t UART8_Initialize(uint32_t baud_rate, usart_data_bit_num_type dat
 
 static uint32_t UART8_Uninitialize(void)
 {
-    uint32_t drv_status = TEST_APP_ARM_USART_DRIVER_NO_ERROR;
+    uint32_t drv_status = TEST_APP_ARM_DRIVER_NO_ERROR;
     TEST_APP_ARM_USART_Resources_t *p_res = &UART8_Resources;
     drv_status |= TEST_APP_ARM_USART_SetResources(p_res, UART8, UART8_EventBuff,
                   UART8_Tx_Buff, UART8_Rx_Buff,

@@ -2,6 +2,7 @@
 //arm_uart.c
 //********************************************************************************
 #include <string.h>
+#include "arm_driver.h"
 #include "arm_usart.h"
 #include "arm_clock.h"
 #include "arm_gpio.h"
@@ -39,18 +40,13 @@ static uint32_t ARM_USART_GPIO_Config(TEST_APP_ARM_USART_Resources_t *p_res, con
 //Public
 //================================================================================
 
-bool TEST_APP_ARM_USART_isReady(uint32_t drv_status)
-{
-    return (drv_status == TEST_APP_ARM_USART_DRIVER_NO_ERROR);
-}
-
 uint32_t TEST_APP_ARM_USART_Init(TEST_APP_ARM_USART_Resources_t *p_res)
 {
-    uint32_t drv_status = TEST_APP_ARM_USART_DRIVER_NO_ERROR;
+    uint32_t drv_status = TEST_APP_ARM_DRIVER_NO_ERROR;
     uint32_t drv_flag = p_res->Status.DrvFlag;
     if(!(TEST_APP_ARM_CRM_USART_ClockEnable(p_res->pUSARTx, TRUE))) {
-        p_res->Status.DrvStatus |= TEST_APP_ARM_USART_DRIVER_ERROR;
-        return TEST_APP_ARM_USART_DRIVER_ERROR;
+        p_res->Status.DrvStatus |= TEST_APP_ARM_DRIVER_ERROR;
+        return TEST_APP_ARM_DRIVER_ERROR;
     }
 //asynchronous mode is default
     usart_reset(p_res->pUSARTx);
@@ -64,8 +60,8 @@ uint32_t TEST_APP_ARM_USART_Init(TEST_APP_ARM_USART_Resources_t *p_res)
 #ifdef _TEST_APP_DEBUG_
             LOG("USART DMA driver error");
 #endif//_TEST_APP_DEBUG_
-            p_res->Status.DrvStatus |= TEST_APP_ARM_USART_DRIVER_ERROR;
-            return TEST_APP_ARM_USART_DRIVER_ERROR;
+            p_res->Status.DrvStatus |= TEST_APP_ARM_DRIVER_ERROR;
+            return TEST_APP_ARM_DRIVER_ERROR;
         }
         if(p_res->DMA.TxFlexModeEnable) {
             dma_flexible_config(p_res->DMA.pTxDMAx, p_res->DMA.TxFlexChannelx,
@@ -84,8 +80,8 @@ uint32_t TEST_APP_ARM_USART_Init(TEST_APP_ARM_USART_Resources_t *p_res)
 #ifdef _TEST_APP_DEBUG_
             LOG("USART DMA driver error");
 #endif//_TEST_APP_DEBUG_
-            p_res->Status.DrvStatus |= TEST_APP_ARM_USART_DRIVER_ERROR;
-            return TEST_APP_ARM_USART_DRIVER_ERROR;
+            p_res->Status.DrvStatus |= TEST_APP_ARM_DRIVER_ERROR;
+            return TEST_APP_ARM_DRIVER_ERROR;
         }
         if(p_res->DMA.RxFlexModeEnable) {
             dma_flexible_config(p_res->DMA.pRxDMAx, p_res->DMA.RxFlexChannelx,
@@ -115,7 +111,7 @@ uint32_t TEST_APP_ARM_USART_Init(TEST_APP_ARM_USART_Resources_t *p_res)
 
 uint32_t TEST_APP_ARM_USART_Uninit(TEST_APP_ARM_USART_Resources_t *p_res)
 {
-    uint32_t drv_status = TEST_APP_ARM_USART_DRIVER_NO_ERROR;
+    uint32_t drv_status = TEST_APP_ARM_DRIVER_NO_ERROR;
     uint32_t drv_flag = p_res->Status.DrvFlag;
     if(drv_flag & TEST_APP_ARM_USART_FLAG_INITIALIZED) {
         //disable and clear UARTx IRQ
@@ -145,8 +141,8 @@ uint32_t TEST_APP_ARM_USART_Uninit(TEST_APP_ARM_USART_Resources_t *p_res)
         usart_reset(p_res->pUSARTx);
         drv_flag &= ~TEST_APP_ARM_USART_FLAG_CONFIGURATED;
         if(!(TEST_APP_ARM_CRM_USART_ClockEnable(p_res->pUSARTx, FALSE))) {
-            p_res->Status.DrvStatus |= TEST_APP_ARM_USART_DRIVER_ERROR;
-            return TEST_APP_ARM_USART_DRIVER_ERROR;
+            p_res->Status.DrvStatus |= TEST_APP_ARM_DRIVER_ERROR;
+            return TEST_APP_ARM_DRIVER_ERROR;
         }
         drv_flag &= ~TEST_APP_ARM_USART_FLAG_INITIALIZED;
     } else {
@@ -159,7 +155,8 @@ uint32_t TEST_APP_ARM_USART_Uninit(TEST_APP_ARM_USART_Resources_t *p_res)
     return drv_status;
 }
 
-uint32_t TEST_APP_ARM_USART_SetResources(TEST_APP_ARM_USART_Resources_t *p_res, usart_type *p_usartx,
+uint32_t TEST_APP_ARM_USART_SetResources(TEST_APP_ARM_USART_Resources_t *p_res,
+        usart_type *p_usartx,
         void *p_event_buff, void *p_tx_buff,
         void *p_rx_buff, uint32_t BaudRate,
         usart_data_bit_num_type data_bit,
@@ -172,7 +169,7 @@ uint32_t TEST_APP_ARM_USART_SetResources(TEST_APP_ARM_USART_Resources_t *p_res, 
     p_res->Config.DataBit = data_bit;
     p_res->Config.StopBit = stop_bit;
     p_res->Config.Parity = parity;
-    p_res->Status.DrvStatus = TEST_APP_ARM_USART_DRIVER_NO_ERROR;
+    p_res->Status.DrvStatus = TEST_APP_ARM_DRIVER_NO_ERROR;
     p_res->Status.DrvFlag = 0U;
     p_res->Status.XferStatus.TxBusy = 0;
     p_res->Status.XferStatus.RxBusy = 0;
@@ -375,10 +372,10 @@ uint32_t TEST_APP_ARM_USART_SetResources(TEST_APP_ARM_USART_Resources_t *p_res, 
 #ifdef _TEST_APP_DEBUG_
         LOG("USART configuration error");
 #endif//_TEST_APP_DEBUG_
-        p_res->Status.DrvStatus |= TEST_APP_ARM_USART_DRIVER_ERROR_UNSUPPORTED;
-        return TEST_APP_ARM_USART_DRIVER_ERROR_UNSUPPORTED;
+        p_res->Status.DrvStatus |= TEST_APP_ARM_DRIVER_ERROR_UNSUPPORTED;
+        return TEST_APP_ARM_DRIVER_ERROR_UNSUPPORTED;
     }
-    return TEST_APP_ARM_USART_DRIVER_NO_ERROR;
+    return TEST_APP_ARM_DRIVER_NO_ERROR;
 }
 
 void TEST_APP_ARM_USART_IRQHandler(TEST_APP_ARM_USART_Driver_t *p_drv, TEST_APP_ARM_USART_Resources_t *p_res)
@@ -522,16 +519,16 @@ void TEST_APP_ARM_USART_cb(TEST_APP_ARM_USART_Driver_t *p_drv, TEST_APP_ARM_USAR
 uint32_t TEST_APP_ARM_USART_Recieve(TEST_APP_ARM_USART_Resources_t *p_res, void *pdata, uint32_t num)
 {
     if(!(p_res->Status.DrvFlag & TEST_APP_ARM_USART_FLAG_RX_ENABLED)) {
-        p_res->Status.DrvStatus |= TEST_APP_ARM_USART_DRIVER_ERROR;
-        return TEST_APP_ARM_USART_DRIVER_ERROR;
+        p_res->Status.DrvStatus |= TEST_APP_ARM_DRIVER_ERROR;
+        return TEST_APP_ARM_DRIVER_ERROR;
     }
     if(num == 0) {
-        p_res->Status.DrvStatus |= TEST_APP_ARM_USART_DRIVER_ERROR_PARAMETER;
-        return TEST_APP_ARM_USART_DRIVER_ERROR_PARAMETER;
+        p_res->Status.DrvStatus |= TEST_APP_ARM_DRIVER_ERROR_PARAMETER;
+        return TEST_APP_ARM_DRIVER_ERROR_PARAMETER;
     }
     if(p_res->Status.XferStatus.RxBusy)  {
-        p_res->Status.DrvStatus |= TEST_APP_ARM_USART_DRIVER_ERROR_BUSY;
-        return TEST_APP_ARM_USART_DRIVER_ERROR_BUSY;
+        p_res->Status.DrvStatus |= TEST_APP_ARM_DRIVER_ERROR_BUSY;
+        return TEST_APP_ARM_DRIVER_ERROR_BUSY;
     }
     p_res->Status.XferStatus.RxBusy = 1;
     if(p_res->DMA.RxEnable) {
@@ -550,7 +547,7 @@ uint32_t TEST_APP_ARM_USART_Recieve(TEST_APP_ARM_USART_Resources_t *p_res, void 
     }
     usart_interrupt_enable(p_res->pUSARTx, USART_ERR_INT, TRUE);
     usart_interrupt_enable(p_res->pUSARTx, USART_PERR_INT, TRUE);
-    return TEST_APP_ARM_USART_DRIVER_NO_ERROR;
+    return TEST_APP_ARM_DRIVER_NO_ERROR;
 }
 
 void TEST_APP_ARM_USART_WriteByte(TEST_APP_ARM_USART_Resources_t *p_res, uint8_t *pByte)
@@ -561,16 +558,16 @@ void TEST_APP_ARM_USART_WriteByte(TEST_APP_ARM_USART_Resources_t *p_res, uint8_t
 uint32_t TEST_APP_ARM_USART_Send(TEST_APP_ARM_USART_Resources_t *p_res, void *pdata, uint32_t num)
 {
     if(!(p_res->Status.DrvFlag & TEST_APP_ARM_USART_FLAG_TX_ENABLED)) {
-        p_res->Status.DrvStatus |= TEST_APP_ARM_USART_DRIVER_ERROR;
-        return TEST_APP_ARM_USART_DRIVER_ERROR;
+        p_res->Status.DrvStatus |= TEST_APP_ARM_DRIVER_ERROR;
+        return TEST_APP_ARM_DRIVER_ERROR;
     }
     if(num == 0) {
-        p_res->Status.DrvStatus |= TEST_APP_ARM_USART_DRIVER_ERROR_PARAMETER;
-        return TEST_APP_ARM_USART_DRIVER_ERROR_PARAMETER;
+        p_res->Status.DrvStatus |= TEST_APP_ARM_DRIVER_ERROR_PARAMETER;
+        return TEST_APP_ARM_DRIVER_ERROR_PARAMETER;
     }
     if(p_res->Status.XferStatus.TxBusy) {
-        p_res->Status.DrvStatus |= TEST_APP_ARM_USART_DRIVER_ERROR_BUSY;
-        return TEST_APP_ARM_USART_DRIVER_ERROR_BUSY;
+        p_res->Status.DrvStatus |= TEST_APP_ARM_DRIVER_ERROR_BUSY;
+        return TEST_APP_ARM_DRIVER_ERROR_BUSY;
     }
     p_res->Status.XferStatus.TxBusy = 1;
     if(p_res->DMA.TxEnable) {
@@ -586,7 +583,7 @@ uint32_t TEST_APP_ARM_USART_Send(TEST_APP_ARM_USART_Resources_t *p_res, void *pd
         p_res->Transfer.pTxData = pdata;
         usart_interrupt_enable(p_res->pUSARTx, USART_TDBE_INT, TRUE);
     }
-    return TEST_APP_ARM_USART_DRIVER_NO_ERROR;
+    return TEST_APP_ARM_DRIVER_NO_ERROR;
 }
 
 uint8_t TEST_APP_ARM_USART_ReadByte(TEST_APP_ARM_USART_Resources_t *p_res)
@@ -633,8 +630,8 @@ static uint32_t ARM_USART_GPIO_Config(TEST_APP_ARM_USART_Resources_t *p_res, con
 #ifdef _TEST_APP_DEBUG_
         LOG("USART configuration error");
 #endif//_TEST_APP_DEBUG_        
-        p_res->Status.DrvStatus |= TEST_APP_ARM_USART_DRIVER_ERROR;
-        return TEST_APP_ARM_USART_DRIVER_ERROR;
+        p_res->Status.DrvStatus |= TEST_APP_ARM_DRIVER_ERROR;
+        return TEST_APP_ARM_DRIVER_ERROR;
     }
     if(new_state) {
         TEST_APP_ARM_GPIO_Config(p_res->Gpio.pTxGpio, p_res->Gpio.TxPin, GPIO_MODE_MUX, GPIO_OUTPUT_PUSH_PULL,
@@ -648,8 +645,8 @@ static uint32_t ARM_USART_GPIO_Config(TEST_APP_ARM_USART_Resources_t *p_res, con
 #ifdef _TEST_APP_DEBUG_
         LOG("USART configuration error");
 #endif//_TEST_APP_DEBUG_
-        p_res->Status.DrvStatus |= TEST_APP_ARM_USART_DRIVER_ERROR;
-        return TEST_APP_ARM_USART_DRIVER_ERROR;
+        p_res->Status.DrvStatus |= TEST_APP_ARM_DRIVER_ERROR;
+        return TEST_APP_ARM_DRIVER_ERROR;
     }
     if(new_state) {
         //use any out_type and drive_strength for input i/o:
@@ -659,6 +656,6 @@ static uint32_t ARM_USART_GPIO_Config(TEST_APP_ARM_USART_Resources_t *p_res, con
         TEST_APP_ARM_GPIO_Config(p_res->Gpio.pRxGpio, p_res->Gpio.RxPin, GPIO_MODE_INPUT, GPIO_OUTPUT_PUSH_PULL,
                                  GPIO_PULL_NONE, GPIO_DRIVE_STRENGTH_MODERATE);
     }
-    return TEST_APP_ARM_USART_DRIVER_NO_ERROR;
+    return TEST_APP_ARM_DRIVER_NO_ERROR;
 }
 

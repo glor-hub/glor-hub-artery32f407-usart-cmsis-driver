@@ -70,14 +70,6 @@ DMA2_CHANNEL4 (with flexible mapping) - Rx
 
 #define TEST_APP_ARM_USART_EVENT_BUFF_SIZE 8
 
-//USART Driver Status
-#define TEST_APP_ARM_USART_DRIVER_NO_ERROR           ((uint32_t)0UL)
-#define TEST_APP_ARM_USART_DRIVER_ERROR              ((uint32_t)1UL << 0)
-#define TEST_APP_ARM_USART_DRIVER_ERROR_PARAMETER    ((uint32_t)1UL << 1)
-#define TEST_APP_ARM_USART_DRIVER_ERROR_BUSY         ((uint32_t)1UL << 2)
-#define TEST_APP_ARM_USART_DRIVER_ERROR_TIMEOUT      ((uint32_t)1UL << 3)
-#define TEST_APP_ARM_USART_DRIVER_ERROR_UNSUPPORTED  ((uint32_t)1UL << 4)
-
 // USART Driver flags
 #define TEST_APP_ARM_USART_FLAG_INITIALIZED          (uint32_t)(1U << 0)
 #define TEST_APP_ARM_USART_FLAG_CONFIGURATED         (uint32_t)(1U << 1)
@@ -189,7 +181,6 @@ typedef struct {
 
 uint32_t TEST_APP_ARM_USART_Init(TEST_APP_ARM_USART_Resources_t *p_res);
 uint32_t TEST_APP_ARM_USART_Uninit(TEST_APP_ARM_USART_Resources_t *p_res);
-bool TEST_APP_ARM_USART_isReady(uint32_t status);
 uint32_t TEST_APP_ARM_USART_SetResources(TEST_APP_ARM_USART_Resources_t *p_res, usart_type *p_usartx,
         void *p_event_buff, void *p_tx_buff,
         void *p_rx_buff, uint32_t BaudRate,
