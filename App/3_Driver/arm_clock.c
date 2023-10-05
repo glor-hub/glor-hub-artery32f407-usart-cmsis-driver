@@ -12,7 +12,7 @@
 
 //clock system status
 
-#define ARM_CRM_STA_READY                   ((uint32_t)0UL)
+#define ARM_CRM_STA_NO_ERR                  ((uint32_t)0UL)
 //high speed external clock oscillator HEXT
 #define ARM_CRM_STA_HEXT_READY_ERR          ((uint32_t)1UL << 0)
 //high speed internal RC-oscillator HICK
@@ -45,7 +45,7 @@ static uint32_t ARM_CRM_ClockSourceReady(crm_clock_source_type source);
 
 bool TEST_APP_ARM_CRM_isReady(uint32_t status)
 {
-    return (status == ARM_CRM_STA_READY);
+    return (status == ARM_CRM_STA_NO_ERR);
 }
 
 //Configure a clock system using an external quartz resonator.
@@ -54,7 +54,7 @@ bool TEST_APP_ARM_CRM_isReady(uint32_t status)
 
 uint32_t TEST_APP_ARM_CRM_HEXT_PLL_SysClock240MHzConfig(void)
 {
-    uint32_t drv_status = ARM_CRM_STA_READY;
+    uint32_t drv_status = ARM_CRM_STA_NO_ERR;
     crm_reset();
     crm_clock_source_enable(CRM_CLOCK_SOURCE_HEXT, TRUE);
     drv_status |= ARM_CRM_ClockSourceReady(CRM_CLOCK_SOURCE_HEXT);
@@ -71,7 +71,7 @@ uint32_t TEST_APP_ARM_CRM_HEXT_PLL_SysClock240MHzConfig(void)
 //Customize the clock frequency (8/2*60=240 MHz)
 uint32_t TEST_APP_ARM_CRM_HICK_PLL_SysClock240MHzConfig(void)
 {
-    uint32_t drv_status = ARM_CRM_STA_READY;
+    uint32_t drv_status = ARM_CRM_STA_NO_ERR;
     crm_reset();
     crm_clock_source_enable(CRM_CLOCK_SOURCE_HICK, TRUE);
     drv_status |= ARM_CRM_ClockSourceReady(CRM_CLOCK_SOURCE_HICK);
@@ -99,7 +99,7 @@ crm_sclk_type TEST_APP_ARM_CRM_GetClockSourceForSwitch(void)
 
 uint32_t TEST_APP_ARM_CRM_SysClockSwitchCmd(crm_sclk_type value)
 {
-    uint32_t drv_status = ARM_CRM_STA_READY;
+    uint32_t drv_status = ARM_CRM_STA_NO_ERR;
 //Enable auto step-by-step system clock switch ( for frequencies - larger than 108 MHz)
     crm_auto_step_mode_enable(TRUE);
     crm_sysclk_switch(value);
@@ -114,7 +114,7 @@ uint32_t TEST_APP_ARM_CRM_SysClockSwitchCmd(crm_sclk_type value)
 
 bool TEST_APP_ARM_CRM_GPIO_ClockEnable(gpio_type *pGPIO_x, confirm_state new_state)
 {
-    uint32_t drv_status = ARM_CRM_STA_READY;
+    uint32_t drv_status = ARM_CRM_STA_NO_ERR;
     if(pGPIO_x == GPIOA) {
         crm_periph_clock_enable(CRM_GPIOA_PERIPH_CLOCK, new_state);
     } else if(pGPIO_x == GPIOB) {
@@ -136,7 +136,7 @@ bool TEST_APP_ARM_CRM_GPIO_ClockEnable(gpio_type *pGPIO_x, confirm_state new_sta
 
 bool TEST_APP_ARM_CRM_USART_ClockEnable(usart_type *pUSART_x, confirm_state new_state)
 {
-    uint32_t drv_status = ARM_CRM_STA_READY;
+    uint32_t drv_status = ARM_CRM_STA_NO_ERR;
     if(pUSART_x == UART4) {
         crm_periph_clock_enable(CRM_UART4_PERIPH_CLOCK, new_state);
     } else if(pUSART_x == UART5) {
@@ -156,7 +156,7 @@ bool TEST_APP_ARM_CRM_USART_ClockEnable(usart_type *pUSART_x, confirm_state new_
 
 bool TEST_APP_ARM_CRM_DMA_ClockEnable(dma_channel_type *pDMAxChan_y, confirm_state new_state)
 {
-    uint32_t drv_status = ARM_CRM_STA_READY;
+    uint32_t drv_status = ARM_CRM_STA_NO_ERR;
     dma_channel_type *reg_addr;
     reg_addr = pDMAxChan_y;
     if((reg_addr < DMA1_CHANNEL1) || (reg_addr > DMA2_CHANNEL7)) {
@@ -186,7 +186,7 @@ void TEST_APP_ARM_CRM_ClockPeriphReset(crm_periph_reset_type value, confirm_stat
 static uint32_t ARM_CRM_ClockSourceReady(crm_clock_source_type source)
 {
     uint32_t counter = 0;
-    uint32_t drv_status = ARM_CRM_STA_READY;
+    uint32_t drv_status = ARM_CRM_STA_NO_ERR;
     switch(source) {
         case CRM_CLOCK_SOURCE_HEXT: {
             while((crm_flag_get(CRM_HEXT_STABLE_FLAG) == ERROR) && (counter != ARM_CRM_STARTUP_TIMEOUT)) {

@@ -81,7 +81,7 @@ static bool ARM_DMA_SetResources(dma_channel_type *pDMAxChan_y);
 
 bool TEST_APP_ARM_DMA_Init(dma_channel_type *pDMAxChan_y)
 {
-    uint32_t drv_status = TEST_APP_ARM_DMA_STA_READY;
+    uint32_t drv_status = TEST_APP_ARM_DMA_STA_NO_ERROR;
     if(!TEST_APP_ARM_CRM_DMA_ClockEnable(pDMAxChan_y, TRUE)) {
         drv_status |= TEST_APP_ARM_DMA_STA_ERROR;
     }
@@ -92,7 +92,7 @@ bool TEST_APP_ARM_DMA_Init(dma_channel_type *pDMAxChan_y)
     ARM_DMA_Resources_t *p_res = ARM_DMA_GetResourcesStr(pDMAxChan_y);
     TEST_APP_RingBuffer_Init(p_res->pEventBuffStr, p_res->pEventBuffStr->pBuff,
                              ARM_DMA_EVENT_BUFF_SIZE);
-    return (drv_status == TEST_APP_ARM_DMA_STA_READY);
+    return (drv_status == TEST_APP_ARM_DMA_STA_NO_ERROR);
 }
 
 TEST_APP_RingBuffer_t *TEST_APP_ARM_DMA_GetEventBuffStr(dma_channel_type *pDMAxChan_y)
@@ -243,7 +243,7 @@ static ARM_DMA_Resources_t *ARM_DMA_GetResourcesStr(dma_channel_type *pDMAxChan_
 
 static bool ARM_DMA_SetResources(dma_channel_type *pDMAxChan_y)
 {
-    uint32_t drv_status = TEST_APP_ARM_DMA_STA_READY;
+    uint32_t drv_status = TEST_APP_ARM_DMA_STA_NO_ERROR;
     ARM_DMA_Resources_t *p_res = ARM_DMA_GetResourcesStr(pDMAxChan_y);
     if(pDMAxChan_y == DMA1_CHANNEL1) {
         p_res->pEventBuffStr = &ARM_DMA1_EventBuffStr[ARM_DMA1_CHAN1];
@@ -348,6 +348,6 @@ static bool ARM_DMA_SetResources(dma_channel_type *pDMAxChan_y)
         LOG("Invalid DMA Configuration");
 #endif//_TEST_APP_DEBUG_
     }
-    return (drv_status == TEST_APP_ARM_DMA_STA_READY);
+    return (drv_status == TEST_APP_ARM_DMA_STA_NO_ERROR);
 }
 

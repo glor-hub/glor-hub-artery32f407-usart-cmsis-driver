@@ -6,7 +6,7 @@
 #include "ringbuffer.h"
 
 // DMA Driver Status
-#define TEST_APP_ARM_DMA_STA_READY               ((uint32_t)0UL)
+#define TEST_APP_ARM_DMA_STA_NO_ERROR            ((uint32_t)0UL)
 #define TEST_APP_ARM_DMA_STA_ERROR               ((uint32_t)1UL << 0)
 #define TEST_APP_ARM_DMA_STA_UNSUPPORTED         ((uint32_t)1UL << 1)
 
