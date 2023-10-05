@@ -10,9 +10,7 @@
 #define TEST_APP_ARM_DRIVER_ERROR_PARAMETER         ((uint32_t)1UL << 1)
 #define TEST_APP_ARM_DRIVER_ERROR_BUSY              ((uint32_t)1UL << 2)
 #define TEST_APP_ARM_DRIVER_ERROR_TIMEOUT           ((uint32_t)1UL << 3)
-#define TEST_APP_ARM_DRIVER_ERROR_DATA_LOST         ((uint32_t)1UL << 4)
-#define TEST_APP_ARM_DRIVER_ERROR_MODE_FAULT        ((uint32_t)1UL << 5)
-#define TEST_APP_ARM_DRIVER_ERROR_UNSUPPORTED       ((uint32_t)1UL << 6)
+#define TEST_APP_ARM_DRIVER_ERROR_UNSUPPORTED       ((uint32_t)1UL << 4)
 
 bool TEST_APP_ARM_DRIVER_isReady(uint32_t status);
 
