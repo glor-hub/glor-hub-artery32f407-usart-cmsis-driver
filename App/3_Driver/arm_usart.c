@@ -144,6 +144,7 @@ uint32_t TEST_APP_ARM_USART_Uninit(TEST_APP_ARM_USART_Resources_t *p_res)
             p_res->Status.DrvStatus |= TEST_APP_ARM_DRIVER_ERROR;
             return TEST_APP_ARM_DRIVER_ERROR;
         }
+        memset(p_res, 0, sizeof(TEST_APP_ARM_USART_Resources_t));
         drv_flag &= ~TEST_APP_ARM_USART_FLAG_INITIALIZED;
     } else {
 #ifdef _TEST_APP_DEBUG_
@@ -161,10 +162,12 @@ uint32_t TEST_APP_ARM_USART_SetResources(TEST_APP_ARM_USART_Resources_t *p_res,
         void *p_rx_buff, uint32_t BaudRate,
         usart_data_bit_num_type data_bit,
         usart_stop_bit_num_type stop_bit,
-        usart_parity_selection_type parity)
+        usart_parity_selection_type parity,
+        uint32_t gpio_pin_def)
 {
     p_res->pUSARTx = p_usartx;
     TEST_APP_RingBuffer_Init(&(p_res->Event), p_event_buff, TEST_APP_ARM_USART_EVENT_BUFF_SIZE);
+    p_res->Gpio.PinDef = gpio_pin_def;
     p_res->Config.BaudRate = BaudRate;
     p_res->Config.DataBit = data_bit;
     p_res->Config.StopBit = stop_bit;
@@ -190,16 +193,30 @@ uint32_t TEST_APP_ARM_USART_SetResources(TEST_APP_ARM_USART_Resources_t *p_res,
     p_res->DMA.TxCfg.memory_inc_enable = TRUE;
     p_res->DMA.RxCfg.direction = DMA_DIR_PERIPHERAL_TO_MEMORY;
     p_res->DMA.RxCfg.memory_inc_enable = TRUE;
+    /****************************************************************
+        UART4
+    ***************************************************************/
     if(p_res->pUSARTx == UART4) {
-
-        /****************************************************************
-            UART4
-         ***************************************************************/
         p_res->IrqNum = UART4_IRQn;
-        p_res->Gpio.pTxGpio = GPIOC;
-        p_res->Gpio.TxPin = GPIO_PINS_10;
-        p_res->Gpio.pRxGpio = GPIOC;
-        p_res->Gpio.RxPin = GPIO_PINS_11;
+        switch(p_res->Gpio.PinDef) {
+            case TEST_APP_ARM_USART_GPIO_PIN_DEF_DEFAULT: {
+                p_res->Gpio.pTxGpio = GPIOC;
+                p_res->Gpio.TxPin = GPIO_PINS_10;
+                p_res->Gpio.pRxGpio = GPIOC;
+                p_res->Gpio.RxPin = GPIO_PINS_11;
+                break;
+            }
+            case TEST_APP_ARM_UART4_GPIO_PIN_DEF_REMAP1: {
+                p_res->Gpio.pTxGpio = GPIOA;
+                p_res->Gpio.TxPin = GPIO_PINS_0;
+                p_res->Gpio.pRxGpio = GPIOA;
+                p_res->Gpio.RxPin = GPIO_PINS_1;
+                break;
+            }
+            default: {
+                break;
+            }
+        }
         p_res->DMA.TxIrqNum = DMA2_Channel4_5_IRQn;
         p_res->DMA.RxIrqNum = DMA2_Channel3_IRQn;
 #ifdef _TEST_APP_UART4_TX_USE_DMA_
@@ -235,16 +252,30 @@ uint32_t TEST_APP_ARM_USART_SetResources(TEST_APP_ARM_USART_Resources_t *p_res,
         p_res->DMA.RxFlexChannelx = FLEX_CHANNEL3;
         p_res->DMA.TxFlexPeriphReq = DMA_FLEXIBLE_UART4_TX;
         p_res->DMA.RxFlexPeriphReq = DMA_FLEXIBLE_UART4_RX;
-    } else if(p_res->pUSARTx == UART5) {
-
         /****************************************************************
             UART5
-         ***************************************************************/
+        ***************************************************************/
+    } else if(p_res->pUSARTx == UART5) {
         p_res->IrqNum = UART5_IRQn;
-        p_res->Gpio.pTxGpio = GPIOC;
-        p_res->Gpio.TxPin = GPIO_PINS_12;
-        p_res->Gpio.pRxGpio = GPIOD;
-        p_res->Gpio.RxPin = GPIO_PINS_2;
+        switch(p_res->Gpio.PinDef) {
+            case TEST_APP_ARM_USART_GPIO_PIN_DEF_DEFAULT: {
+                p_res->Gpio.pTxGpio = GPIOC;
+                p_res->Gpio.TxPin = GPIO_PINS_12;
+                p_res->Gpio.pRxGpio = GPIOD;
+                p_res->Gpio.RxPin = GPIO_PINS_2;
+                break;
+            }
+            case TEST_APP_ARM_UART5_GPIO_PIN_DEF_REMAP1: {
+                p_res->Gpio.pTxGpio = GPIOB;
+                p_res->Gpio.TxPin = GPIO_PINS_9;
+                p_res->Gpio.pRxGpio = GPIOB;
+                p_res->Gpio.RxPin = GPIO_PINS_8;
+                break;
+            }
+            default: {
+                break;
+            }
+        }
         p_res->DMA.TxIrqNum = DMA1_Channel5_IRQn;
         p_res->DMA.RxIrqNum = DMA1_Channel4_IRQn;
 #ifdef _TEST_APP_UART5_TX_USE_DMA_
@@ -280,15 +311,30 @@ uint32_t TEST_APP_ARM_USART_SetResources(TEST_APP_ARM_USART_Resources_t *p_res,
         p_res->DMA.RxFlexChannelx = FLEX_CHANNEL4;
         p_res->DMA.TxFlexPeriphReq = DMA_FLEXIBLE_UART5_TX;
         p_res->DMA.RxFlexPeriphReq = DMA_FLEXIBLE_UART5_RX;
-    } else if(p_res->pUSARTx == UART7) {
         /****************************************************************
             UART7
-         ***************************************************************/
+        ***************************************************************/
+    } else if(p_res->pUSARTx == UART7) {
         p_res->IrqNum = UART7_IRQn;
-        p_res->Gpio.pTxGpio = GPIOE;
-        p_res->Gpio.TxPin = GPIO_PINS_8;
-        p_res->Gpio.pRxGpio = GPIOE;
-        p_res->Gpio.RxPin = GPIO_PINS_7;
+        switch(p_res->Gpio.PinDef) {
+            case TEST_APP_ARM_USART_GPIO_PIN_DEF_DEFAULT: {
+                p_res->Gpio.pTxGpio = GPIOE;
+                p_res->Gpio.TxPin = GPIO_PINS_8;
+                p_res->Gpio.pRxGpio = GPIOE;
+                p_res->Gpio.RxPin = GPIO_PINS_7;
+                break;
+            }
+            case TEST_APP_ARM_UART7_GPIO_PIN_DEF_REMAP1: {
+                p_res->Gpio.pTxGpio = GPIOB;
+                p_res->Gpio.TxPin = GPIO_PINS_4;
+                p_res->Gpio.pRxGpio = GPIOB;
+                p_res->Gpio.RxPin = GPIO_PINS_3;
+                break;
+            }
+            default: {
+                break;
+            }
+        }
         p_res->DMA.TxIrqNum = DMA1_Channel3_IRQn;
         p_res->DMA.RxIrqNum = DMA1_Channel2_IRQn;
 #ifdef _TEST_APP_UART7_TX_USE_DMA_
@@ -323,16 +369,30 @@ uint32_t TEST_APP_ARM_USART_SetResources(TEST_APP_ARM_USART_Resources_t *p_res,
         p_res->DMA.RxFlexChannelx = FLEX_CHANNEL2;
         p_res->DMA.TxFlexPeriphReq = DMA_FLEXIBLE_UART7_TX;
         p_res->DMA.RxFlexPeriphReq = DMA_FLEXIBLE_UART7_RX;
-    } else if(p_res->pUSARTx == UART8) {
-
         /****************************************************************
-                    UART8
+            UART8
         ***************************************************************/
+    } else if(p_res->pUSARTx == UART8) {
         p_res->IrqNum = UART8_IRQn;
-        p_res->Gpio.pTxGpio = GPIOE;
-        p_res->Gpio.TxPin = GPIO_PINS_1;
-        p_res->Gpio.pRxGpio = GPIOE;
-        p_res->Gpio.RxPin = GPIO_PINS_0;
+        switch(p_res->Gpio.PinDef) {
+            case TEST_APP_ARM_USART_GPIO_PIN_DEF_DEFAULT: {
+                p_res->Gpio.pTxGpio = GPIOE;
+                p_res->Gpio.TxPin = GPIO_PINS_1;
+                p_res->Gpio.pRxGpio = GPIOE;
+                p_res->Gpio.RxPin = GPIO_PINS_0;
+                break;
+            }
+            case TEST_APP_ARM_UART8_GPIO_PIN_DEF_REMAP1: {
+                p_res->Gpio.pTxGpio = GPIOC;
+                p_res->Gpio.TxPin = GPIO_PINS_2;
+                p_res->Gpio.pRxGpio = GPIOC;
+                p_res->Gpio.RxPin = GPIO_PINS_3;
+                break;
+            }
+            default: {
+                break;
+            }
+        }
         p_res->DMA.TxIrqNum = DMA2_Channel6_7_IRQn;
         p_res->DMA.RxIrqNum = DMA2_Channel4_5_IRQn;
 #ifdef _TEST_APP_UART8_TX_USE_DMA_
@@ -542,7 +602,6 @@ uint32_t TEST_APP_ARM_USART_Recieve(TEST_APP_ARM_USART_Resources_t *p_res, void 
         p_res->Transfer.RxCnt = 0;
         p_res->Transfer.RxNum = num;
         p_res->Transfer.pRxData = pdata;
-        p_res->Status.XferStatus.RxBusy = 1;
         usart_interrupt_enable(p_res->pUSARTx, USART_RDBF_INT, TRUE);
     }
     usart_interrupt_enable(p_res->pUSARTx, USART_ERR_INT, TRUE);
@@ -626,35 +685,49 @@ TEST_APP_ARM_USART_Transfer_t TEST_APP_ARM_USART_GetTransfer(TEST_APP_ARM_USART_
 
 static uint32_t ARM_USART_GPIO_Config(TEST_APP_ARM_USART_Resources_t *p_res, confirm_state new_state)
 {
-    if(!TEST_APP_ARM_CRM_GPIO_ClockEnable(p_res->Gpio.pTxGpio, TRUE)) {
-#ifdef _TEST_APP_DEBUG_
-        LOG("USART configuration error");
-#endif//_TEST_APP_DEBUG_        
-        p_res->Status.DrvStatus |= TEST_APP_ARM_DRIVER_ERROR;
-        return TEST_APP_ARM_DRIVER_ERROR;
-    }
     if(new_state) {
-        TEST_APP_ARM_GPIO_Config(p_res->Gpio.pTxGpio, p_res->Gpio.TxPin, GPIO_MODE_MUX, GPIO_OUTPUT_PUSH_PULL,
-                                 GPIO_PULL_NONE, GPIO_DRIVE_STRENGTH_STRONGER);
+        if(!TEST_APP_ARM_CRM_GPIO_ClockEnable(p_res->Gpio.pTxGpio, TRUE)) {
+#ifdef _TEST_APP_DEBUG_
+            LOG("USART configuration error");
+#endif//_TEST_APP_DEBUG_        
+            p_res->Status.DrvStatus |= TEST_APP_ARM_DRIVER_ERROR;
+            return TEST_APP_ARM_DRIVER_ERROR;
+        }
+        if(!TEST_APP_ARM_CRM_GPIO_ClockEnable(p_res->Gpio.pRxGpio, TRUE)) {
+#ifdef _TEST_APP_DEBUG_
+            LOG("USART configuration error");
+#endif//_TEST_APP_DEBUG_
+            p_res->Status.DrvStatus |= TEST_APP_ARM_DRIVER_ERROR;
+            return TEST_APP_ARM_DRIVER_ERROR;
+        }
+        //enable GPIO IOMUX clock (for pin remapping)
+        if(!(p_res->Gpio.PinDef == TEST_APP_ARM_USART_GPIO_PIN_DEF_DEFAULT)) {
+            crm_periph_clock_enable(CRM_IOMUX_PERIPH_CLOCK, TRUE);
+            gpio_pin_remap_config(p_res->Gpio.PinDef, TRUE);
+            //in remap mode configure both Tx and Rx as multiplexed function mode
+            TEST_APP_ARM_GPIO_Config(p_res->Gpio.pTxGpio, p_res->Gpio.TxPin, GPIO_MODE_MUX, GPIO_OUTPUT_PUSH_PULL,
+                                     GPIO_PULL_NONE, GPIO_DRIVE_STRENGTH_STRONGER);
+            TEST_APP_ARM_GPIO_Config(p_res->Gpio.pRxGpio, p_res->Gpio.RxPin, GPIO_MODE_MUX, GPIO_OUTPUT_PUSH_PULL,
+                                     GPIO_PULL_NONE, GPIO_DRIVE_STRENGTH_STRONGER);
+        } else {
+            //configure Tx as multiplexed function mode
+            TEST_APP_ARM_GPIO_Config(p_res->Gpio.pTxGpio, p_res->Gpio.TxPin, GPIO_MODE_MUX, GPIO_OUTPUT_PUSH_PULL,
+                                     GPIO_PULL_NONE, GPIO_DRIVE_STRENGTH_STRONGER);
+            //configure Rx as input, use any out_type and drive_strength for input i/o:
+            TEST_APP_ARM_GPIO_Config(p_res->Gpio.pRxGpio, p_res->Gpio.RxPin, GPIO_MODE_INPUT, GPIO_OUTPUT_PUSH_PULL,
+                                     GPIO_PULL_UP, GPIO_DRIVE_STRENGTH_STRONGER);
+        }
+
     } else {
+        //release pins
         TEST_APP_ARM_GPIO_Config(p_res->Gpio.pTxGpio, p_res->Gpio.TxPin, GPIO_MODE_INPUT, GPIO_OUTPUT_PUSH_PULL,
                                  GPIO_PULL_NONE, GPIO_DRIVE_STRENGTH_MODERATE);
-    }
-
-    if(!TEST_APP_ARM_CRM_GPIO_ClockEnable(p_res->Gpio.pRxGpio, TRUE)) {
-#ifdef _TEST_APP_DEBUG_
-        LOG("USART configuration error");
-#endif//_TEST_APP_DEBUG_
-        p_res->Status.DrvStatus |= TEST_APP_ARM_DRIVER_ERROR;
-        return TEST_APP_ARM_DRIVER_ERROR;
-    }
-    if(new_state) {
-        //use any out_type and drive_strength for input i/o:
-        TEST_APP_ARM_GPIO_Config(p_res->Gpio.pRxGpio, p_res->Gpio.RxPin, GPIO_MODE_INPUT, GPIO_OUTPUT_PUSH_PULL,
-                                 GPIO_PULL_UP, GPIO_DRIVE_STRENGTH_MODERATE);
-    } else {
         TEST_APP_ARM_GPIO_Config(p_res->Gpio.pRxGpio, p_res->Gpio.RxPin, GPIO_MODE_INPUT, GPIO_OUTPUT_PUSH_PULL,
                                  GPIO_PULL_NONE, GPIO_DRIVE_STRENGTH_MODERATE);
+        //disable remap (for pins remapping release)
+        if(!(p_res->Gpio.PinDef == TEST_APP_ARM_USART_GPIO_PIN_DEF_DEFAULT)) {
+            gpio_pin_remap_config(p_res->Gpio.PinDef, FALSE);
+        }
     }
     return TEST_APP_ARM_DRIVER_NO_ERROR;
 }

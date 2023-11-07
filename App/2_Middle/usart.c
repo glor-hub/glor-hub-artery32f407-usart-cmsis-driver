@@ -36,7 +36,8 @@
 #ifdef _TEST_APP_UART4_PERIPH_ENABLE_
 static uint32_t UART4_Initialize(uint32_t baud_rate, usart_data_bit_num_type data_bit,
                                  usart_stop_bit_num_type stop_bit,
-                                 usart_parity_selection_type parity);
+                                 usart_parity_selection_type parity,
+                                 uint32_t gpio_pin_def);
 static uint32_t UART4_Uninitialize(void);
 static void UART4_cb(void);
 static uint32_t UART4_Recieve(void *pbuff, uint32_t num);
@@ -48,7 +49,8 @@ static TEST_APP_ARM_USART_Transfer_t UART4_GetTransfer(void);
 #ifdef _TEST_APP_UART5_PERIPH_ENABLE_
 static uint32_t UART5_Initialize(uint32_t baud_rate, usart_data_bit_num_type data_bit,
                                  usart_stop_bit_num_type stop_bit,
-                                 usart_parity_selection_type parity);
+                                 usart_parity_selection_type parity,
+                                 uint32_t gpio_pin_def);
 static uint32_t UART5_Uninitialize(void);
 static void UART5_cb(void);
 static uint32_t UART5_Recieve(void *pbuff, uint32_t num);
@@ -60,7 +62,8 @@ static TEST_APP_ARM_USART_Transfer_t UART5_GetTransfer(void);
 #ifdef _TEST_APP_UART7_PERIPH_ENABLE_
 static uint32_t UART7_Initialize(uint32_t baud_rate, usart_data_bit_num_type data_bit,
                                  usart_stop_bit_num_type stop_bit,
-                                 usart_parity_selection_type parity);
+                                 usart_parity_selection_type parity,
+                                 uint32_t gpio_pin_def);
 static uint32_t UART7_Uninitialize(void);
 static void UART7_cb(void);
 static uint32_t UART7_Recieve(void *pbuff, uint32_t num);
@@ -72,7 +75,8 @@ static TEST_APP_ARM_USART_Transfer_t UART7_GetTransfer(void);
 #ifdef _TEST_APP_UART8_PERIPH_ENABLE_
 static uint32_t UART8_Initialize(uint32_t baud_rate, usart_data_bit_num_type data_bit,
                                  usart_stop_bit_num_type stop_bit,
-                                 usart_parity_selection_type parity);
+                                 usart_parity_selection_type parity,
+                                 uint32_t gpio_pin_def);
 static uint32_t UART8_Uninitialize(void);
 static void UART8_cb(void);
 static uint32_t UART8_Recieve(void *pbuff, uint32_t num);
@@ -154,39 +158,65 @@ static uint8_t UART8_Rx_Buff[TEST_APP_ARM_USART_RX_BUFF_SIZE];
 //Public
 //================================================================================
 
+/********************************************************************************
+gpio_pin_def - pin definitions default/remap1:
+
+    UART4:
+            default: uart4_tx(pc10), uart4_rx(pc11);
+            remap1:  uart4_tx(pa0), uart4_rx(pa1);
+
+    UART5:
+            default: uart5_tx(pc12), uart5_rx(pd2);
+            remap1:  uart5_tx(pb9), uart5_rx(pb8);
+
+    UART7:
+            default: uart7_tx(pe8), uart7_rx(pe7);
+            remap1:  uart7_tx(pb4), uart7_rx(pb3);
+
+    UART8:
+            default: uart8_tx(pe1), uart8_rx(pe0);
+            remap1:  uart8_tx(pc2), uart8_rx(pc3);
+
+********************************************************************************/
+
 error_status TEST_APP_USART_Init(void)
 {
     uint32_t drv_status = TEST_APP_ARM_DRIVER_NO_ERROR;
 
 #ifdef _TEST_APP_UART4_PERIPH_ENABLE_
     drv_status |= TEST_APP_USART_Initialize(&UART4_Driver, TEST_APP_ARM_USART_BAUDRATE_57600, USART_DATA_8BITS,
-                                            USART_STOP_1_BIT, USART_PARITY_NONE);
+                                            USART_STOP_1_BIT, USART_PARITY_NONE,
+                                            TEST_APP_ARM_UART4_GPIO_PIN_DEF_REMAP1);
 #endif//_TEST_APP_UART4_PERIPH_ENABLE_
 
 #ifdef _TEST_APP_UART5_PERIPH_ENABLE_
     drv_status |= TEST_APP_USART_Initialize(&UART5_Driver, TEST_APP_ARM_USART_BAUDRATE_57600, USART_DATA_8BITS,
-                                            USART_STOP_1_BIT, USART_PARITY_NONE);
+                                            USART_STOP_1_BIT, USART_PARITY_NONE,
+                                            TEST_APP_ARM_USART_GPIO_PIN_DEF_DEFAULT);
 #endif//_TEST_APP_UART5_PERIPH_ENABLE_
 
 #ifdef _TEST_APP_UART7_PERIPH_ENABLE_
     drv_status |= TEST_APP_USART_Initialize(&UART7_Driver, TEST_APP_ARM_USART_BAUDRATE_57600, USART_DATA_8BITS,
-                                            USART_STOP_1_BIT, USART_PARITY_NONE);
+                                            USART_STOP_1_BIT, USART_PARITY_NONE,
+                                            TEST_APP_ARM_USART_GPIO_PIN_DEF_DEFAULT);
 #endif//_TEST_APP_UART7_PERIPH_ENABLE_
 
 #ifdef _TEST_APP_UART8_PERIPH_ENABLE_
     drv_status |= TEST_APP_USART_Initialize(&UART8_Driver, TEST_APP_ARM_USART_BAUDRATE_57600, USART_DATA_8BITS,
-                                            USART_STOP_1_BIT, USART_PARITY_NONE);
+                                            USART_STOP_1_BIT, USART_PARITY_NONE,
+                                            TEST_APP_ARM_UART8_GPIO_PIN_DEF_REMAP1);
 #endif//_TEST_APP_UART8_PERIPH_ENABLE_
 
     return TEST_APP_ARM_DRIVER_isReady(drv_status) ? SUCCESS : ERROR;
 }
 
 uint32_t TEST_APP_USART_Initialize(TEST_APP_ARM_USART_Driver_t *p_drv, uint32_t baud_rate, usart_data_bit_num_type data_bit,
-                                   usart_stop_bit_num_type stop_bit, usart_parity_selection_type parity)
+                                   usart_stop_bit_num_type stop_bit, usart_parity_selection_type parity,
+                                   uint32_t gpio_pin_def)
 {
     uint32_t drv_status = TEST_APP_ARM_DRIVER_NO_ERROR;
     drv_status |= p_drv->Initialize(baud_rate, data_bit,
-                                    stop_bit, parity);
+                                    stop_bit, parity, gpio_pin_def);
     return drv_status;
 }
 
@@ -317,14 +347,15 @@ void UART8_IRQHandler()
 #ifdef _TEST_APP_UART4_PERIPH_ENABLE_
 static uint32_t UART4_Initialize(uint32_t baud_rate, usart_data_bit_num_type data_bit,
                                  usart_stop_bit_num_type stop_bit,
-                                 usart_parity_selection_type parity)
+                                 usart_parity_selection_type parity,
+                                 uint32_t gpio_pin_def)
 {
     uint32_t drv_status = TEST_APP_ARM_DRIVER_NO_ERROR;
     TEST_APP_ARM_USART_Resources_t *p_res = &UART4_Resources;
     drv_status |= TEST_APP_ARM_USART_SetResources(p_res, UART4, UART4_EventBuff,
                   UART4_Tx_Buff, UART4_Rx_Buff,
                   baud_rate, data_bit, stop_bit,
-                  parity);
+                  parity, gpio_pin_def);
     drv_status |= TEST_APP_ARM_USART_Init(p_res);
     return drv_status;
 }
@@ -337,7 +368,8 @@ static uint32_t UART4_Uninitialize(void)
                   UART4_Tx_Buff, UART4_Rx_Buff,
                   0, USART_DATA_8BITS,
                   USART_STOP_1_BIT,
-                  USART_PARITY_NONE);
+                  USART_PARITY_NONE,
+                  TEST_APP_ARM_USART_GPIO_PIN_DEF_DEFAULT);
     drv_status |= TEST_APP_ARM_USART_Uninit(p_res);
     return drv_status;
 }
@@ -371,14 +403,15 @@ static TEST_APP_ARM_USART_Transfer_t UART4_GetTransfer(void)
 #ifdef _TEST_APP_UART5_PERIPH_ENABLE_
 static uint32_t UART5_Initialize(uint32_t baud_rate, usart_data_bit_num_type data_bit,
                                  usart_stop_bit_num_type stop_bit,
-                                 usart_parity_selection_type parity)
+                                 usart_parity_selection_type parity,
+                                 uint32_t gpio_pin_def)
 {
     uint32_t drv_status = TEST_APP_ARM_DRIVER_NO_ERROR;
     TEST_APP_ARM_USART_Resources_t *p_res = &UART5_Resources;
     drv_status |= TEST_APP_ARM_USART_SetResources(p_res, UART5, UART5_EventBuff,
                   UART5_Tx_Buff, UART5_Rx_Buff,
                   baud_rate, data_bit, stop_bit,
-                  parity);
+                  parity, gpio_pin_def);
     drv_status |= TEST_APP_ARM_USART_Init(p_res);
     return drv_status;
 }
@@ -391,7 +424,8 @@ static uint32_t UART5_Uninitialize(void)
                   UART5_Tx_Buff, UART5_Rx_Buff,
                   0, USART_DATA_8BITS,
                   USART_STOP_1_BIT,
-                  USART_PARITY_NONE);
+                  USART_PARITY_NONE,
+                  TEST_APP_ARM_USART_GPIO_PIN_DEF_DEFAULT);
     drv_status |= TEST_APP_ARM_USART_Uninit(p_res);
     return drv_status;
 }
@@ -425,14 +459,15 @@ static TEST_APP_ARM_USART_Transfer_t UART5_GetTransfer(void)
 #ifdef _TEST_APP_UART7_PERIPH_ENABLE_
 static uint32_t UART7_Initialize(uint32_t baud_rate, usart_data_bit_num_type data_bit,
                                  usart_stop_bit_num_type stop_bit,
-                                 usart_parity_selection_type parity)
+                                 usart_parity_selection_type parity,
+                                 uint32_t gpio_pin_def)
 {
     uint32_t drv_status = TEST_APP_ARM_DRIVER_NO_ERROR;
     TEST_APP_ARM_USART_Resources_t *p_res = &UART7_Resources;
     drv_status |= TEST_APP_ARM_USART_SetResources(p_res, UART7, UART7_EventBuff,
                   UART7_Tx_Buff, UART7_Rx_Buff,
                   baud_rate, data_bit, stop_bit,
-                  parity);
+                  parity, gpio_pin_def);
     drv_status |= TEST_APP_ARM_USART_Init(p_res);
     return drv_status;
 }
@@ -445,7 +480,8 @@ static uint32_t UART7_Uninitialize(void)
                   UART7_Tx_Buff, UART7_Rx_Buff,
                   0, USART_DATA_8BITS,
                   USART_STOP_1_BIT,
-                  USART_PARITY_NONE);
+                  USART_PARITY_NONE,
+                  TEST_APP_ARM_USART_GPIO_PIN_DEF_DEFAULT);
     drv_status |= TEST_APP_ARM_USART_Uninit(p_res);
     return drv_status;
 }
@@ -479,14 +515,15 @@ static TEST_APP_ARM_USART_Transfer_t UART7_GetTransfer(void)
 #ifdef _TEST_APP_UART8_PERIPH_ENABLE_
 static uint32_t UART8_Initialize(uint32_t baud_rate, usart_data_bit_num_type data_bit,
                                  usart_stop_bit_num_type stop_bit,
-                                 usart_parity_selection_type parity)
+                                 usart_parity_selection_type parity,
+                                 uint32_t gpio_pin_def)
 {
     uint32_t drv_status = TEST_APP_ARM_DRIVER_NO_ERROR;
     TEST_APP_ARM_USART_Resources_t *p_res = &UART8_Resources;
     drv_status |= TEST_APP_ARM_USART_SetResources(p_res, UART8, UART8_EventBuff,
                   UART8_Tx_Buff, UART8_Rx_Buff,
                   baud_rate, data_bit, stop_bit,
-                  parity);
+                  parity, gpio_pin_def);
     drv_status |= TEST_APP_ARM_USART_Init(p_res);
     return drv_status;
 }
@@ -499,7 +536,8 @@ static uint32_t UART8_Uninitialize(void)
                   UART8_Tx_Buff, UART8_Rx_Buff,
                   0, USART_DATA_8BITS,
                   USART_STOP_1_BIT,
-                  USART_PARITY_NONE);
+                  USART_PARITY_NONE,
+                  TEST_APP_ARM_USART_GPIO_PIN_DEF_DEFAULT);
     drv_status |= TEST_APP_ARM_USART_Uninit(p_res);
     return drv_status;
 }

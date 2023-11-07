@@ -5,7 +5,7 @@
 #include <stdbool.h>
 #include "ringbuffer.h"
 
-//select UARTx
+//select UARTx (USARTx are not supported in this driver version)
 //use DMA if necessary
 //use DMA circular buffer if necessary (default - linear buffer)
 
@@ -19,7 +19,7 @@ DMA2_CHANNEL3 (default config) - Rx
 #define _TEST_APP_UART4_PERIPH_ENABLE_
 #define _TEST_APP_UART4_TX_USE_DMA_
 // #define _TEST_APP_UART4_TX_DMA_CIRCULAR_MODE_
-// #define _TEST_APP_UART4_RX_USE_DMA_
+//#define _TEST_APP_UART4_RX_USE_DMA_
 // #define _TEST_APP_UART4_RX_DMA_CIRCULAR_MODE_
 
 /*******************************************
@@ -29,8 +29,8 @@ For DMA:
 DMA1 CHANNEL5 (with flexible mapping) - Tx
 DMA1_CHANNEL4 (with flexible mapping) - Rx
 ********************************************/
-// #define _TEST_APP_UART5_PERIPH_ENABLE_
-// #define _TEST_APP_UART5_TX_USE_DMA_
+#define _TEST_APP_UART5_PERIPH_ENABLE_
+#define _TEST_APP_UART5_TX_USE_DMA_
 // #define _TEST_APP_UART5_TX_DMA_CIRCULAR_MODE_
 // #define _TEST_APP_UART5_RX_USE_DMA_
 // #define _TEST_APP_UART5_RX_DMA_CIRCULAR_MODE_
@@ -42,8 +42,8 @@ For DMA:
 DMA1 CHANNEL3 (with flexible mapping) - Tx
 DMA1_CHANNEL2 (with flexible mapping) - Rx
 ********************************************/
-// #define _TEST_APP_UART7_PERIPH_ENABLE_
-// #define _TEST_APP_UART7_TX_USE_DMA_
+#define _TEST_APP_UART7_PERIPH_ENABLE_
+#define _TEST_APP_UART7_TX_USE_DMA_
 // #define _TEST_APP_UART7_TX_DMA_CIRCULAR_MODE_
 // #define _TEST_APP_UART7_RX_USE_DMA_
 // #define _TEST_APP_UART7_RX_DMA_CIRCULAR_MODE_
@@ -55,8 +55,8 @@ For DMA:
 DMA2 CHANNEL6 (with flexible mapping) - Tx
 DMA2_CHANNEL4 (with flexible mapping) - Rx
 ********************************************/
-// #define _TEST_APP_UART8_PERIPH_ENABLE_
-// #define _TEST_APP_UART8_TX_USE_DMA_
+#define _TEST_APP_UART8_PERIPH_ENABLE_
+#define _TEST_APP_UART8_TX_USE_DMA_
 // #define _TEST_APP_UART8_TX_DMA_CIRCULAR_MODE_
 // #define _TEST_APP_UART8_RX_USE_DMA_
 // #define _TEST_APP_UART8_RX_DMA_CIRCULAR_MODE_
@@ -75,6 +75,13 @@ DMA2_CHANNEL4 (with flexible mapping) - Rx
 #define TEST_APP_ARM_USART_FLAG_CONFIGURATED         (uint32_t)(1U << 1)
 #define TEST_APP_ARM_USART_FLAG_TX_ENABLED           (uint32_t)(1U << 2)
 #define TEST_APP_ARM_USART_FLAG_RX_ENABLED           (uint32_t)(1U << 3)
+
+//USART default/remap pin definitions
+#define TEST_APP_ARM_USART_GPIO_PIN_DEF_DEFAULT     (uint32_t)0x00
+#define TEST_APP_ARM_UART4_GPIO_PIN_DEF_REMAP1      UART4_GMUX_0010
+#define TEST_APP_ARM_UART5_GPIO_PIN_DEF_REMAP1      UART5_GMUX_0001
+#define TEST_APP_ARM_UART7_GPIO_PIN_DEF_REMAP1      UART7_GMUX
+#define TEST_APP_ARM_UART8_GPIO_PIN_DEF_REMAP1      UART8_GMUX
 
 //USART Baudrate
 #define TEST_APP_ARM_USART_BAUDRATE_9600    ((uint32_t)9600)
@@ -129,6 +136,7 @@ typedef struct {
 } TEST_APP_ARM_USART_Transfer_t;
 
 typedef struct {
+    uint32_t                PinDef;
     gpio_type               *pTxGpio;
     gpio_type               *pRxGpio;
     uint32_t                 TxPin;
@@ -150,27 +158,28 @@ typedef struct {
     dma_flexible_request_type   RxFlexPeriphReq;
     IRQn_Type                   TxIrqNum;         // DMA Tx channel IRQ Number
     IRQn_Type                   RxIrqNum;         // DMA Rx channel IRQ Number
-    uint32_t                    *pTxEvent;     // ringbuffer
-    uint32_t                    *pRxEvent;     // ringbuffer
+    uint32_t                    *pTxEvent;        // ringbuffer
+    uint32_t                    *pRxEvent;        // ringbuffer
     dma_init_type               TxCfg;
     dma_init_type               RxCfg;
 } TEST_APP_ARM_USART_DMA_t;
 
 typedef struct {
-    usart_type                  *pUSARTx;
-    IRQn_Type                   IrqNum;         // USART IRQ Number
-    TEST_APP_RingBuffer_t                Event;
-    TEST_APP_ARM_USART_Config_t          Config;
-    TEST_APP_ARM_USART_GPIO_t            Gpio;
-    TEST_APP_ARM_USART_Transfer_t        Transfer;
-    TEST_APP_ARM_USART_Status_t          Status;
-    TEST_APP_ARM_USART_DMA_t             DMA;
+    usart_type                          *pUSARTx;
+    IRQn_Type                           IrqNum;     // USART IRQ Number
+    TEST_APP_RingBuffer_t               Event;
+    TEST_APP_ARM_USART_Config_t         Config;
+    TEST_APP_ARM_USART_GPIO_t           Gpio;
+    TEST_APP_ARM_USART_Transfer_t       Transfer;
+    TEST_APP_ARM_USART_Status_t         Status;
+    TEST_APP_ARM_USART_DMA_t            DMA;
 } TEST_APP_ARM_USART_Resources_t;
 
 typedef struct {
     uint32_t (*Initialize)(uint32_t baudRate, usart_data_bit_num_type dataBit,
                            usart_stop_bit_num_type stopBit,
-                           usart_parity_selection_type parity);
+                           usart_parity_selection_type parity,
+                           uint32_t gpio_pin_def);
     uint32_t (*Uninitialize)(void);
     void (*Event_cb)(void);
     uint32_t (*Send)(void *pdata, uint32_t num);
@@ -186,7 +195,8 @@ uint32_t TEST_APP_ARM_USART_SetResources(TEST_APP_ARM_USART_Resources_t *p_res, 
         void *p_rx_buff, uint32_t BaudRate,
         usart_data_bit_num_type DataBit,
         usart_stop_bit_num_type StopBit,
-        usart_parity_selection_type parity);
+        usart_parity_selection_type parity,
+        uint32_t gpio_pin_def);
 void TEST_APP_ARM_USART_IRQHandler(TEST_APP_ARM_USART_Driver_t *p_drv, TEST_APP_ARM_USART_Resources_t *p_res);
 void TEST_APP_ARM_USART_cb(TEST_APP_ARM_USART_Driver_t *p_drv, TEST_APP_ARM_USART_Resources_t *p_res);
 void TEST_APP_ARM_USART_WriteByte(TEST_APP_ARM_USART_Resources_t *p_res, uint8_t *pByte);
