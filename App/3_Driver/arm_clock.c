@@ -154,6 +154,26 @@ bool TEST_APP_ARM_CRM_USART_ClockEnable(usart_type *pUSART_x, confirm_state new_
     return TEST_APP_ARM_CRM_isReady(drv_status);
 }
 
+bool TEST_APP_ARM_CRM_SPI_ClockEnable(spi_type *pSPI_x, confirm_state new_state)
+{
+    uint32_t drv_status = ARM_CRM_STA_NO_ERR;
+    if(pSPI_x == SPI1) {
+        crm_periph_clock_enable(CRM_SPI1_PERIPH_CLOCK, new_state);
+    } else if(pSPI_x == SPI2) {
+        crm_periph_clock_enable(CRM_SPI2_PERIPH_CLOCK, new_state);
+    } else if(pSPI_x == SPI3) {
+        crm_periph_clock_enable(CRM_SPI3_PERIPH_CLOCK, new_state);
+    } else if(pSPI_x == SPI4) {
+        crm_periph_clock_enable(CRM_SPI4_PERIPH_CLOCK, new_state);
+    } else {
+#ifdef _TEST_APP_DEBUG_
+        LOG("USART clock error");
+#endif//_TEST_APP_DEBUG_
+        drv_status |= ARM_CRM_STA_PERIPH_CLOCK_ERR;
+    }
+    return TEST_APP_ARM_CRM_isReady(drv_status);
+}
+
 bool TEST_APP_ARM_CRM_DMA_ClockEnable(dma_channel_type *pDMAxChan_y, confirm_state new_state)
 {
     uint32_t drv_status = ARM_CRM_STA_NO_ERR;

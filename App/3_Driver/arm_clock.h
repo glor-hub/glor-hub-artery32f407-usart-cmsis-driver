@@ -13,6 +13,7 @@ uint32_t TEST_APP_ARM_CRM_SysClockSwitchCmd(crm_sclk_type value);
 
 bool TEST_APP_ARM_CRM_GPIO_ClockEnable(gpio_type *pGPIO_x, confirm_state new_state);
 bool TEST_APP_ARM_CRM_USART_ClockEnable(usart_type *pUSART_x, confirm_state new_state);
+bool TEST_APP_ARM_CRM_SPI_ClockEnable(spi_type *pSPI_x, confirm_state new_state);
 bool TEST_APP_ARM_CRM_DMA_ClockEnable(dma_channel_type *pDMAxChan_y, confirm_state new_state);
 void TEST_APP_ARM_CRM_ClockPeriphReset(crm_periph_reset_type value, confirm_state state);
 
