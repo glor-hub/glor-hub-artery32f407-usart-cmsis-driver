@@ -220,11 +220,11 @@ uint32_t TEST_APP_USART_Initialize(TEST_APP_ARM_USART_Driver_t *p_drv, uint32_t 
     return drv_status;
 }
 
-error_status TEST_APP_USART_Uninitialize(TEST_APP_ARM_USART_Driver_t *p_drv)
+uint32_t TEST_APP_USART_Uninitialize(TEST_APP_ARM_USART_Driver_t *p_drv)
 {
-    uint32_t drv_status;
-    drv_status = p_drv->Uninitialize();
-    return TEST_APP_ARM_DRIVER_isReady(drv_status) ? SUCCESS : ERROR;
+    uint32_t drv_status = TEST_APP_ARM_DRIVER_NO_ERROR;
+    drv_status |= p_drv->Uninitialize();
+    return drv_status;
 }
 
 void TEST_APP_USART_cb(void)
