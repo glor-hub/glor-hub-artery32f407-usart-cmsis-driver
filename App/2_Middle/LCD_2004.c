@@ -11,22 +11,23 @@
 #include "arm_gpio.h"
 #include "arm_clock.h"
 #include "timer.h"
+#include "gpio.h"
 
 //********************************************************************************
 //Macros
 //********************************************************************************
 
-#define LCD2004_PORT_REG_ADDR (gpio_type *)GPIOE
+#define LCD2004_PORT_REG_ADDR   GPIO_LCD2004_PORT_REG_ADDR
 
 // five volt tolerant pins only
-#define LCD2004_PIN_RS GPIO_PINS_9
-#define LCD2004_PIN_RW GPIO_PINS_10
-#define LCD2004_PIN_E GPIO_PINS_11
+#define LCD2004_PIN_RS          GPIO_LCD2004_PIN_RS
+#define LCD2004_PIN_RW          GPIO_LCD2004_PIN_RW
+#define LCD2004_PIN_E           GPIO_LCD2004_PIN_E
 // using 4-bit operation mode
-#define LCD2004_PIN_D4 GPIO_PINS_12
-#define LCD2004_PIN_D5 GPIO_PINS_13
-#define LCD2004_PIN_D6 GPIO_PINS_14
-#define LCD2004_PIN_D7 GPIO_PINS_15
+#define LCD2004_PIN_D4          GPIO_LCD2004_PIN_D4
+#define LCD2004_PIN_D5          GPIO_LCD2004_PIN_D5
+#define LCD2004_PIN_D6          GPIO_LCD2004_PIN_D6
+#define LCD2004_PIN_D7          GPIO_LCD2004_PIN_D7
 #define LCD2004_PIN_MASK (LCD2004_PIN_RS | LCD2004_PIN_RW | LCD2004_PIN_E | LCD2004_PIN_D4 | LCD2004_PIN_D5 | LCD2004_PIN_D6 | LCD2004_PIN_D7)
 
 //command code

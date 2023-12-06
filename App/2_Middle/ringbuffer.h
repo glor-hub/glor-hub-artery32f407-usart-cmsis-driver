@@ -11,9 +11,9 @@ typedef enum {
 } eTEST_APP_RingBufferError_t;
 
 typedef struct {
-    uint8_t In;
-    uint8_t Out;
-    uint8_t Count;
+    volatile uint8_t In;
+    volatile uint8_t Out;
+    volatile uint8_t Count;
     void *pBuff;
     uint8_t BuffSize;
 } TEST_APP_RingBuffer_t;

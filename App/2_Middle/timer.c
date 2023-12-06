@@ -32,8 +32,8 @@
 typedef struct {
     confirm_state State;
     uint32_t Time;
-    uint32_t Counter;
-    flag_status Flag;
+    volatile uint32_t Counter;
+    volatile flag_status Flag;
 } Timer_t;
 
 static Timer_t Timer[NUM_TIMERS];
