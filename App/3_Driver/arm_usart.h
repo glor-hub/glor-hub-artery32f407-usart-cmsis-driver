@@ -18,8 +18,8 @@ DMA2_CHANNEL3 (default config) - Rx
 ********************************************/
 #define _TEST_APP_UART4_PERIPH_ENABLE_
 #define _TEST_APP_UART4_TX_USE_DMA_
-// #define _TEST_APP_UART4_TX_DMA_CIRCULAR_MODE_
-//#define _TEST_APP_UART4_RX_USE_DMA_
+#define _TEST_APP_UART4_TX_DMA_CIRCULAR_MODE_
+#define _TEST_APP_UART4_RX_USE_DMA_
 // #define _TEST_APP_UART4_RX_DMA_CIRCULAR_MODE_
 
 /*******************************************
@@ -110,15 +110,15 @@ typedef struct {
 } TEST_APP_ARM_USART_Config_t;
 
 typedef struct {
-    uint8_t TxBusy;
-    uint8_t RxBusy;
+    volatile uint8_t TxBusy;
+    volatile uint8_t RxBusy;
     uint8_t TxUnderflow;
     uint8_t RxOverflow;
     uint8_t RxBreak;
     uint8_t RxFramingError;
     uint8_t RxNoiseError;
     uint8_t RxParityError;
-} TEST_APP_ARM_USART_XferStatus_t;
+} volatile TEST_APP_ARM_USART_XferStatus_t;
 
 typedef struct {
     uint32_t DrvStatus;
@@ -129,8 +129,8 @@ typedef struct {
 typedef struct {
     void                    *pTxData;
     void                    *pRxData;
-    volatile uint32_t       TxNum;
-    volatile uint32_t       RxNum;
+    uint32_t                TxNum;
+    uint32_t                RxNum;
     volatile uint32_t       TxCnt;         // Number of data received
     volatile uint32_t       RxCnt;         // Number of data sent
 } TEST_APP_ARM_USART_Transfer_t;
@@ -197,13 +197,15 @@ uint32_t TEST_APP_ARM_USART_SetResources(TEST_APP_ARM_USART_Resources_t *p_res, 
         usart_stop_bit_num_type StopBit,
         usart_parity_selection_type parity,
         uint32_t gpio_pin_def);
-void TEST_APP_ARM_USART_IRQHandler(TEST_APP_ARM_USART_Driver_t *p_drv, TEST_APP_ARM_USART_Resources_t *p_res);
-void TEST_APP_ARM_USART_cb(TEST_APP_ARM_USART_Driver_t *p_drv, TEST_APP_ARM_USART_Resources_t *p_res);
+void TEST_APP_ARM_USART_IRQHandler(TEST_APP_ARM_USART_Resources_t *p_res);
+void TEST_APP_ARM_USART_cb(TEST_APP_ARM_USART_Resources_t *p_res);
 void TEST_APP_ARM_USART_WriteByte(TEST_APP_ARM_USART_Resources_t *p_res, uint8_t *pByte);
 uint8_t TEST_APP_ARM_USART_ReadByte(TEST_APP_ARM_USART_Resources_t *p_res);
 uint32_t TEST_APP_ARM_USART_Recieve(TEST_APP_ARM_USART_Resources_t *p_res, void *pdata, uint32_t num);
 uint32_t TEST_APP_ARM_USART_Send(TEST_APP_ARM_USART_Resources_t *p_res, void *pdata, uint32_t num);
 TEST_APP_ARM_USART_Status_t TEST_APP_ARM_USART_GetStatus(TEST_APP_ARM_USART_Resources_t *p_res);
 TEST_APP_ARM_USART_Transfer_t TEST_APP_ARM_USART_GetTransfer(TEST_APP_ARM_USART_Resources_t *p_res);
+void TEST_APP_ARM_USART_SetDefaultTxBuffer(TEST_APP_ARM_USART_Resources_t *p_res, void *pbuff);
+void TEST_APP_ARM_USART_SetDefaultRxBuffer(TEST_APP_ARM_USART_Resources_t *p_res, void *pbuff);
 
 #endif //_ARM_USART_H_ 

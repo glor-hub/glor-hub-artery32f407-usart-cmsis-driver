@@ -10,8 +10,10 @@
 #include "arm_gpio.h"
 #include "arm_clock.h"
 #include "ringbuffer.h"
+#include "timer.h"
 
 #ifdef _TEST_APP_DEBUG_
+#include "assert.h"
 #include "LCD_2004.h"
 #endif//_TEST_APP_DEBUG_
 
@@ -90,9 +92,7 @@ static TEST_APP_ARM_USART_Transfer_t UART8_GetTransfer(void);
 //********************************************************************************
 
 #ifdef _TEST_APP_UART4_PERIPH_ENABLE_
-static TEST_APP_ARM_USART_Resources_t        UART4_Resources;
-static uint32_t UART4_EventBuff[TEST_APP_ARM_USART_EVENT_BUFF_SIZE];
-static TEST_APP_ARM_USART_Driver_t UART4_Driver = {
+TEST_APP_ARM_USART_Driver_t UART4_Driver = {
     UART4_Initialize,
     UART4_Uninitialize,
     UART4_cb,
@@ -101,14 +101,14 @@ static TEST_APP_ARM_USART_Driver_t UART4_Driver = {
     UART4_GetTransfer,
     UART4_GetStatus,
 };
+static TEST_APP_ARM_USART_Resources_t        UART4_Resources;
+static uint32_t UART4_EventBuff[TEST_APP_ARM_USART_EVENT_BUFF_SIZE];
 static uint8_t UART4_Tx_Buff[TEST_APP_ARM_USART_TX_BUFF_SIZE];
 static uint8_t UART4_Rx_Buff[TEST_APP_ARM_USART_RX_BUFF_SIZE];
 #endif//_TEST_APP_UART4_PERIPH_ENABLE_
 
 #ifdef _TEST_APP_UART5_PERIPH_ENABLE_
-static TEST_APP_ARM_USART_Resources_t        UART5_Resources;
-static uint32_t UART5_EventBuff[TEST_APP_ARM_USART_EVENT_BUFF_SIZE];
-static TEST_APP_ARM_USART_Driver_t UART5_Driver = {
+TEST_APP_ARM_USART_Driver_t UART5_Driver = {
     UART5_Initialize,
     UART5_Uninitialize,
     UART5_cb,
@@ -117,14 +117,14 @@ static TEST_APP_ARM_USART_Driver_t UART5_Driver = {
     UART5_GetTransfer,
     UART5_GetStatus,
 };
+static TEST_APP_ARM_USART_Resources_t        UART5_Resources;
+static uint32_t UART5_EventBuff[TEST_APP_ARM_USART_EVENT_BUFF_SIZE];
 static uint8_t UART5_Tx_Buff[TEST_APP_ARM_USART_TX_BUFF_SIZE];
 static uint8_t UART5_Rx_Buff[TEST_APP_ARM_USART_RX_BUFF_SIZE];
 #endif//_TEST_APP_UART5_PERIPH_ENABLE_
 
 #ifdef _TEST_APP_UART7_PERIPH_ENABLE_
-static TEST_APP_ARM_USART_Resources_t        UART7_Resources;
-static uint32_t UART7_EventBuff[TEST_APP_ARM_USART_EVENT_BUFF_SIZE];
-static TEST_APP_ARM_USART_Driver_t UART7_Driver = {
+TEST_APP_ARM_USART_Driver_t UART7_Driver = {
     UART7_Initialize,
     UART7_Uninitialize,
     UART7_cb,
@@ -133,15 +133,14 @@ static TEST_APP_ARM_USART_Driver_t UART7_Driver = {
     UART7_GetTransfer,
     UART7_GetStatus,
 };
-
+static TEST_APP_ARM_USART_Resources_t        UART7_Resources;
+static uint32_t UART7_EventBuff[TEST_APP_ARM_USART_EVENT_BUFF_SIZE];
 static uint8_t UART7_Tx_Buff[TEST_APP_ARM_USART_TX_BUFF_SIZE];
 static uint8_t UART7_Rx_Buff[TEST_APP_ARM_USART_RX_BUFF_SIZE];
 #endif//_TEST_APP_UART7_PERIPH_ENABLE_
 
 #ifdef _TEST_APP_UART8_PERIPH_ENABLE_
-static TEST_APP_ARM_USART_Resources_t        UART8_Resources;
-static uint32_t UART8_EventBuff[TEST_APP_ARM_USART_EVENT_BUFF_SIZE];
-static TEST_APP_ARM_USART_Driver_t UART8_Driver = {
+TEST_APP_ARM_USART_Driver_t UART8_Driver = {
     UART8_Initialize,
     UART8_Uninitialize,
     UART8_cb,
@@ -150,6 +149,8 @@ static TEST_APP_ARM_USART_Driver_t UART8_Driver = {
     UART8_GetTransfer,
     UART8_GetStatus,
 };
+static TEST_APP_ARM_USART_Resources_t        UART8_Resources;
+static uint32_t UART8_EventBuff[TEST_APP_ARM_USART_EVENT_BUFF_SIZE];
 static uint8_t UART8_Tx_Buff[TEST_APP_ARM_USART_TX_BUFF_SIZE];
 static uint8_t UART8_Rx_Buff[TEST_APP_ARM_USART_RX_BUFF_SIZE];
 #endif//_TEST_APP_UART8_PERIPH_ENABLE_
@@ -186,7 +187,7 @@ error_status TEST_APP_USART_Init(void)
 #ifdef _TEST_APP_UART4_PERIPH_ENABLE_
     drv_status |= TEST_APP_USART_Initialize(&UART4_Driver, TEST_APP_ARM_USART_BAUDRATE_57600, USART_DATA_8BITS,
                                             USART_STOP_1_BIT, USART_PARITY_NONE,
-                                            TEST_APP_ARM_UART4_GPIO_PIN_DEF_REMAP1);
+                                            TEST_APP_ARM_USART_GPIO_PIN_DEF_DEFAULT);
 #endif//_TEST_APP_UART4_PERIPH_ENABLE_
 
 #ifdef _TEST_APP_UART5_PERIPH_ENABLE_
@@ -251,10 +252,49 @@ void TEST_APP_USART_cb(void)
 
 }
 
+void TEST_APP_SetDefaultTxBuffer(TEST_APP_ARM_USART_Driver_t *p_drv)
+{
+    if(p_drv == &UART4_Driver) {
+        TEST_APP_ARM_USART_SetDefaultTxBuffer(&UART4_Resources, UART4_Tx_Buff);
+    } else if(p_drv == &UART5_Driver) {
+        TEST_APP_ARM_USART_SetDefaultTxBuffer(&UART5_Resources, UART5_Tx_Buff);
+    } else if(p_drv == &UART7_Driver) {
+        TEST_APP_ARM_USART_SetDefaultTxBuffer(&UART7_Resources, UART7_Tx_Buff);
+    } else if(p_drv == &UART8_Driver) {
+        TEST_APP_ARM_USART_SetDefaultTxBuffer(&UART8_Resources, UART8_Tx_Buff);
+    } else {
+#ifdef _TEST_APP_DEBUG_
+        LOG("USART configuration error");
+#endif//_TEST_APP_DEBUG_
+    }
+}
+
+void TEST_APP_SetDefaultRxBuffer(TEST_APP_ARM_USART_Driver_t *p_drv)
+{
+    if(p_drv == &UART4_Driver) {
+        TEST_APP_ARM_USART_SetDefaultRxBuffer(&UART4_Resources, UART4_Rx_Buff);
+    } else if(p_drv == &UART5_Driver) {
+        TEST_APP_ARM_USART_SetDefaultRxBuffer(&UART5_Resources, UART5_Rx_Buff);
+    } else if(p_drv == &UART7_Driver) {
+        TEST_APP_ARM_USART_SetDefaultRxBuffer(&UART7_Resources, UART7_Rx_Buff);
+    } else if(p_drv == &UART8_Driver) {
+        TEST_APP_ARM_USART_SetDefaultRxBuffer(&UART8_Resources, UART8_Rx_Buff);
+    } else {
+#ifdef _TEST_APP_DEBUG_
+        LOG("USART configuration error");
+#endif//_TEST_APP_DEBUG_
+    }
+}
+
 int8_t TEST_APP_USART_printf(TEST_APP_ARM_USART_Driver_t *p_drv, char *fmt, ...)
 {
     uint32_t drv_status;
     int8_t res, len;
+    //for USART in DMA ring mode to be used global buffer
+    TEST_APP_SetDefaultTxBuffer(p_drv);
+    while(p_drv->GetStatus().XferStatus.TxBusy) {
+        p_drv->Event_cb();
+    };
     char *strbuff = (char *)p_drv->GetTransfer().pTxData;
     va_list args;
     va_start(args, fmt);
@@ -275,35 +315,50 @@ error_status TEST_APP_USART_Test(void)
     uint32_t drv_status = TEST_APP_ARM_DRIVER_NO_ERROR;
 
 #ifdef _TEST_APP_UART4_PERIPH_ENABLE_
+    uint8_t *pbuff4_rx, *pbuff4_tx;
     TEST_APP_ARM_USART_Driver_t *p4_drv = &UART4_Driver;
-    TEST_APP_ARM_USART_Resources_t *p4_res = &UART4_Resources;
-    p4_res->Transfer.pTxData = UART4_Tx_Buff;
     TEST_APP_USART_printf(p4_drv, "%s", "Hello, World, from UART4!\n");
-    drv_status |= p4_drv->Recieve(UART4_Rx_Buff, 8);
+    pbuff4_rx = p4_drv->GetTransfer().pRxData;
+    pbuff4_tx = p4_drv->GetTransfer().pTxData;
+    drv_status |= p4_drv->Recieve(pbuff4_rx, 8);
+    TimerDoDelay_ms(50);
+    p4_drv->Send(pbuff4_tx, 8);
+
 #endif//_TEST_APP_UART4_PERIPH_ENABLE_
 
 #ifdef _TEST_APP_UART5_PERIPH_ENABLE_
+    uint8_t *pbuff5_rx, *pbuff5_tx;
     TEST_APP_ARM_USART_Driver_t *p5_drv = &UART5_Driver;
-    TEST_APP_ARM_USART_Resources_t *p5_res = &UART5_Resources;
-    p5_res->Transfer.pTxData = UART5_Tx_Buff;
     TEST_APP_USART_printf(p5_drv, "%s", "Hello, World, from UART5!\n");
-    drv_status |= p5_drv->Recieve(UART5_Rx_Buff, 8);
+    pbuff5_rx = p5_drv->GetTransfer().pRxData;
+    pbuff5_tx = p5_drv->GetTransfer().pTxData;
+    drv_status |= p5_drv->Recieve(pbuff5_rx, 8);
+    TimerDoDelay_ms(50);
+    p5_drv->Send(pbuff5_tx, 8);
 #endif//_TEST_APP_UART5_PERIPH_ENABLE_
 
 #ifdef _TEST_APP_UART7_PERIPH_ENABLE_
+    uint8_t *pbuff7_rx, *pbuff7_tx;
     TEST_APP_ARM_USART_Driver_t *p7_drv = &UART7_Driver;
-    TEST_APP_ARM_USART_Resources_t *p7_res = &UART7_Resources;
-    p7_res->Transfer.pTxData = UART7_Tx_Buff;
     TEST_APP_USART_printf(p7_drv, "%s", "Hello, World, from UART7!\n");
-    drv_status |= p7_drv->Recieve(UART7_Rx_Buff, 8);
+    pbuff7_rx = p7_drv->GetTransfer().pRxData;
+    pbuff7_tx = p7_drv->GetTransfer().pTxData;
+    drv_status |= p7_drv->Recieve(pbuff7_rx, 8);
+    TimerDoDelay_ms(50);
+    p7_drv->Send(pbuff7_tx, 8);
+
 #endif//_TEST_APP_UART7_PERIPH_ENABLE_
 
 #ifdef _TEST_APP_UART8_PERIPH_ENABLE_
+    uint8_t *pbuff8_rx, *pbuff8_tx;
     TEST_APP_ARM_USART_Driver_t *p8_drv = &UART8_Driver;
-    TEST_APP_ARM_USART_Resources_t *p8_res = &UART8_Resources;
-    p8_res->Transfer.pTxData = UART8_Tx_Buff;
     TEST_APP_USART_printf(p8_drv, "%s", "Hello, World, from UART8!\n");
-    drv_status |= p8_drv->Recieve(UART8_Rx_Buff, 8);
+    pbuff8_tx = p8_drv->GetTransfer().pRxData;
+    drv_status |= p8_drv->Recieve(pbuff8_rx, 8);
+    pbuff8_tx = p8_drv->GetTransfer().pTxData;
+    TimerDoDelay_ms(50);
+    p8_drv->Send(pbuff8_tx, 8);
+
 #endif//_TEST_APP_UART8_PERIPH_ENABLE_
 
     return TEST_APP_ARM_DRIVER_isReady(drv_status) ? SUCCESS : ERROR;
@@ -313,28 +368,28 @@ error_status TEST_APP_USART_Test(void)
 #ifdef _TEST_APP_UART4_PERIPH_ENABLE_
 void UART4_IRQHandler()
 {
-    TEST_APP_ARM_USART_IRQHandler(&UART4_Driver, &UART4_Resources);
+    TEST_APP_ARM_USART_IRQHandler(&UART4_Resources);
 }
 #endif//_TEST_APP_UART4_PERIPH_ENABLE_
 
 #ifdef _TEST_APP_UART5_PERIPH_ENABLE_
 void UART5_IRQHandler()
 {
-    TEST_APP_ARM_USART_IRQHandler(&UART5_Driver, &UART5_Resources);
+    TEST_APP_ARM_USART_IRQHandler(&UART5_Resources);
 }
 #endif//_TEST_APP_UART5_PERIPH_ENABLE_
 
 #ifdef _TEST_APP_UART7_PERIPH_ENABLE_
 void UART7_IRQHandler()
 {
-    TEST_APP_ARM_USART_IRQHandler(&UART7_Driver, &UART7_Resources);
+    TEST_APP_ARM_USART_IRQHandler(&UART7_Resources);
 }
 #endif//_TEST_APP_UART7_PERIPH_ENABLE_
 
 #ifdef _TEST_APP_UART8_PERIPH_ENABLE_
 void UART8_IRQHandler()
 {
-    TEST_APP_ARM_USART_IRQHandler(&UART8_Driver, &UART8_Resources);
+    TEST_APP_ARM_USART_IRQHandler(&UART8_Resources);
 }
 #endif//_TEST_APP_UART8_PERIPH_ENABLE_
 
@@ -376,7 +431,7 @@ static uint32_t UART4_Uninitialize(void)
 
 static void UART4_cb(void)
 {
-    TEST_APP_ARM_USART_cb(&UART4_Driver, &UART4_Resources);
+    TEST_APP_ARM_USART_cb(&UART4_Resources);
 }
 
 static uint32_t UART4_Send(void *pbuff, uint32_t num)
@@ -432,7 +487,7 @@ static uint32_t UART5_Uninitialize(void)
 
 static void UART5_cb(void)
 {
-    TEST_APP_ARM_USART_cb(&UART5_Driver, &UART5_Resources);
+    TEST_APP_ARM_USART_cb(&UART5_Resources);
 }
 
 static uint32_t UART5_Send(void *pbuff, uint32_t num)
@@ -488,7 +543,7 @@ static uint32_t UART7_Uninitialize(void)
 
 static void UART7_cb(void)
 {
-    TEST_APP_ARM_USART_cb(&UART7_Driver, &UART7_Resources);
+    TEST_APP_ARM_USART_cb(&UART7_Resources);
 }
 
 static uint32_t UART7_Send(void *pbuff, uint32_t num)
@@ -544,7 +599,7 @@ static uint32_t UART8_Uninitialize(void)
 
 static void UART8_cb(void)
 {
-    TEST_APP_ARM_USART_cb(&UART8_Driver, &UART8_Resources);
+    TEST_APP_ARM_USART_cb(&UART8_Resources);
 }
 
 static uint32_t UART8_Send(void *pbuff, uint32_t num)

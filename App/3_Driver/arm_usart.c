@@ -8,6 +8,7 @@
 #include "arm_gpio.h"
 #include "app.h"
 #include "arm_dma.h"
+#include "timer.h"
 
 #ifdef _TEST_APP_DEBUG_
 #include "assert.h"
@@ -226,6 +227,7 @@ uint32_t TEST_APP_ARM_USART_SetResources(TEST_APP_ARM_USART_Resources_t *p_res,
 #endif //_TEST_APP_UART4_TX_DMA_CIRCULAR_MODE_
 #else
 #ifdef _TEST_APP_UART4_TX_DMA_CIRCULAR_MODE_
+//dma to be anable
 #error "UART4 DMA configuration error"
 #endif //_TEST_APP_UART4_TX_DMA_CIRCULAR_MODE_
         p_res->DMA.TxEnable = FALSE;
@@ -238,6 +240,7 @@ uint32_t TEST_APP_ARM_USART_SetResources(TEST_APP_ARM_USART_Resources_t *p_res,
 #endif //_TEST_APP_UART4_RX_DMA_CIRCULAR_MODE_
 #else
 #ifdef _TEST_APP_UART4_RX_DMA_CIRCULAR_MODE_
+        //dma to be anable
 #error "UART4 DMA configuration error"
 #endif //_TEST_APP_UART4_RX_DMA_CIRCULAR_MODE_
         p_res->DMA.RxEnable = FALSE;
@@ -285,6 +288,7 @@ uint32_t TEST_APP_ARM_USART_SetResources(TEST_APP_ARM_USART_Resources_t *p_res,
 #endif //_TEST_APP_UART5_TX_DMA_CIRCULAR_MODE_
 #else
 #ifdef _TEST_APP_UART5_TX_DMA_CIRCULAR_MODE_
+        //dma to be anable
 #error "UART5 DMA configuration error"
 #endif //_TEST_APP_UART5_TX_DMA_CIRCULAR_MODE_
         p_res->DMA.TxEnable = FALSE;
@@ -297,6 +301,7 @@ uint32_t TEST_APP_ARM_USART_SetResources(TEST_APP_ARM_USART_Resources_t *p_res,
 #endif //_TEST_APP_UART5_RX_DMA_CIRCULAR_MODE_
 #else
 #ifdef _TEST_APP_UART5_RX_DMA_CIRCULAR_MODE_
+        //dma to be anable
 #error "UART5 DMA configuration error"
 #endif //_TEST_APP_UART5_RX_DMA_CIRCULAR_MODE_
         p_res->DMA.RxEnable = FALSE;
@@ -344,6 +349,7 @@ uint32_t TEST_APP_ARM_USART_SetResources(TEST_APP_ARM_USART_Resources_t *p_res,
 #endif //_TEST_APP_UART7_TX_DMA_CIRCULAR_MODE_
 #else
 #ifdef _TEST_APP_UART7_TX_DMA_CIRCULAR_MODE_
+        //dma to be anable
 #error "UART7 DMA configuration error"
 #endif //_TEST_APP_UART7_TX_DMA_CIRCULAR_MODE_
         p_res->DMA.TxEnable = FALSE;
@@ -355,6 +361,7 @@ uint32_t TEST_APP_ARM_USART_SetResources(TEST_APP_ARM_USART_Resources_t *p_res,
 #endif //_TEST_APP_UART7_RX_DMA_CIRCULAR_MODE_
 #else
 #ifdef _TEST_APP_UART7_RX_DMA_CIRCULAR_MODE_
+        //dma to be anable
 #error "UART7 DMA configuration error"
 #endif //_TEST_APP_UART7_RX_DMA_CIRCULAR_MODE_
         p_res->DMA.RxEnable = FALSE;
@@ -402,6 +409,7 @@ uint32_t TEST_APP_ARM_USART_SetResources(TEST_APP_ARM_USART_Resources_t *p_res,
 #endif //_TEST_APP_UART8_TX_DMA_CIRCULAR_MODE_
 #else
 #ifdef _TEST_APP_UART8_TX_DMA_CIRCULAR_MODE_
+        //dma to be anable
 #error "UART8 DMA configuration error"
 #endif //_TEST_APP_UART8_TX_DMA_CIRCULAR_MODE_
         p_res->DMA.TxEnable = FALSE;
@@ -414,6 +422,7 @@ uint32_t TEST_APP_ARM_USART_SetResources(TEST_APP_ARM_USART_Resources_t *p_res,
 #endif //_TEST_APP_UART8_RX_DMA_CIRCULAR_MODE_
 #else
 #ifdef _TEST_APP_UART8_RX_DMA_CIRCULAR_MODE_
+        //dma to be anable
 #error "UART8 DMA configuration error"
 #endif //_TEST_APP_UART8_RX_DMA_CIRCULAR_MODE_
         p_res->DMA.RxEnable = FALSE;
@@ -438,7 +447,7 @@ uint32_t TEST_APP_ARM_USART_SetResources(TEST_APP_ARM_USART_Resources_t *p_res,
     return TEST_APP_ARM_DRIVER_NO_ERROR;
 }
 
-void TEST_APP_ARM_USART_IRQHandler(TEST_APP_ARM_USART_Driver_t *p_drv, TEST_APP_ARM_USART_Resources_t *p_res)
+void TEST_APP_ARM_USART_IRQHandler(TEST_APP_ARM_USART_Resources_t *p_res)
 {
     uint32_t event = 0;
     if(p_res->Status.XferStatus.RxBusy == 1) {
@@ -464,10 +473,10 @@ void TEST_APP_ARM_USART_IRQHandler(TEST_APP_ARM_USART_Driver_t *p_drv, TEST_APP_
         }
         if(p_res->Transfer.RxCnt == p_res->Transfer.RxNum) {
             event |= TEST_APP_ARM_USART_EVENT_RX_COMPLETE;
-            p_res->Status.XferStatus.RxBusy = 0;
             usart_interrupt_enable(p_res->pUSARTx, USART_RDBF_INT, FALSE);
             usart_interrupt_enable(p_res->pUSARTx, USART_ERR_INT, FALSE);
             usart_interrupt_enable(p_res->pUSARTx, USART_PERR_INT, FALSE);
+            // p_res->Status.XferStatus.RxBusy = 0;
         }
     }
     if(p_res->Status.XferStatus.TxBusy == 1) {
@@ -478,8 +487,8 @@ void TEST_APP_ARM_USART_IRQHandler(TEST_APP_ARM_USART_Driver_t *p_drv, TEST_APP_
             if(p_res->Transfer.TxCnt == p_res->Transfer.TxNum) {
                 while(usart_flag_get(p_res->pUSARTx, USART_TDC_FLAG != SET));
                 event |= TEST_APP_ARM_USART_EVENT_TX_COMPLETE;
-                p_res->Status.XferStatus.TxBusy = 0;
                 usart_interrupt_enable(p_res->pUSARTx, USART_TDBE_INT, FALSE);
+                // p_res->Status.XferStatus.TxBusy = 0;
             }
         }
     }
@@ -488,7 +497,7 @@ void TEST_APP_ARM_USART_IRQHandler(TEST_APP_ARM_USART_Driver_t *p_drv, TEST_APP_
     }
 }
 
-void TEST_APP_ARM_USART_cb(TEST_APP_ARM_USART_Driver_t *p_drv, TEST_APP_ARM_USART_Resources_t *p_res)
+void TEST_APP_ARM_USART_cb(TEST_APP_ARM_USART_Resources_t *p_res)
 {
     uint32_t event = 0;
     uint32_t dma_tx_event = 0;
@@ -510,19 +519,18 @@ void TEST_APP_ARM_USART_cb(TEST_APP_ARM_USART_Driver_t *p_drv, TEST_APP_ARM_USAR
         TEST_APP_LCD2004_Printf(0, 0, SET, "%s", p_res->Transfer.pRxData);
         LOG("USART recieved test data");
         memcpy(p_res->Transfer.pTxData, p_res->Transfer.pRxData, TEST_APP_ARM_USART_RX_BUFF_SIZE);
-        p_drv->Send(p_res->Transfer.pTxData, 8);
 #endif//_TEST_APP_DEBUG_ 
     }
     if((dma_rx_event & TEST_APP_ARM_DMA_EVENT_FULL_DATA) &&
        (p_res->Status.XferStatus.RxBusy == 1)) {
-        if(p_res->DMA.RxCfg.loop_mode_enable == FALSE) {
-            p_res->Status.XferStatus.RxBusy = 0;
-        }
+        // if(p_res->DMA.RxCfg.loop_mode_enable == FALSE) {
+        //     p_res->Status.XferStatus.RxBusy = 0;
+        // }
+        p_res->Status.XferStatus.RxBusy = 0;
 #ifdef _TEST_APP_DEBUG_
         TEST_APP_LCD2004_Printf(0, 0, SET, "%s", p_res->Transfer.pRxData);
         LOG("USART recieved test data via DMA");
         memcpy(p_res->Transfer.pTxData, p_res->Transfer.pRxData, TEST_APP_ARM_USART_RX_BUFF_SIZE);
-        p_drv->Send(p_res->Transfer.pTxData, 8);
 #endif//_TEST_APP_DEBUG_                
     }
     if(event & TEST_APP_ARM_USART_EVENT_TX_COMPLETE) {
@@ -531,17 +539,16 @@ void TEST_APP_ARM_USART_cb(TEST_APP_ARM_USART_Driver_t *p_drv, TEST_APP_ARM_USAR
         p_res->Status.XferStatus.TxBusy = 0;
 #ifdef _TEST_APP_DEBUG_
         LOG("USART transmitted test data");
-        p_drv->Recieve(p_res->Transfer.pRxData, 8);
 #endif//_TEST_APP_DEBUG_                 
     }
     if((dma_tx_event & TEST_APP_ARM_DMA_EVENT_FULL_DATA) &&
        (p_res->Status.XferStatus.TxBusy == 1)) {
-        if(p_res->DMA.TxCfg.loop_mode_enable == FALSE) {
-            p_res->Status.XferStatus.TxBusy = 0;
-        }
+        // if(p_res->DMA.TxCfg.loop_mode_enable == FALSE) {
+        //     p_res->Status.XferStatus.TxBusy = 0;
+        // }
+        p_res->Status.XferStatus.TxBusy = 0;
 #ifdef _TEST_APP_DEBUG_
         LOG("USART transmitted test data via DMA");
-        p_drv->Recieve(p_res->Transfer.pRxData, 8);
 #endif//_TEST_APP_DEBUG_                 
     }
     if(event & TEST_APP_ARM_USART_EVENT_RX_OVERFLOW) {
@@ -589,12 +596,14 @@ uint32_t TEST_APP_ARM_USART_Recieve(TEST_APP_ARM_USART_Resources_t *p_res, void 
     if(p_res->Status.XferStatus.RxBusy)  {
         p_res->Status.DrvStatus |= TEST_APP_ARM_DRIVER_ERROR_BUSY;
         return TEST_APP_ARM_DRIVER_ERROR_BUSY;
+    } else {
+        p_res->Status.DrvStatus &= ~TEST_APP_ARM_DRIVER_ERROR_BUSY;
     }
     p_res->Status.XferStatus.RxBusy = 1;
     if(p_res->DMA.RxEnable) {
         dma_channel_enable(p_res->DMA.pRxDMAxChany, FALSE);
         TEST_APP_ARM_DMA_Config(p_res->DMA.pRxDMAxChany, &p_res->DMA.RxCfg, (uint32_t)(&p_res->pUSARTx->dt),
-                                (uint32_t)pdata, num, DMA_PRIORITY_LOW);
+                                (uint32_t)(volatile void *)pdata, num, DMA_PRIORITY_LOW);
         dma_channel_enable(p_res->DMA.pRxDMAxChany, TRUE);
         dma_interrupt_enable(p_res->DMA.pRxDMAxChany, DMA_FDT_INT, TRUE);
         dma_interrupt_enable(p_res->DMA.pRxDMAxChany, DMA_DTERR_INT, TRUE);
@@ -625,14 +634,20 @@ uint32_t TEST_APP_ARM_USART_Send(TEST_APP_ARM_USART_Resources_t *p_res, void *pd
         return TEST_APP_ARM_DRIVER_ERROR_PARAMETER;
     }
     if(p_res->Status.XferStatus.TxBusy) {
-        p_res->Status.DrvStatus |= TEST_APP_ARM_DRIVER_ERROR_BUSY;
-        return TEST_APP_ARM_DRIVER_ERROR_BUSY;
+        TimerEnable(TIMER_USART_TIMEOUT, 200);
+        while(p_res->Status.XferStatus.TxBusy && (!TimerTestFlag(TIMER_USART_TIMEOUT)));
+        if(TimerTestFlag(TIMER_USART_TIMEOUT)) {
+            p_res->Status.DrvStatus |= TEST_APP_ARM_DRIVER_ERROR_BUSY;
+            return TEST_APP_ARM_DRIVER_ERROR_BUSY;
+        } else {
+            p_res->Status.DrvStatus &= ~TEST_APP_ARM_DRIVER_ERROR_BUSY;
+        }
     }
     p_res->Status.XferStatus.TxBusy = 1;
     if(p_res->DMA.TxEnable) {
         dma_channel_enable(p_res->DMA.pTxDMAxChany, FALSE);
         TEST_APP_ARM_DMA_Config(p_res->DMA.pTxDMAxChany, &p_res->DMA.TxCfg, (uint32_t)(&p_res->pUSARTx->dt),
-                                (uint32_t)pdata, num, DMA_PRIORITY_LOW);
+                                (uint32_t)(volatile void *)pdata, num, DMA_PRIORITY_LOW);
         dma_channel_enable(p_res->DMA.pTxDMAxChany, TRUE);
         dma_interrupt_enable(p_res->DMA.pTxDMAxChany, DMA_FDT_INT, TRUE);
         dma_interrupt_enable(p_res->DMA.pTxDMAxChany, DMA_DTERR_INT, TRUE);
@@ -665,6 +680,16 @@ TEST_APP_ARM_USART_Status_t TEST_APP_ARM_USART_GetStatus(TEST_APP_ARM_USART_Reso
     status.XferStatus.RxFramingError = p_res->Status.XferStatus.RxFramingError;
     status.XferStatus.RxParityError = p_res->Status.XferStatus.RxParityError;
     return status;
+}
+
+void TEST_APP_ARM_USART_SetDefaultTxBuffer(TEST_APP_ARM_USART_Resources_t *p_res, void *pbuff)
+{
+    p_res->Transfer.pTxData = pbuff;
+}
+
+void TEST_APP_ARM_USART_SetDefaultRxBuffer(TEST_APP_ARM_USART_Resources_t *p_res, void *pbuff)
+{
+    p_res->Transfer.pRxData = pbuff;
 }
 
 TEST_APP_ARM_USART_Transfer_t TEST_APP_ARM_USART_GetTransfer(TEST_APP_ARM_USART_Resources_t *p_res)

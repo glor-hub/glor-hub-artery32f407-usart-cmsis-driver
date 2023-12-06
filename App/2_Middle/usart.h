@@ -15,6 +15,7 @@ error_status TEST_APP_USART_Test(void);
 #endif//_TEST_APP_DEBUG_
 
 void TEST_APP_USART_cb(void);
+void TEST_APP_SetDefaultTxBuffer(TEST_APP_ARM_USART_Driver_t *p_drv);
 int8_t TEST_APP_USART_printf(TEST_APP_ARM_USART_Driver_t *p_drv, char *fmt, ...);
 
 #endif //_USART_H_ 
