@@ -8,6 +8,7 @@
 #include "timer.h"
 #include "LCD_2004.h"
 #include "usart.h"
+#include "spi.h"
 
 //********************************************************************************
 //Macros
@@ -38,6 +39,7 @@
 void TEST_APP_AppIdleTask(void)
 {
     TEST_APP_USART_cb();
+    TEST_APP_SPI_cb();
 }
 
 error_status TEST_APP_AppInit(void)
@@ -51,6 +53,7 @@ error_status TEST_APP_AppInit(void)
     TimerInit();
     TEST_APP_LCD2004_Init();
     init_result &= TEST_APP_USART_Init();
+    init_result &= TEST_APP_SPI_Init();
     return init_result;
 }
 

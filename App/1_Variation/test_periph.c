@@ -9,6 +9,7 @@
 #include "timer.h"
 #include "LCD_2004.h"
 #include "usart.h"
+#include "spi.h"
 
 //********************************************************************************
 //Macros
@@ -44,7 +45,10 @@ void TEST_APP_PeriphTest(void)
         TEST_APP_ClockResetHEXTFailFlag();
     }
 #ifdef _TEST_APP_DEBUG_
-    if(TEST_APP_USART_Test() == ERROR) {
+    // if(TEST_APP_USART_Test() == ERROR) {
+    //     LOG("USART Test not passed");
+    // }
+    if(TEST_APP_SPI_Test() == ERROR) {
         LOG("USART Test not passed");
     }
 #endif//_TEST_APP_DEBUG_
