@@ -290,7 +290,7 @@ int8_t TEST_APP_USART_printf(TEST_APP_ARM_USART_Driver_t *p_drv, char *fmt, ...)
 {
     uint32_t drv_status;
     int8_t res, len;
-    //for USART in DMA ring mode to be used global buffer
+    //for USART in DMA circular mode to be used global buffer
     TEST_APP_SetDefaultTxBuffer(p_drv);
     while(p_drv->GetStatus().XferStatus.TxBusy) {
         p_drv->Event_cb();
