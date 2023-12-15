@@ -4,6 +4,7 @@
 #include "at32f403a_407.h"
 #include <stdbool.h>
 #include "ringbuffer.h"
+#include "arm_dma.h"
 
 //select UARTx (USARTx are not supported in this driver version)
 //use DMA if necessary
@@ -31,8 +32,8 @@ DMA1_CHANNEL4 (with flexible mapping) - Rx
 ********************************************/
 #define _TEST_APP_UART5_PERIPH_ENABLE_
 #define _TEST_APP_UART5_TX_USE_DMA_
-// #define _TEST_APP_UART5_TX_DMA_CIRCULAR_MODE_
-// #define _TEST_APP_UART5_RX_USE_DMA_
+#define _TEST_APP_UART5_TX_DMA_CIRCULAR_MODE_
+#define _TEST_APP_UART5_RX_USE_DMA_
 // #define _TEST_APP_UART5_RX_DMA_CIRCULAR_MODE_
 
 /*******************************************
@@ -44,8 +45,8 @@ DMA1_CHANNEL2 (with flexible mapping) - Rx
 ********************************************/
 #define _TEST_APP_UART7_PERIPH_ENABLE_
 #define _TEST_APP_UART7_TX_USE_DMA_
-// #define _TEST_APP_UART7_TX_DMA_CIRCULAR_MODE_
-// #define _TEST_APP_UART7_RX_USE_DMA_
+#define _TEST_APP_UART7_TX_DMA_CIRCULAR_MODE_
+#define _TEST_APP_UART7_RX_USE_DMA_
 // #define _TEST_APP_UART7_RX_DMA_CIRCULAR_MODE_
 
 /*******************************************
@@ -57,13 +58,33 @@ DMA2_CHANNEL4 (with flexible mapping) - Rx
 ********************************************/
 #define _TEST_APP_UART8_PERIPH_ENABLE_
 #define _TEST_APP_UART8_TX_USE_DMA_
-// #define _TEST_APP_UART8_TX_DMA_CIRCULAR_MODE_
-// #define _TEST_APP_UART8_RX_USE_DMA_
+#define _TEST_APP_UART8_TX_DMA_CIRCULAR_MODE_
+#define _TEST_APP_UART8_RX_USE_DMA_
 // #define _TEST_APP_UART8_RX_DMA_CIRCULAR_MODE_
 
 /*******************************************
 
 ********************************************/
+
+typedef enum {
+    TEST_APP_ARM_USART1_TX_CHAN = 0,
+    TEST_APP_ARM_USART1_RX_CHAN,
+    TEST_APP_ARM_USART2_TX_CHAN,
+    TEST_APP_ARM_USART2_RX_CHAN,
+    TEST_APP_ARM_USART3_TX_CHAN,
+    TEST_APP_ARM_USART3_RX_CHAN,
+    TEST_APP_ARM_UART4_TX_CHAN,
+    TEST_APP_ARM_UART4_RX_CHAN,
+    TEST_APP_ARM_UART5_TX_CHAN,
+    TEST_APP_ARM_UART5_RX_CHAN,
+    TEST_APP_ARM_USART6_TX_CHAN,
+    TEST_APP_ARM_USART6_RX_CHAN,
+    TEST_APP_ARM_UART7_TX_CHAN,
+    TEST_APP_ARM_UART7_RX_CHAN,
+    TEST_APP_ARM_UART8_TX_CHAN,
+    TEST_APP_ARM_UART8_RX_CHAN,
+    TEST_APP_ARM_USART_CHANS
+} eTEST_APP_ARM_USART_Chan_t;
 
 #define TEST_APP_ARM_USART_TX_BUFF_SIZE 256
 #define TEST_APP_ARM_USART_RX_BUFF_SIZE 256
@@ -144,27 +165,21 @@ typedef struct {
 } TEST_APP_ARM_USART_GPIO_t;
 
 typedef struct {
+    eTEST_APP_ARM_DMA_Chan_t    TxChan;
+    eTEST_APP_ARM_DMA_Chan_t    RxChan;
     confirm_state               TxEnable;
     confirm_state               RxEnable;
-    dma_type                    *pTxDMAx;
-    dma_type                    *pRxDMAx;
-    dma_channel_type            *pTxDMAxChany;
-    dma_channel_type            *pRxDMAxChany;
     confirm_state               TxFlexModeEnable;
     confirm_state               RxFlexModeEnable;
-    uint8_t                     TxFlexChannelx;
-    uint8_t                     RxFlexChannelx;
     dma_flexible_request_type   TxFlexPeriphReq;
     dma_flexible_request_type   RxFlexPeriphReq;
-    IRQn_Type                   TxIrqNum;         // DMA Tx channel IRQ Number
-    IRQn_Type                   RxIrqNum;         // DMA Rx channel IRQ Number
-    uint32_t                    *pTxEvent;        // ringbuffer
-    uint32_t                    *pRxEvent;        // ringbuffer
     dma_init_type               TxCfg;
     dma_init_type               RxCfg;
 } TEST_APP_ARM_USART_DMA_t;
 
 typedef struct {
+    eTEST_APP_ARM_USART_Chan_t          TxChan;
+    eTEST_APP_ARM_USART_Chan_t          RxChan;
     usart_type                          *pUSARTx;
     IRQn_Type                           IrqNum;     // USART IRQ Number
     TEST_APP_RingBuffer_t               Event;
@@ -190,7 +205,10 @@ typedef struct {
 
 uint32_t TEST_APP_ARM_USART_Init(TEST_APP_ARM_USART_Resources_t *p_res);
 uint32_t TEST_APP_ARM_USART_Uninit(TEST_APP_ARM_USART_Resources_t *p_res);
-uint32_t TEST_APP_ARM_USART_SetResources(TEST_APP_ARM_USART_Resources_t *p_res, usart_type *p_usartx,
+uint32_t TEST_APP_ARM_USART_SetResources(TEST_APP_ARM_USART_Resources_t *p_res,
+        usart_type *p_usartx,
+        eTEST_APP_ARM_USART_Chan_t tx_chan,
+        eTEST_APP_ARM_USART_Chan_t rx_chan,
         void *p_event_buff, void *p_tx_buff,
         void *p_rx_buff, uint32_t BaudRate,
         usart_data_bit_num_type DataBit,

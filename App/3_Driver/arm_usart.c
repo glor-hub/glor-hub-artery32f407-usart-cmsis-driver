@@ -31,11 +31,31 @@
 //Variables
 //********************************************************************************
 
+static dma_flexible_request_type ARM_USART_DMA_FlexPeriphReq[TEST_APP_ARM_USART_CHANS] = {
+    DMA_FLEXIBLE_UART1_TX,
+    DMA_FLEXIBLE_UART1_RX,
+    DMA_FLEXIBLE_UART2_TX,
+    DMA_FLEXIBLE_UART2_RX,
+    DMA_FLEXIBLE_UART3_TX,
+    DMA_FLEXIBLE_UART3_RX,
+    DMA_FLEXIBLE_UART4_TX,
+    DMA_FLEXIBLE_UART4_RX,
+    DMA_FLEXIBLE_UART5_TX,
+    DMA_FLEXIBLE_UART5_RX,
+    DMA_FLEXIBLE_UART6_TX,
+    DMA_FLEXIBLE_UART6_RX,
+    DMA_FLEXIBLE_UART7_TX,
+    DMA_FLEXIBLE_UART7_RX,
+    DMA_FLEXIBLE_UART8_TX,
+    DMA_FLEXIBLE_UART8_RX
+};
+
 //********************************************************************************
 //Prototypes
 //********************************************************************************
 
 static uint32_t ARM_USART_GPIO_Config(TEST_APP_ARM_USART_Resources_t *p_res, confirm_state new_state);
+static void TEST_APP_ARM_USART_DMA_cb(uint32_t event);
 
 //================================================================================
 //Public
@@ -57,7 +77,7 @@ uint32_t TEST_APP_ARM_USART_Init(TEST_APP_ARM_USART_Resources_t *p_res)
     drv_flag |= TEST_APP_ARM_USART_FLAG_CONFIGURATED;
     if(p_res->DMA.TxEnable) {
         //clock and reset DMA
-        if(!TEST_APP_ARM_DMA_Init(p_res->DMA.pTxDMAxChany)) {
+        if(!TEST_APP_ARM_DMA_Init(p_res->DMA.TxChan)) {
 #ifdef _TEST_APP_DEBUG_
             LOG("USART DMA driver error");
 #endif//_TEST_APP_DEBUG_
@@ -65,19 +85,14 @@ uint32_t TEST_APP_ARM_USART_Init(TEST_APP_ARM_USART_Resources_t *p_res)
             return TEST_APP_ARM_DRIVER_ERROR;
         }
         if(p_res->DMA.TxFlexModeEnable) {
-            dma_flexible_config(p_res->DMA.pTxDMAx, p_res->DMA.TxFlexChannelx,
-                                p_res->DMA.TxFlexPeriphReq);
+            TEST_APP_ARM_DMA_FlexibleConfig(p_res->DMA.TxChan, p_res->DMA.TxFlexPeriphReq);
         }
-        TEST_APP_RingBuffer_t *pbuff_str_tx = TEST_APP_ARM_DMA_GetEventBuffStr(p_res->DMA.pTxDMAxChany);
-        p_res->DMA.pTxEvent = pbuff_str_tx->pBuff;
-        //clear and enable DMAxChany IRQ
-        NVIC_ClearPendingIRQ(p_res->DMA.TxIrqNum);
-        NVIC_EnableIRQ(p_res->DMA.TxIrqNum);
+        TEST_APP_DMA_ClearAndEnableIRQ(p_res->DMA.TxChan);
         usart_dma_transmitter_enable(p_res->pUSARTx, TRUE);
     }
     if(p_res->DMA.RxEnable) {
         //clock and reset DMA
-        if(!TEST_APP_ARM_DMA_Init(p_res->DMA.pRxDMAxChany)) {
+        if(!TEST_APP_ARM_DMA_Init(p_res->DMA.RxChan)) {
 #ifdef _TEST_APP_DEBUG_
             LOG("USART DMA driver error");
 #endif//_TEST_APP_DEBUG_
@@ -85,14 +100,9 @@ uint32_t TEST_APP_ARM_USART_Init(TEST_APP_ARM_USART_Resources_t *p_res)
             return TEST_APP_ARM_DRIVER_ERROR;
         }
         if(p_res->DMA.RxFlexModeEnable) {
-            dma_flexible_config(p_res->DMA.pRxDMAx, p_res->DMA.RxFlexChannelx,
-                                p_res->DMA.RxFlexPeriphReq);
+            TEST_APP_ARM_DMA_FlexibleConfig(p_res->DMA.RxChan, p_res->DMA.RxFlexPeriphReq);
         }
-        TEST_APP_RingBuffer_t *pbuff_str_rx = TEST_APP_ARM_DMA_GetEventBuffStr(p_res->DMA.pRxDMAxChany);
-        p_res->DMA.pRxEvent = pbuff_str_rx->pBuff;
-        //clear and enable DMAxChany IRQ
-        NVIC_ClearPendingIRQ(p_res->DMA.RxIrqNum);
-        NVIC_EnableIRQ(p_res->DMA.RxIrqNum);
+        TEST_APP_DMA_ClearAndEnableIRQ(p_res->DMA.RxChan);
         usart_dma_receiver_enable(p_res->pUSARTx, TRUE);
     }
     usart_transmitter_enable(p_res->pUSARTx, TRUE);
@@ -120,18 +130,13 @@ uint32_t TEST_APP_ARM_USART_Uninit(TEST_APP_ARM_USART_Resources_t *p_res)
         NVIC_ClearPendingIRQ(p_res->IrqNum);
         if(p_res->DMA.TxEnable) {
             usart_dma_transmitter_enable(p_res->pUSARTx, FALSE);
-            //disable and clear DMAxChany IRQ
-            NVIC_DisableIRQ(p_res->DMA.TxIrqNum);
-            NVIC_ClearPendingIRQ(p_res->DMA.TxIrqNum);
-            dma_channel_enable(p_res->DMA.pTxDMAxChany, FALSE);
-
+            TEST_APP_DMA_DisableAndClearIRQ(p_res->DMA.TxChan);
+            TEST_APP_DMA_Enable(p_res->DMA.TxChan, FALSE);
         }
         if(p_res->DMA.RxEnable) {
-            //disable and clear DMAxChany IRQ
             usart_dma_receiver_enable(p_res->pUSARTx, FALSE);
-            NVIC_DisableIRQ(p_res->DMA.RxIrqNum);
-            NVIC_ClearPendingIRQ(p_res->DMA.RxIrqNum);
-            dma_channel_enable(p_res->DMA.pRxDMAxChany, FALSE);
+            TEST_APP_DMA_DisableAndClearIRQ(p_res->DMA.RxChan);
+            TEST_APP_DMA_Enable(p_res->DMA.RxChan, FALSE);
         }
         usart_transmitter_enable(p_res->pUSARTx, FALSE);
         drv_flag &= ~TEST_APP_ARM_USART_FLAG_TX_ENABLED;
@@ -157,15 +162,20 @@ uint32_t TEST_APP_ARM_USART_Uninit(TEST_APP_ARM_USART_Resources_t *p_res)
     return drv_status;
 }
 
-uint32_t TEST_APP_ARM_USART_SetResources(TEST_APP_ARM_USART_Resources_t *p_res,
-        usart_type *p_usartx,
-        void *p_event_buff, void *p_tx_buff,
-        void *p_rx_buff, uint32_t BaudRate,
-        usart_data_bit_num_type data_bit,
-        usart_stop_bit_num_type stop_bit,
-        usart_parity_selection_type parity,
-        uint32_t gpio_pin_def)
+uint32_t TEST_APP_ARM_USART_SetResources(
+    TEST_APP_ARM_USART_Resources_t *p_res,
+    usart_type *p_usartx,
+    eTEST_APP_ARM_USART_Chan_t tx_chan,
+    eTEST_APP_ARM_USART_Chan_t rx_chan,
+    void *p_event_buff,
+    void *p_tx_buff, void *p_rx_buff, uint32_t BaudRate,
+    usart_data_bit_num_type data_bit,
+    usart_stop_bit_num_type stop_bit,
+    usart_parity_selection_type parity,
+    uint32_t gpio_pin_def)
 {
+    p_res->TxChan = tx_chan;
+    p_res->RxChan = rx_chan;
     p_res->pUSARTx = p_usartx;
     TEST_APP_RingBuffer_Init(&(p_res->Event), p_event_buff, TEST_APP_ARM_USART_EVENT_BUFF_SIZE);
     p_res->Gpio.PinDef = gpio_pin_def;
@@ -218,8 +228,6 @@ uint32_t TEST_APP_ARM_USART_SetResources(TEST_APP_ARM_USART_Resources_t *p_res,
                 break;
             }
         }
-        p_res->DMA.TxIrqNum = DMA2_Channel4_5_IRQn;
-        p_res->DMA.RxIrqNum = DMA2_Channel3_IRQn;
 #ifdef _TEST_APP_UART4_TX_USE_DMA_
         p_res->DMA.TxEnable = TRUE;
 #ifdef _TEST_APP_UART4_TX_DMA_CIRCULAR_MODE_
@@ -245,16 +253,12 @@ uint32_t TEST_APP_ARM_USART_SetResources(TEST_APP_ARM_USART_Resources_t *p_res,
 #endif //_TEST_APP_UART4_RX_DMA_CIRCULAR_MODE_
         p_res->DMA.RxEnable = FALSE;
 #endif //_TEST_APP_UART4_RX_USE_DMA_
-        p_res->DMA.pTxDMAx = DMA2;
-        p_res->DMA.pRxDMAx = DMA2;
-        p_res->DMA.pTxDMAxChany = DMA2_CHANNEL5;
-        p_res->DMA.pRxDMAxChany = DMA2_CHANNEL3;
+        p_res->DMA.TxChan = TEST_APP_ARM_DMA2_CHAN5;
+        p_res->DMA.RxChan = TEST_APP_ARM_DMA2_CHAN3;
         p_res->DMA.TxFlexModeEnable = TRUE;
         p_res->DMA.RxFlexModeEnable = TRUE;
-        p_res->DMA.TxFlexChannelx = FLEX_CHANNEL5;
-        p_res->DMA.RxFlexChannelx = FLEX_CHANNEL3;
-        p_res->DMA.TxFlexPeriphReq = DMA_FLEXIBLE_UART4_TX;
-        p_res->DMA.RxFlexPeriphReq = DMA_FLEXIBLE_UART4_RX;
+        p_res->DMA.TxFlexPeriphReq = ARM_USART_DMA_FlexPeriphReq[p_res->TxChan];
+        p_res->DMA.RxFlexPeriphReq = ARM_USART_DMA_FlexPeriphReq[p_res->RxChan];;
         /****************************************************************
             UART5
         ***************************************************************/
@@ -279,8 +283,6 @@ uint32_t TEST_APP_ARM_USART_SetResources(TEST_APP_ARM_USART_Resources_t *p_res,
                 break;
             }
         }
-        p_res->DMA.TxIrqNum = DMA1_Channel5_IRQn;
-        p_res->DMA.RxIrqNum = DMA1_Channel4_IRQn;
 #ifdef _TEST_APP_UART5_TX_USE_DMA_
         p_res->DMA.TxEnable = TRUE;
 #ifdef _TEST_APP_UART5_TX_DMA_CIRCULAR_MODE_
@@ -306,16 +308,12 @@ uint32_t TEST_APP_ARM_USART_SetResources(TEST_APP_ARM_USART_Resources_t *p_res,
 #endif //_TEST_APP_UART5_RX_DMA_CIRCULAR_MODE_
         p_res->DMA.RxEnable = FALSE;
 #endif //_TEST_APP_UART5_RX_USE_DMA_
-        p_res->DMA.pTxDMAx = DMA1;
-        p_res->DMA.pRxDMAx = DMA1;
-        p_res->DMA.pTxDMAxChany = DMA1_CHANNEL5;
-        p_res->DMA.pRxDMAxChany = DMA1_CHANNEL4;
+        p_res->DMA.TxChan = TEST_APP_ARM_DMA1_CHAN5;
+        p_res->DMA.RxChan = TEST_APP_ARM_DMA1_CHAN4;
         p_res->DMA.TxFlexModeEnable = TRUE;
         p_res->DMA.RxFlexModeEnable = TRUE;
-        p_res->DMA.TxFlexChannelx = FLEX_CHANNEL5;
-        p_res->DMA.RxFlexChannelx = FLEX_CHANNEL4;
-        p_res->DMA.TxFlexPeriphReq = DMA_FLEXIBLE_UART5_TX;
-        p_res->DMA.RxFlexPeriphReq = DMA_FLEXIBLE_UART5_RX;
+        p_res->DMA.TxFlexPeriphReq = ARM_USART_DMA_FlexPeriphReq[p_res->TxChan];
+        p_res->DMA.RxFlexPeriphReq = ARM_USART_DMA_FlexPeriphReq[p_res->RxChan];
         /****************************************************************
             UART7
         ***************************************************************/
@@ -340,8 +338,6 @@ uint32_t TEST_APP_ARM_USART_SetResources(TEST_APP_ARM_USART_Resources_t *p_res,
                 break;
             }
         }
-        p_res->DMA.TxIrqNum = DMA1_Channel3_IRQn;
-        p_res->DMA.RxIrqNum = DMA1_Channel2_IRQn;
 #ifdef _TEST_APP_UART7_TX_USE_DMA_
         p_res->DMA.TxEnable = TRUE;
 #ifdef _TEST_APP_UART7_TX_DMA_CIRCULAR_MODE_
@@ -366,16 +362,12 @@ uint32_t TEST_APP_ARM_USART_SetResources(TEST_APP_ARM_USART_Resources_t *p_res,
 #endif //_TEST_APP_UART7_RX_DMA_CIRCULAR_MODE_
         p_res->DMA.RxEnable = FALSE;
 #endif //_TEST_APP_UART7_RX_USE_DMA_
-        p_res->DMA.pTxDMAx = DMA1;
-        p_res->DMA.pRxDMAx = DMA1;
-        p_res->DMA.pTxDMAxChany = DMA1_CHANNEL3;
-        p_res->DMA.pRxDMAxChany = DMA1_CHANNEL2;
+        p_res->DMA.TxChan = TEST_APP_ARM_DMA1_CHAN3;
+        p_res->DMA.RxChan = TEST_APP_ARM_DMA1_CHAN2;
         p_res->DMA.TxFlexModeEnable = TRUE;
         p_res->DMA.RxFlexModeEnable = TRUE;
-        p_res->DMA.TxFlexChannelx = FLEX_CHANNEL3;
-        p_res->DMA.RxFlexChannelx = FLEX_CHANNEL2;
-        p_res->DMA.TxFlexPeriphReq = DMA_FLEXIBLE_UART7_TX;
-        p_res->DMA.RxFlexPeriphReq = DMA_FLEXIBLE_UART7_RX;
+        p_res->DMA.TxFlexPeriphReq = ARM_USART_DMA_FlexPeriphReq[p_res->TxChan];
+        p_res->DMA.RxFlexPeriphReq = ARM_USART_DMA_FlexPeriphReq[p_res->RxChan];
         /****************************************************************
             UART8
         ***************************************************************/
@@ -400,8 +392,6 @@ uint32_t TEST_APP_ARM_USART_SetResources(TEST_APP_ARM_USART_Resources_t *p_res,
                 break;
             }
         }
-        p_res->DMA.TxIrqNum = DMA2_Channel6_7_IRQn;
-        p_res->DMA.RxIrqNum = DMA2_Channel4_5_IRQn;
 #ifdef _TEST_APP_UART8_TX_USE_DMA_
         p_res->DMA.TxEnable = TRUE;
 #ifdef _TEST_APP_UART8_TX_DMA_CIRCULAR_MODE_
@@ -427,16 +417,12 @@ uint32_t TEST_APP_ARM_USART_SetResources(TEST_APP_ARM_USART_Resources_t *p_res,
 #endif //_TEST_APP_UART8_RX_DMA_CIRCULAR_MODE_
         p_res->DMA.RxEnable = FALSE;
 #endif //_TEST_APP_UART8_RX_USE_DMA_
-        p_res->DMA.pTxDMAx = DMA2;
-        p_res->DMA.pRxDMAx = DMA2;
-        p_res->DMA.pTxDMAxChany = DMA2_CHANNEL6;
-        p_res->DMA.pRxDMAxChany = DMA2_CHANNEL4;
+        p_res->DMA.TxChan = TEST_APP_ARM_DMA2_CHAN6;
+        p_res->DMA.RxChan = TEST_APP_ARM_DMA2_CHAN4;
         p_res->DMA.TxFlexModeEnable = TRUE;
         p_res->DMA.RxFlexModeEnable = TRUE;
-        p_res->DMA.TxFlexChannelx = FLEX_CHANNEL6;
-        p_res->DMA.RxFlexChannelx = FLEX_CHANNEL4;
-        p_res->DMA.TxFlexPeriphReq = DMA_FLEXIBLE_UART8_TX;
-        p_res->DMA.RxFlexPeriphReq = DMA_FLEXIBLE_UART8_RX;
+        p_res->DMA.TxFlexPeriphReq = ARM_USART_DMA_FlexPeriphReq[p_res->TxChan];
+        p_res->DMA.RxFlexPeriphReq = ARM_USART_DMA_FlexPeriphReq[p_res->RxChan];
     } else {
 #ifdef _TEST_APP_DEBUG_
         LOG("USART configuration error");
@@ -500,17 +486,7 @@ void TEST_APP_ARM_USART_IRQHandler(TEST_APP_ARM_USART_Resources_t *p_res)
 void TEST_APP_ARM_USART_cb(TEST_APP_ARM_USART_Resources_t *p_res)
 {
     uint32_t event = 0;
-    uint32_t dma_tx_event = 0;
-    uint32_t dma_rx_event = 0;
     TEST_APP_RingBuffer_Read(&(p_res->Event), &event);
-    if(p_res->DMA.TxEnable) {
-        TEST_APP_RingBuffer_t *pbuff_str_tx = TEST_APP_ARM_DMA_GetEventBuffStr(p_res->DMA.pTxDMAxChany);
-        TEST_APP_RingBuffer_Read(pbuff_str_tx, &dma_tx_event);
-    }
-    if(p_res->DMA.RxEnable) {
-        TEST_APP_RingBuffer_t *pbuff_str_rx = TEST_APP_ARM_DMA_GetEventBuffStr(p_res->DMA.pRxDMAxChany);
-        TEST_APP_RingBuffer_Read(pbuff_str_rx, &dma_rx_event);
-    }
     if(event & TEST_APP_ARM_USART_EVENT_RX_COMPLETE) {
         p_res->Transfer.RxCnt = 0;
         p_res->Transfer.RxNum = 0;
@@ -521,15 +497,6 @@ void TEST_APP_ARM_USART_cb(TEST_APP_ARM_USART_Resources_t *p_res)
         memcpy(p_res->Transfer.pTxData, p_res->Transfer.pRxData, TEST_APP_ARM_USART_RX_BUFF_SIZE);
 #endif//_TEST_APP_DEBUG_ 
     }
-    if((dma_rx_event & TEST_APP_ARM_DMA_EVENT_FULL_DATA) &&
-       (p_res->Status.XferStatus.RxBusy == 1)) {
-        p_res->Status.XferStatus.RxBusy = 0;
-#ifdef _TEST_APP_DEBUG_
-        TEST_APP_LCD2004_Printf(0, 0, SET, "%s", p_res->Transfer.pRxData);
-        LOG("USART recieved test data via DMA");
-        memcpy(p_res->Transfer.pTxData, p_res->Transfer.pRxData, TEST_APP_ARM_USART_RX_BUFF_SIZE);
-#endif//_TEST_APP_DEBUG_                
-    }
     if(event & TEST_APP_ARM_USART_EVENT_TX_COMPLETE) {
         p_res->Transfer.TxCnt = 0;
         p_res->Transfer.TxNum = 0;
@@ -538,13 +505,13 @@ void TEST_APP_ARM_USART_cb(TEST_APP_ARM_USART_Resources_t *p_res)
         LOG("USART transmitted test data");
 #endif//_TEST_APP_DEBUG_                 
     }
-    if((dma_tx_event & TEST_APP_ARM_DMA_EVENT_FULL_DATA) &&
-       (p_res->Status.XferStatus.TxBusy == 1)) {
-        p_res->Status.XferStatus.TxBusy = 0;
-#ifdef _TEST_APP_DEBUG_
-        LOG("USART transmitted test data via DMA");
-#endif//_TEST_APP_DEBUG_                 
-    }
+//     if((dma_tx_event & TEST_APP_ARM_DMA_EVENT_FULL_DATA) &&
+//        (p_res->Status.XferStatus.TxBusy == 1)) {
+//         p_res->Status.XferStatus.TxBusy = 0;
+// #ifdef _TEST_APP_DEBUG_
+//         LOG("USART transmitted test data via DMA");
+// #endif//_TEST_APP_DEBUG_
+//     }
     if(event & TEST_APP_ARM_USART_EVENT_RX_OVERFLOW) {
 #ifdef _TEST_APP_DEBUG_
         LOG("USART receiver overflow");
@@ -565,16 +532,16 @@ void TEST_APP_ARM_USART_cb(TEST_APP_ARM_USART_Resources_t *p_res)
         LOG("USART receiver parity error");
 #endif//_TEST_APP_DEBUG_
     }
-    if(dma_tx_event & TEST_APP_ARM_DMA_EVENT_DATA_ERROR) {
-#ifdef _TEST_APP_DEBUG_
-        LOG("USART DMA data error");
-#endif//_TEST_APP_DEBUG_
-    }
-    if(dma_rx_event & TEST_APP_ARM_DMA_EVENT_DATA_ERROR) {
-#ifdef _TEST_APP_DEBUG_
-        LOG("USART DMA data error");
-#endif//_TEST_APP_DEBUG_
-    }
+//     if(dma_tx_event & TEST_APP_ARM_DMA_EVENT_DATA_ERROR) {
+// #ifdef _TEST_APP_DEBUG_
+//         LOG("USART DMA data error");
+// #endif//_TEST_APP_DEBUG_
+//     }
+//     if(dma_rx_event & TEST_APP_ARM_DMA_EVENT_DATA_ERROR) {
+// #ifdef _TEST_APP_DEBUG_
+//         LOG("USART DMA data error");
+// #endif//_TEST_APP_DEBUG_
+//     }
 }
 
 uint32_t TEST_APP_ARM_USART_Recieve(TEST_APP_ARM_USART_Resources_t *p_res, void *pdata, uint32_t num)
@@ -595,12 +562,15 @@ uint32_t TEST_APP_ARM_USART_Recieve(TEST_APP_ARM_USART_Resources_t *p_res, void 
     }
     p_res->Status.XferStatus.RxBusy = 1;
     if(p_res->DMA.RxEnable) {
-        dma_channel_enable(p_res->DMA.pRxDMAxChany, FALSE);
-        TEST_APP_ARM_DMA_Config(p_res->DMA.pRxDMAxChany, &p_res->DMA.RxCfg, (uint32_t)(&p_res->pUSARTx->dt),
-                                (uint32_t)(volatile void *)pdata, num, DMA_PRIORITY_LOW);
-        dma_channel_enable(p_res->DMA.pRxDMAxChany, TRUE);
-        dma_interrupt_enable(p_res->DMA.pRxDMAxChany, DMA_FDT_INT, TRUE);
-        dma_interrupt_enable(p_res->DMA.pRxDMAxChany, DMA_DTERR_INT, TRUE);
+        TEST_APP_DMA_Enable(p_res->DMA.RxChan, FALSE);
+        TEST_APP_ARM_DMA_Config(p_res->DMA.RxChan, &p_res->DMA.RxCfg, (uint32_t)(&p_res->pUSARTx->dt),
+                                (uint32_t)(volatile void *)pdata, num, DMA_PRIORITY_LOW,
+                                TEST_APP_ARM_USART_DMA_cb);
+        TEST_APP_DMA_Enable(p_res->DMA.RxChan, TRUE);
+        TEST_APP_DMA_InterruptEnable(p_res->DMA.RxChan, TEST_APP_ARM_DMA_FULL_DATA_TRANSFER_INT,
+                                     TRUE);
+        TEST_APP_DMA_InterruptEnable(p_res->DMA.RxChan, TEST_APP_ARM_DMA_ERR_DATA_TRANSFER_INT,
+                                     TRUE);
     } else {
         p_res->Transfer.RxCnt = 0;
         p_res->Transfer.RxNum = num;
@@ -641,12 +611,15 @@ uint32_t TEST_APP_ARM_USART_Send(TEST_APP_ARM_USART_Resources_t *p_res, void *pd
     }
     p_res->Status.XferStatus.TxBusy = 1;
     if(p_res->DMA.TxEnable) {
-        dma_channel_enable(p_res->DMA.pTxDMAxChany, FALSE);
-        TEST_APP_ARM_DMA_Config(p_res->DMA.pTxDMAxChany, &p_res->DMA.TxCfg, (uint32_t)(&p_res->pUSARTx->dt),
-                                (uint32_t)(volatile void *)pdata, num, DMA_PRIORITY_LOW);
-        dma_channel_enable(p_res->DMA.pTxDMAxChany, TRUE);
-        dma_interrupt_enable(p_res->DMA.pTxDMAxChany, DMA_FDT_INT, TRUE);
-        dma_interrupt_enable(p_res->DMA.pTxDMAxChany, DMA_DTERR_INT, TRUE);
+        TEST_APP_DMA_Enable(p_res->DMA.TxChan, FALSE);
+        TEST_APP_ARM_DMA_Config(p_res->DMA.TxChan, &p_res->DMA.TxCfg, (uint32_t)(&p_res->pUSARTx->dt),
+                                (uint32_t)(volatile void *)pdata, num, DMA_PRIORITY_LOW,
+                                TEST_APP_ARM_USART_DMA_cb);
+        TEST_APP_DMA_Enable(p_res->DMA.TxChan, TRUE);
+        TEST_APP_DMA_InterruptEnable(p_res->DMA.TxChan, TEST_APP_ARM_DMA_FULL_DATA_TRANSFER_INT,
+                                     TRUE);
+        TEST_APP_DMA_InterruptEnable(p_res->DMA.TxChan, TEST_APP_ARM_DMA_ERR_DATA_TRANSFER_INT,
+                                     TRUE);
     } else {
         p_res->Transfer.TxCnt = 0;
         p_res->Transfer.TxNum = num;
@@ -698,6 +671,19 @@ TEST_APP_ARM_USART_Transfer_t TEST_APP_ARM_USART_GetTransfer(TEST_APP_ARM_USART_
     transfer.TxCnt = p_res->Transfer.TxCnt;
     transfer.RxCnt = p_res->Transfer.RxCnt;
     return transfer;
+}
+
+static void TEST_APP_ARM_USART_DMA_cb(uint32_t event)
+{
+//     if((event & TEST_APP_ARM_DMA_EVENT_FULL_DATA) &&
+//        (p_res->Status.XferStatus.RxBusy == 1)) {
+//         p_res->Status.XferStatus.RxBusy = 0;
+// #ifdef _TEST_APP_DEBUG_
+//         TEST_APP_LCD2004_Printf(0, 0, SET, "%s", p_res->Transfer.pRxData);
+//         LOG("USART recieved test data via DMA");
+//         memcpy(p_res->Transfer.pTxData, p_res->Transfer.pRxData, TEST_APP_ARM_USART_RX_BUFF_SIZE);
+// #endif//_TEST_APP_DEBUG_
+//     }
 }
 
 //================================================================================
