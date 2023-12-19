@@ -47,10 +47,9 @@ void TEST_APP_ARM_DMA_FlexibleConfig(eTEST_APP_ARM_DMA_Chan_t chan,
 void TEST_APP_DMA_Enable(eTEST_APP_ARM_DMA_Chan_t chan, confirm_state state);
 void TEST_APP_DMA_ClearAndEnableIRQ(eTEST_APP_ARM_DMA_Chan_t chan);
 void TEST_APP_DMA_DisableAndClearIRQ(eTEST_APP_ARM_DMA_Chan_t chan);
-void TEST_APP_ARM_DMA_Config(eTEST_APP_ARM_DMA_Chan_t chan, dma_init_type *pDMA_Cfg,
-                             uint32_t periph_addr, uint32_t mem_addr,
+void TEST_APP_ARM_DMA_Config(eTEST_APP_ARM_DMA_Chan_t chan, uint32_t periph_addr, uint32_t mem_addr,
                              uint16_t buff_size, dma_priority_level_type priority,
-                             void (*func_cb)(uint32_t event));
+                             void (*pfunc_cb)(uint32_t event));
 void TEST_APP_DMA_InterruptEnable(eTEST_APP_ARM_DMA_Chan_t chan,
                                   eTEST_APP_ARM_DMA_InterruptTypes_t interrupt_type,
                                   confirm_state state);
