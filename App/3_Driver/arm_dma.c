@@ -22,8 +22,6 @@
 //Typedefs
 //********************************************************************************
 
-typedef void (*pFunc_cb)(uint32_t event);
-
 typedef enum {
     ARM_DMA_GLOBAL_FLAG,
     ARM_DMA_FULL_DATA_FLAG,
@@ -36,7 +34,7 @@ typedef enum {
     ARM_DMA_STATUS_REG,
     ARM_DMA_CHANNEL_REG,
     ARM_DMA_REGS
-} eARM_DMA_Registers_t;
+} eARM_DMA_pRegisters_t;
 
 typedef struct {
     uint32_t GlobalFlag;
@@ -48,7 +46,7 @@ typedef struct {
 typedef struct {
     dma_type *pStatusReg;
     dma_channel_type *pChannelReg;
-} ARM_DMA_Registers_t;
+} ARM_DMA_pRegisters_t;
 
 // typedef struct {
 //     dma_init_type Config;
@@ -61,9 +59,9 @@ typedef struct {
     uint8_t FlexibleChanDef;
     //DMA Flags (Artery library definitions)
     ARM_DMA_FlagsDef_t FlagDef;
-    ARM_DMA_Registers_t Registers;
+    ARM_DMA_pRegisters_t Registers;
     dma_init_type Config;
-    pFunc_cb pEvent_cb;
+    void (*Event_cb)(uint32_t event);
 } ARM_DMA_Resources_t;
 
 
@@ -113,7 +111,7 @@ static uint32_t ARM_DMA_FlagsDef[TEST_APP_ARM_DMA_CHANS][ARM_DMA_FLAGS] = {
     DMA2_GL7_FLAG, DMA2_FDT7_FLAG, DMA2_HDT7_FLAG, DMA2_DTERR7_FLAG
 };
 
-static ARM_DMA_Registers_t ARM_DMA_Registers[TEST_APP_ARM_DMA_CHANS] = {
+static ARM_DMA_pRegisters_t ARM_DMA_pRegisters[TEST_APP_ARM_DMA_CHANS] = {
     {DMA1, DMA1_CHANNEL1},
     {DMA1, DMA1_CHANNEL2},
     {DMA1, DMA1_CHANNEL3},
@@ -156,7 +154,7 @@ bool TEST_APP_ARM_DMA_Init(eTEST_APP_ARM_DMA_Chan_t chan)
     uint32_t drv_status = TEST_APP_ARM_DMA_STA_NO_ERROR;
     ARM_DMA_Resources_t *p_res = &ARM_DMA_Resources[chan];
     ARM_DMA_SetChanResources(chan);
-    if(!TEST_APP_ARM_CRM_DMA_ClockEnable(chan, TRUE)) {
+    if(!TEST_APP_ARM_CRM_PeriphClockEnable(TEST_APP_PERIPH_DMA, chan, TRUE)) {
         drv_status |= TEST_APP_ARM_DMA_STA_ERROR;
     }
     dma_reset(p_res->Registers.pChannelReg);
@@ -196,17 +194,23 @@ void TEST_APP_DMA_DisableAndClearIRQ(eTEST_APP_ARM_DMA_Chan_t chan)
     NVIC_ClearPendingIRQ(irq_num);
 }
 
-void TEST_APP_ARM_DMA_Config(eTEST_APP_ARM_DMA_Chan_t chan, uint32_t periph_addr, uint32_t mem_addr,
-                             uint16_t buff_size, dma_priority_level_type priority,
+void TEST_APP_ARM_DMA_Config(eTEST_APP_ARM_DMA_Chan_t chan,
+                             uint32_t periph_addr, uint32_t mem_addr,
+                             uint16_t buff_size, dma_dir_type dir,
+                             confirm_state loop_mode_enable,
+                             dma_priority_level_type priority,
                              void (*pfunc_cb)(uint32_t event))
 {
     ARM_DMA_Resources_t *p_res = &ARM_DMA_Resources[chan];
+    p_res->Config.memory_inc_enable = TRUE;
     p_res->Config.peripheral_base_addr = periph_addr;
     p_res->Config.memory_base_addr = mem_addr;
     p_res->Config.buffer_size = buff_size;
+    p_res->Config.direction = dir;
+    p_res->Config.loop_mode_enable = loop_mode_enable;
     p_res->Config.priority = priority;
     dma_init(p_res->Registers.pChannelReg, &(p_res->Config));
-    p_res->pEvent_cb = pfunc_cb;
+    p_res->Event_cb = pfunc_cb;
 }
 
 void TEST_APP_DMA_InterruptEnable(eTEST_APP_ARM_DMA_Chan_t chan,
@@ -243,6 +247,8 @@ void TEST_APP_ARM_DMA_IRQHandlerChannel(eTEST_APP_ARM_DMA_Chan_t chan)
         if(!p_res->Config.loop_mode_enable) {
             dma_interrupt_enable(p_res->Registers.pChannelReg, DMA_FDT_INT, FALSE);
             dma_interrupt_enable(p_res->Registers.pChannelReg, DMA_DTERR_INT, FALSE);
+        } else {
+            event |= TEST_APP_ARM_DMA_EVENT_LOOP_MODE;
         }
         dma_flag_clear(p_res->FlagDef.FullDataFlag);
     }
@@ -250,6 +256,8 @@ void TEST_APP_ARM_DMA_IRQHandlerChannel(eTEST_APP_ARM_DMA_Chan_t chan)
         event |= TEST_APP_ARM_DMA_EVENT_HALF_DATA;
         if(!p_res->Config.loop_mode_enable) {
             dma_interrupt_enable(p_res->Registers.pChannelReg, DMA_HDT_INT, FALSE);
+        } else {
+            event |= TEST_APP_ARM_DMA_EVENT_LOOP_MODE;
         }
         dma_flag_clear(p_res->FlagDef.HalfDataFlag);
     }
@@ -257,8 +265,8 @@ void TEST_APP_ARM_DMA_IRQHandlerChannel(eTEST_APP_ARM_DMA_Chan_t chan)
         event |= TEST_APP_ARM_DMA_EVENT_DATA_ERROR;
         dma_flag_clear(p_res->FlagDef.DataErrFlag);
     }
-    if((event != 0) && (p_res->pEvent_cb != NULL)) {
-        p_res->pEvent_cb(event);
+    if((event != 0) && (p_res->Event_cb != NULL)) {
+        p_res->Event_cb(event);
     }
 }
 
@@ -287,8 +295,8 @@ void TEST_APP_ARM_DMA_IRQHandlerChannel_y_z(eTEST_APP_ARM_DMA_Chan_t chany, eTES
         event_y |= TEST_APP_ARM_DMA_EVENT_DATA_ERROR;
         dma_flag_clear(p_res_y->FlagDef.DataErrFlag);
     }
-    if((event_y != 0) && (p_res_y->pEvent_cb != NULL)) {
-        p_res_y->pEvent_cb(event_y);
+    if((event_y != 0) && (p_res_y->Event_cb != NULL)) {
+        p_res_y->Event_cb(event_y);
     }
     uint32_t event_z = 0;
     if(dma_flag_get(p_res_z->FlagDef.FullDataFlag)) {
@@ -310,8 +318,8 @@ void TEST_APP_ARM_DMA_IRQHandlerChannel_y_z(eTEST_APP_ARM_DMA_Chan_t chany, eTES
         event_z |= TEST_APP_ARM_DMA_EVENT_DATA_ERROR;
         dma_flag_clear(p_res_z->FlagDef.DataErrFlag);
     }
-    if((event_z != 0) && (p_res_z->pEvent_cb != NULL)) {
-        p_res_z->pEvent_cb(event_z);
+    if((event_z != 0) && (p_res_z->Event_cb != NULL)) {
+        p_res_z->Event_cb(event_z);
     }
 }
 
@@ -328,7 +336,7 @@ static void ARM_DMA_SetChanResources(eTEST_APP_ARM_DMA_Chan_t chan)
     p_res->FlagDef.FullDataFlag = ARM_DMA_FlagsDef[chan][ARM_DMA_FULL_DATA_FLAG];
     p_res->FlagDef.HalfDataFlag = ARM_DMA_FlagsDef[chan][ARM_DMA_HALF_DATA_FLAG];
     p_res->FlagDef.DataErrFlag = ARM_DMA_FlagsDef[chan][ARM_DMA_DATA_ERROR_FLAG];
-    p_res->Registers.pStatusReg = ARM_DMA_Registers[chan].pStatusReg;
-    p_res->Registers.pChannelReg = ARM_DMA_Registers[chan].pChannelReg;
+    p_res->Registers.pStatusReg = ARM_DMA_pRegisters[chan].pStatusReg;
+    p_res->Registers.pChannelReg = ARM_DMA_pRegisters[chan].pChannelReg;
     dma_default_para_init(&(p_res->Config));
 }
