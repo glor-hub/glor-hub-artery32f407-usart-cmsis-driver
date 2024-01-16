@@ -17,7 +17,7 @@
 //Macros
 //********************************************************************************
 
-#define LCD2004_PORT_REG_ADDR   GPIO_LCD2004_PORT_REG_ADDR
+#define LCD2004_PORT   GPIO_LCD2004_PORT
 
 // five volt tolerant pins only
 #define LCD2004_PIN_RS          GPIO_LCD2004_PIN_RS
@@ -143,8 +143,8 @@ void TEST_APP_LCD2004_Init(void)
 {
     LCD2004_GPIO_Init();
     TimerDoDelay_ms(40);
-    TEST_APP_ARM_GPIO_BitsReset(LCD2004_PORT_REG_ADDR, LCD2004_PIN_RS);
-    TEST_APP_ARM_GPIO_BitsReset(LCD2004_PORT_REG_ADDR, LCD2004_PIN_RW);
+    TEST_APP_ARM_GPIO_BitsReset(LCD2004_PORT, LCD2004_PIN_RS);
+    TEST_APP_ARM_GPIO_BitsReset(LCD2004_PORT, LCD2004_PIN_RW);
     LCD2004_WriteLowTetradByte(0x03);
     LCD2004_DoStrobe();
     TimerDoDelay_ms(5);
@@ -215,8 +215,8 @@ void TEST_APP_LCD2004_Test(void)
 
 static void LCD2004_GPIO_Init(void)
 {
-    TEST_APP_ARM_CRM_GPIO_ClockEnable(LCD2004_PORT_REG_ADDR, TRUE);
-    TEST_APP_ARM_GPIO_Config(LCD2004_PORT_REG_ADDR, LCD2004_PIN_RS | LCD2004_PIN_RW | LCD2004_PIN_E | LCD2004_PIN_D4 |
+    TEST_APP_ARM_CRM_PeriphClockEnable(TEST_APP_PERIPH_GPIO, LCD2004_PORT, TRUE);
+    TEST_APP_ARM_GPIO_Config(LCD2004_PORT, LCD2004_PIN_RS | LCD2004_PIN_RW | LCD2004_PIN_E | LCD2004_PIN_D4 |
                              LCD2004_PIN_D5 | LCD2004_PIN_D6 | LCD2004_PIN_D7, GPIO_MODE_OUTPUT,
                              GPIO_OUTPUT_PUSH_PULL, GPIO_PULL_NONE, GPIO_DRIVE_STRENGTH_MODERATE);
 }
@@ -225,39 +225,39 @@ static void LCD2004_GPIO_Init(void)
 static void LCD2004_WriteLowTetradByte(uint8_t byte)
 {
     if((byte >> 0) & 0x01) {
-        TEST_APP_ARM_GPIO_BitsSet(LCD2004_PORT_REG_ADDR, LCD2004_PIN_D4);
+        TEST_APP_ARM_GPIO_BitsSet(LCD2004_PORT, LCD2004_PIN_D4);
     } else {
-        TEST_APP_ARM_GPIO_BitsReset(LCD2004_PORT_REG_ADDR, LCD2004_PIN_D4);
+        TEST_APP_ARM_GPIO_BitsReset(LCD2004_PORT, LCD2004_PIN_D4);
     }
     if((byte >> 1) & 0x01) {
-        TEST_APP_ARM_GPIO_BitsSet(LCD2004_PORT_REG_ADDR, LCD2004_PIN_D5);
+        TEST_APP_ARM_GPIO_BitsSet(LCD2004_PORT, LCD2004_PIN_D5);
     } else {
-        TEST_APP_ARM_GPIO_BitsReset(LCD2004_PORT_REG_ADDR, LCD2004_PIN_D5);
+        TEST_APP_ARM_GPIO_BitsReset(LCD2004_PORT, LCD2004_PIN_D5);
     }
     if((byte >> 2) & 0x01) {
-        TEST_APP_ARM_GPIO_BitsSet(LCD2004_PORT_REG_ADDR, LCD2004_PIN_D6);
+        TEST_APP_ARM_GPIO_BitsSet(LCD2004_PORT, LCD2004_PIN_D6);
     } else {
-        TEST_APP_ARM_GPIO_BitsReset(LCD2004_PORT_REG_ADDR, LCD2004_PIN_D6);
+        TEST_APP_ARM_GPIO_BitsReset(LCD2004_PORT, LCD2004_PIN_D6);
     }
     if((byte >> 3) & 0x01) {
-        TEST_APP_ARM_GPIO_BitsSet(LCD2004_PORT_REG_ADDR, LCD2004_PIN_D7);
+        TEST_APP_ARM_GPIO_BitsSet(LCD2004_PORT, LCD2004_PIN_D7);
     } else {
-        TEST_APP_ARM_GPIO_BitsReset(LCD2004_PORT_REG_ADDR, LCD2004_PIN_D7);
+        TEST_APP_ARM_GPIO_BitsReset(LCD2004_PORT, LCD2004_PIN_D7);
     }
 }
 
 static void LCD2004_DoStrobe(void)
 {
-    TEST_APP_ARM_GPIO_BitsSet(LCD2004_PORT_REG_ADDR, LCD2004_PIN_E);
+    TEST_APP_ARM_GPIO_BitsSet(LCD2004_PORT, LCD2004_PIN_E);
     LCD2004_DoDelay_us(1);
-    TEST_APP_ARM_GPIO_BitsReset(LCD2004_PORT_REG_ADDR, LCD2004_PIN_E);
+    TEST_APP_ARM_GPIO_BitsReset(LCD2004_PORT, LCD2004_PIN_E);
 }
 
 
 static void LCD2004_SendCmd(uint8_t cmd)
 {
-    TEST_APP_ARM_GPIO_BitsReset(LCD2004_PORT_REG_ADDR, LCD2004_PIN_RS);
-    TEST_APP_ARM_GPIO_BitsReset(LCD2004_PORT_REG_ADDR, LCD2004_PIN_RW);
+    TEST_APP_ARM_GPIO_BitsReset(LCD2004_PORT, LCD2004_PIN_RS);
+    TEST_APP_ARM_GPIO_BitsReset(LCD2004_PORT, LCD2004_PIN_RW);
     LCD2004_WriteLowTetradByte(cmd >> 4);
     LCD2004_DoDelay_us(1);
     LCD2004_DoStrobe();
@@ -269,8 +269,8 @@ static void LCD2004_SendCmd(uint8_t cmd)
 
 static void LCD2004_SendData(uint8_t data)
 {
-    TEST_APP_ARM_GPIO_BitsSet(LCD2004_PORT_REG_ADDR, LCD2004_PIN_RS);
-    TEST_APP_ARM_GPIO_BitsReset(LCD2004_PORT_REG_ADDR, LCD2004_PIN_RW);
+    TEST_APP_ARM_GPIO_BitsSet(LCD2004_PORT, LCD2004_PIN_RS);
+    TEST_APP_ARM_GPIO_BitsReset(LCD2004_PORT, LCD2004_PIN_RW);
     LCD2004_WriteLowTetradByte(data >> 4);
     LCD2004_DoDelay_us(1);
     LCD2004_DoStrobe();

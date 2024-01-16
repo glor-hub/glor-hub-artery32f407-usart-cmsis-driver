@@ -43,6 +43,7 @@ void TEST_APP_RingBuffer_Init(TEST_APP_RingBuffer_t *p_struct,  void *p_buffer, 
     p_struct->In = 0U;
     p_struct->Out = 0U;
     p_struct->Count = 0U;
+    //8 or 32 bits
     p_struct->pBuff = p_buffer;
     p_struct->BuffSize = size;
 }

@@ -5,7 +5,7 @@
 //LCD2004 pin definitions:
 ******************************************************************************/
 
-#define GPIO_LCD2004_PORT_REG_ADDR  (gpio_type *)GPIOE
+#define GPIO_LCD2004_PORT           TEST_APP_ARM_GPIO_PORTE
 #define GPIO_LCD2004_PIN_RS         GPIO_PINS_9
 #define GPIO_LCD2004_PIN_RW         GPIO_PINS_10
 #define GPIO_LCD2004_PIN_E          GPIO_PINS_11

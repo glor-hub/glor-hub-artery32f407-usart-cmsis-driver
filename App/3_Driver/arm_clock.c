@@ -3,6 +3,10 @@
 //********************************************************************************
 
 #include "arm_clock.h"
+#include "arm_dma.h"
+#include "arm_gpio.h"
+#include "arm_usart.h"
+#include "arm_spi.h"
 
 //********************************************************************************
 //Macros
@@ -20,6 +24,7 @@
 #define ARM_CRM_STA_PLL_READY_ERR           ((uint32_t)1UL << 2)
 #define ARM_CRM_STA_PLL_CLOCK_SWITCH_ERR    ((uint32_t)1UL << 3)
 #define ARM_CRM_STA_PERIPH_CLOCK_ERR        ((uint32_t)1UL << 4)
+#define ARM_CRM_STA_PERIPH_RESET_ERR        ((uint32_t)1UL << 5)
 
 //********************************************************************************
 //Enums
@@ -33,7 +38,8 @@
 //Variables
 //********************************************************************************
 
-static crm_periph_clock_type ARM_CRM_DMA_ClockType[TEST_APP_ARM_DMA_CHANS] = {
+//Enable/disable peripherals
+static crm_periph_clock_type ARM_CRM_DMA_PeriphClockType[TEST_APP_ARM_DMA_CHANS] = {
     CRM_DMA1_PERIPH_CLOCK,
     CRM_DMA1_PERIPH_CLOCK,
     CRM_DMA1_PERIPH_CLOCK,
@@ -48,6 +54,58 @@ static crm_periph_clock_type ARM_CRM_DMA_ClockType[TEST_APP_ARM_DMA_CHANS] = {
     CRM_DMA2_PERIPH_CLOCK,
     CRM_DMA2_PERIPH_CLOCK,
     CRM_DMA2_PERIPH_CLOCK
+};
+
+static crm_periph_clock_type ARM_CRM_GPIO_PeriphClockType[TEST_APP_ARM_GPIO_PORTS] = {
+    CRM_GPIOA_PERIPH_CLOCK,
+    CRM_GPIOB_PERIPH_CLOCK,
+    CRM_GPIOC_PERIPH_CLOCK,
+    CRM_GPIOD_PERIPH_CLOCK,
+    CRM_GPIOE_PERIPH_CLOCK
+};
+
+static crm_periph_clock_type ARM_CRM_SPI_PeriphClockType[TEST_APP_ARM_SPI_TYPES] = {
+    CRM_SPI1_PERIPH_CLOCK,
+    CRM_SPI2_PERIPH_CLOCK,
+    CRM_SPI3_PERIPH_CLOCK,
+    CRM_SPI4_PERIPH_CLOCK
+};
+
+static crm_periph_clock_type ARM_CRM_USART_PeriphClockType[TEST_APP_ARM_USART_TYPES] = {
+    CRM_USART1_PERIPH_CLOCK,
+    CRM_USART2_PERIPH_CLOCK,
+    CRM_USART3_PERIPH_CLOCK,
+    CRM_UART4_PERIPH_CLOCK,
+    CRM_UART5_PERIPH_CLOCK,
+    CRM_USART6_PERIPH_CLOCK,
+    CRM_UART7_PERIPH_CLOCK,
+    CRM_UART8_PERIPH_CLOCK
+};
+
+static crm_periph_reset_type ARM_CRM_GPIO_PeriphResetType[TEST_APP_ARM_GPIO_PORTS] = {
+    CRM_GPIOA_PERIPH_RESET,
+    CRM_GPIOB_PERIPH_RESET,
+    CRM_GPIOC_PERIPH_RESET,
+    CRM_GPIOD_PERIPH_RESET,
+    CRM_GPIOE_PERIPH_RESET
+};
+
+static crm_periph_reset_type ARM_CRM_SPI_PeriphResetType[TEST_APP_ARM_SPI_TYPES] = {
+    CRM_SPI1_PERIPH_RESET,
+    CRM_SPI2_PERIPH_RESET,
+    CRM_SPI3_PERIPH_RESET,
+    CRM_SPI4_PERIPH_RESET
+};
+
+static crm_periph_reset_type ARM_CRM_USART_PeriphResetType[TEST_APP_ARM_USART_TYPES] = {
+    CRM_USART1_PERIPH_RESET,
+    CRM_USART2_PERIPH_RESET,
+    CRM_USART3_PERIPH_RESET,
+    CRM_UART4_PERIPH_RESET,
+    CRM_UART5_PERIPH_RESET,
+    CRM_USART6_PERIPH_RESET,
+    CRM_UART7_PERIPH_RESET,
+    CRM_UART8_PERIPH_RESET
 };
 
 //********************************************************************************
@@ -126,92 +184,109 @@ uint32_t TEST_APP_ARM_CRM_SysClockSwitchCmd(crm_sclk_type value)
     return drv_status;
 }
 
-
 //Enable/disable peripheral clock
 
-bool TEST_APP_ARM_CRM_GPIO_ClockEnable(gpio_type *pGPIO_x, confirm_state new_state)
-{
-    uint32_t drv_status = ARM_CRM_STA_NO_ERR;
-    if(pGPIO_x == GPIOA) {
-        crm_periph_clock_enable(CRM_GPIOA_PERIPH_CLOCK, new_state);
-    } else if(pGPIO_x == GPIOB) {
-        crm_periph_clock_enable(CRM_GPIOB_PERIPH_CLOCK, new_state);
-    } else if(pGPIO_x == GPIOC) {
-        crm_periph_clock_enable(CRM_GPIOC_PERIPH_CLOCK, new_state);
-    } else if(pGPIO_x == GPIOD) {
-        crm_periph_clock_enable(CRM_GPIOD_PERIPH_CLOCK, new_state);
-    } else if(pGPIO_x == GPIOE) {
-        crm_periph_clock_enable(CRM_GPIOE_PERIPH_CLOCK, new_state);
-    } else {
-#ifdef _TEST_APP_DEBUG_
-        LOG("GPIO clock error");
-#endif//_TEST_APP_DEBUG_
-        drv_status |= ARM_CRM_STA_PERIPH_CLOCK_ERR;
-    }
-    return TEST_APP_ARM_CRM_isReady(drv_status);
-}
-
-bool TEST_APP_ARM_CRM_USART_ClockEnable(usart_type *pUSART_x, confirm_state new_state)
-{
-    uint32_t drv_status = ARM_CRM_STA_NO_ERR;
-    if(pUSART_x == UART4) {
-        crm_periph_clock_enable(CRM_UART4_PERIPH_CLOCK, new_state);
-    } else if(pUSART_x == UART5) {
-        crm_periph_clock_enable(CRM_UART5_PERIPH_CLOCK, new_state);
-    } else if(pUSART_x == UART7) {
-        crm_periph_clock_enable(CRM_UART7_PERIPH_CLOCK, new_state);
-    } else if(pUSART_x == UART8) {
-        crm_periph_clock_enable(CRM_UART8_PERIPH_CLOCK, new_state);
-    } else {
-#ifdef _TEST_APP_DEBUG_
-        LOG("USART clock error");
-#endif//_TEST_APP_DEBUG_
-        drv_status |= ARM_CRM_STA_PERIPH_CLOCK_ERR;
-    }
-    return TEST_APP_ARM_CRM_isReady(drv_status);
-}
-
-bool TEST_APP_ARM_CRM_SPI_ClockEnable(spi_type *pSPI_x, confirm_state new_state)
-{
-    uint32_t drv_status = ARM_CRM_STA_NO_ERR;
-    if(pSPI_x == SPI1) {
-        crm_periph_clock_enable(CRM_SPI1_PERIPH_CLOCK, new_state);
-    } else if(pSPI_x == SPI2) {
-        crm_periph_clock_enable(CRM_SPI2_PERIPH_CLOCK, new_state);
-    } else if(pSPI_x == SPI3) {
-        crm_periph_clock_enable(CRM_SPI3_PERIPH_CLOCK, new_state);
-    } else if(pSPI_x == SPI4) {
-        crm_periph_clock_enable(CRM_SPI4_PERIPH_CLOCK, new_state);
-    } else {
-#ifdef _TEST_APP_DEBUG_
-        LOG("USART clock error");
-#endif//_TEST_APP_DEBUG_
-        drv_status |= ARM_CRM_STA_PERIPH_CLOCK_ERR;
-    }
-    return TEST_APP_ARM_CRM_isReady(drv_status);
-}
-
-bool TEST_APP_ARM_CRM_DMA_ClockEnable(eTEST_APP_ARM_DMA_Chan_t chan, confirm_state new_state)
+bool TEST_APP_ARM_CRM_PeriphClockEnable(eTEST_APP_Periph_Types_t periph, uint8_t param, confirm_state new_state)
 {
     uint32_t drv_status = ARM_CRM_STA_NO_ERR;
     crm_periph_clock_type clock_type;
-    if((chan < TEST_APP_ARM_DMA1_CHAN1) || (chan > TEST_APP_ARM_DMA2_CHAN7)) {
+    switch(periph) {
+        case TEST_APP_PERIPH_GPIO: {
+            if((param < TEST_APP_ARM_GPIO_PORTA) || (param > TEST_APP_ARM_GPIO_PORTE)) {
 #ifdef _TEST_APP_DEBUG_
-        LOG("DMA clock error");
+                LOG("GPIO clock error");
 #endif//_TEST_APP_DEBUG_
-        drv_status |= ARM_CRM_STA_PERIPH_CLOCK_ERR;
-    } else {
-        clock_type = ARM_CRM_DMA_ClockType[chan];
-        crm_periph_clock_enable(clock_type, new_state);
+                drv_status |= ARM_CRM_STA_PERIPH_CLOCK_ERR;
+            } else {
+                clock_type = ARM_CRM_GPIO_PeriphClockType[param];
+            }
+            break;
+        }
+        case TEST_APP_PERIPH_USART: {
+            if((param < TEST_APP_ARM_USART1) || (param > TEST_APP_ARM_UART8)) {
+#ifdef _TEST_APP_DEBUG_
+                LOG("USART clock error");
+#endif//_TEST_APP_DEBUG_
+                drv_status |= ARM_CRM_STA_PERIPH_CLOCK_ERR;
+            } else {
+                clock_type = ARM_CRM_USART_PeriphClockType[param];
+            }
+            break;
+        }
+        case TEST_APP_PERIPH_DMA: {
+            if((param < TEST_APP_ARM_DMA1_CHAN1) || (param > TEST_APP_ARM_DMA2_CHAN7)) {
+#ifdef _TEST_APP_DEBUG_
+                LOG("DMA clock error");
+#endif//_TEST_APP_DEBUG_
+                drv_status |= ARM_CRM_STA_PERIPH_CLOCK_ERR;
+            } else {
+                clock_type = ARM_CRM_DMA_PeriphClockType[param];
+            }
+            break;
+        }
+        case TEST_APP_PERIPH_SPI: {
+            if((param < TEST_APP_ARM_SPI1) || (param > TEST_APP_ARM_SPI4)) {
+#ifdef _TEST_APP_DEBUG_
+                LOG("SPI clock error");
+#endif//_TEST_APP_DEBUG_
+                drv_status |= ARM_CRM_STA_PERIPH_CLOCK_ERR;
+            } else {
+                clock_type = ARM_CRM_SPI_PeriphClockType[param];
+            }
+            break;
+        }
+        default:
+            break;
     }
+    crm_periph_clock_enable(clock_type, new_state);
     return TEST_APP_ARM_CRM_isReady(drv_status);
 }
 
 //peripheral reset
 
-void TEST_APP_ARM_CRM_ClockPeriphReset(crm_periph_reset_type value, confirm_state state)
+bool TEST_APP_ARM_CRM_PeriphReset(eTEST_APP_Periph_Types_t periph, uint8_t param, confirm_state new_state)
 {
-    crm_periph_reset(value, state);
+    uint32_t drv_status = ARM_CRM_STA_NO_ERR;
+    crm_periph_reset_type reset_type;
+    switch(periph) {
+        case TEST_APP_PERIPH_GPIO: {
+            if((param < TEST_APP_ARM_GPIO_PORTA) || (param > TEST_APP_ARM_GPIO_PORTE)) {
+#ifdef _TEST_APP_DEBUG_
+                LOG("GPIO reset error");
+#endif//_TEST_APP_DEBUG_
+                drv_status |= ARM_CRM_STA_PERIPH_RESET_ERR;
+            } else {
+                reset_type = ARM_CRM_GPIO_PeriphResetType[param];
+            }
+            break;
+        }
+        case TEST_APP_PERIPH_USART: {
+            if((param < TEST_APP_ARM_USART1) || (param > TEST_APP_ARM_UART8)) {
+#ifdef _TEST_APP_DEBUG_
+                LOG("USART reset error");
+#endif//_TEST_APP_DEBUG_
+                drv_status |= ARM_CRM_STA_PERIPH_RESET_ERR;
+            } else {
+                reset_type = ARM_CRM_USART_PeriphResetType[param];
+            }
+            break;
+        }
+        case TEST_APP_PERIPH_SPI: {
+            if((param < TEST_APP_ARM_SPI1) || (param > TEST_APP_ARM_SPI4)) {
+#ifdef _TEST_APP_DEBUG_
+                LOG("SPI reset error");
+#endif//_TEST_APP_DEBUG_
+                drv_status |= ARM_CRM_STA_PERIPH_RESET_ERR;
+            } else {
+                reset_type = ARM_CRM_SPI_PeriphResetType[param];
+            }
+            break;
+        }
+        default:
+            break;
+    }
+    crm_periph_reset(reset_type, new_state);
+    return TEST_APP_ARM_CRM_isReady(drv_status);
 }
 
 //================================================================================

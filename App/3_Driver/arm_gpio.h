@@ -3,10 +3,21 @@
 
 #include "at32f403a_407.h"
 
-void TEST_APP_ARM_GPIO_Config(gpio_type *pGPIO_X, uint32_t pins, gpio_mode_type mode, gpio_output_type out_type, gpio_pull_type pull, gpio_drive_type drive_strength);
+typedef enum {
+    TEST_APP_ARM_GPIO_PORTA = 0,
+    TEST_APP_ARM_GPIO_PORTB,
+    TEST_APP_ARM_GPIO_PORTC,
+    TEST_APP_ARM_GPIO_PORTD,
+    TEST_APP_ARM_GPIO_PORTE,
+    TEST_APP_ARM_GPIO_PORTS
+} eTEST_APP_ARM_GPIO_Ports_t;
 
-void TEST_APP_ARM_GPIO_BitsSet(gpio_type *pGPIO_X, uint32_t pins);
+void TEST_APP_ARM_GPIO_Config(eTEST_APP_ARM_GPIO_Ports_t port, uint32_t pins,
+                              gpio_mode_type mode, gpio_output_type out_type,
+                              gpio_pull_type pull, gpio_drive_type drive_strength);
+void TEST_APP_ARM_GPIO_Release(eTEST_APP_ARM_GPIO_Ports_t port, uint32_t pins);
 
-void TEST_APP_ARM_GPIO_BitsReset(gpio_type *pGPIO_X, uint32_t pins);
+void TEST_APP_ARM_GPIO_BitsSet(eTEST_APP_ARM_GPIO_Ports_t port, uint32_t pins);
+void TEST_APP_ARM_GPIO_BitsReset(eTEST_APP_ARM_GPIO_Ports_t port, uint32_t pins);
 
 #endif //_ARM_GPIO_H_ 
