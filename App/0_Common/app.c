@@ -41,12 +41,6 @@ void TEST_APP_StartUp(void)
     TEST_APP_ARM_USART_StartUp();
 }
 
-void TEST_APP_AppIdleTask(void)
-{
-    TEST_APP_USART_cb();
-    // TEST_APP_SPI_cb();
-}
-
 error_status TEST_APP_AppInit(void)
 {
     error_status init_result = SUCCESS;
@@ -61,6 +55,14 @@ error_status TEST_APP_AppInit(void)
     // init_result &= TEST_APP_SPI_Init();
     return init_result;
 }
+
+void TEST_APP_AppIdleTask(void)
+{
+    TEST_APP_USART_cb();
+    // TEST_APP_SPI_cb();
+}
+
+
 
 //================================================================================
 //Private

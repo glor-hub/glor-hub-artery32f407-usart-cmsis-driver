@@ -212,7 +212,7 @@ static TEST_APP_ARM_USART_Status_t ARM_USART_GetStatus_8(void);
 
 TEST_APP_ARM_USART_Driver_t Driver_USART1 = {
     ARM_USART_Initialize_1,
-    ARM_USART_Uninitialize_2,
+    ARM_USART_Uninitialize_1,
     ARM_USART_Event_cb_1,
     ARM_USART_Send_1,
     ARM_USART_Recieve_1,

@@ -5,7 +5,8 @@
 
 #define _TEST_APP_DEBUG_
 
-void TEST_APP_AppIdleTask(void);
+void TEST_APP_StartUp(void);
 error_status TEST_APP_AppInit(void);
+void TEST_APP_AppIdleTask(void);
 
 #endif //_APP_H_

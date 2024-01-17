@@ -192,7 +192,7 @@ bool TEST_APP_ARM_CRM_PeriphClockEnable(eTEST_APP_Periph_Types_t periph, uint8_t
     crm_periph_clock_type clock_type;
     switch(periph) {
         case TEST_APP_PERIPH_GPIO: {
-            if((param < TEST_APP_ARM_GPIO_PORTA) || (param > TEST_APP_ARM_GPIO_PORTE)) {
+            if(param > TEST_APP_ARM_GPIO_PORTE) {
 #ifdef _TEST_APP_DEBUG_
                 LOG("GPIO clock error");
 #endif//_TEST_APP_DEBUG_
@@ -203,7 +203,7 @@ bool TEST_APP_ARM_CRM_PeriphClockEnable(eTEST_APP_Periph_Types_t periph, uint8_t
             break;
         }
         case TEST_APP_PERIPH_USART: {
-            if((param < TEST_APP_ARM_USART1) || (param > TEST_APP_ARM_UART8)) {
+            if(param > TEST_APP_ARM_UART8) {
 #ifdef _TEST_APP_DEBUG_
                 LOG("USART clock error");
 #endif//_TEST_APP_DEBUG_
@@ -214,7 +214,7 @@ bool TEST_APP_ARM_CRM_PeriphClockEnable(eTEST_APP_Periph_Types_t periph, uint8_t
             break;
         }
         case TEST_APP_PERIPH_DMA: {
-            if((param < TEST_APP_ARM_DMA1_CHAN1) || (param > TEST_APP_ARM_DMA2_CHAN7)) {
+            if(param > TEST_APP_ARM_DMA2_CHAN7) {
 #ifdef _TEST_APP_DEBUG_
                 LOG("DMA clock error");
 #endif//_TEST_APP_DEBUG_
@@ -225,7 +225,7 @@ bool TEST_APP_ARM_CRM_PeriphClockEnable(eTEST_APP_Periph_Types_t periph, uint8_t
             break;
         }
         case TEST_APP_PERIPH_SPI: {
-            if((param < TEST_APP_ARM_SPI1) || (param > TEST_APP_ARM_SPI4)) {
+            if(param > TEST_APP_ARM_SPI4) {
 #ifdef _TEST_APP_DEBUG_
                 LOG("SPI clock error");
 #endif//_TEST_APP_DEBUG_
@@ -250,7 +250,7 @@ bool TEST_APP_ARM_CRM_PeriphReset(eTEST_APP_Periph_Types_t periph, uint8_t param
     crm_periph_reset_type reset_type;
     switch(periph) {
         case TEST_APP_PERIPH_GPIO: {
-            if((param < TEST_APP_ARM_GPIO_PORTA) || (param > TEST_APP_ARM_GPIO_PORTE)) {
+            if(param > TEST_APP_ARM_GPIO_PORTE) {
 #ifdef _TEST_APP_DEBUG_
                 LOG("GPIO reset error");
 #endif//_TEST_APP_DEBUG_
@@ -261,7 +261,7 @@ bool TEST_APP_ARM_CRM_PeriphReset(eTEST_APP_Periph_Types_t periph, uint8_t param
             break;
         }
         case TEST_APP_PERIPH_USART: {
-            if((param < TEST_APP_ARM_USART1) || (param > TEST_APP_ARM_UART8)) {
+            if(param > TEST_APP_ARM_UART8) {
 #ifdef _TEST_APP_DEBUG_
                 LOG("USART reset error");
 #endif//_TEST_APP_DEBUG_
@@ -272,7 +272,7 @@ bool TEST_APP_ARM_CRM_PeriphReset(eTEST_APP_Periph_Types_t periph, uint8_t param
             break;
         }
         case TEST_APP_PERIPH_SPI: {
-            if((param < TEST_APP_ARM_SPI1) || (param > TEST_APP_ARM_SPI4)) {
+            if(param > TEST_APP_ARM_SPI4) {
 #ifdef _TEST_APP_DEBUG_
                 LOG("SPI reset error");
 #endif//_TEST_APP_DEBUG_
