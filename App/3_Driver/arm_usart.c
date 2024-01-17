@@ -422,14 +422,14 @@ void TEST_APP_ARM_USART_StartUp(void)
                sizeof(TEST_APP_ARM_USART_Driver_t));
     }
 #ifdef _TEST_APP_UART4_ENABLE_
-    (&p_res[TEST_APP_ARM_UART4])->Status.DrvStateOn = TRUE;
-    (&p_res[TEST_APP_ARM_UART4])->Status.DrvStatus = TEST_APP_ARM_DRIVER_NO_ERROR;
-    (&p_res[TEST_APP_ARM_UART4])->Status.DrvFlag = 0;
+    (p_res[TEST_APP_ARM_UART4]).Status.DrvStateOn = TRUE;
+    (p_res[TEST_APP_ARM_UART4]).Status.DrvStatus = TEST_APP_ARM_DRIVER_NO_ERROR;
+    (p_res[TEST_APP_ARM_UART4]).Status.DrvFlag = 0;
 #ifdef _TEST_APP_UART4_TX_USE_DMA_
-    (&p_res[TEST_APP_ARM_UART4])->DMA.TxEnable = TRUE;
+    (p_res[TEST_APP_ARM_UART4]).DMA.TxEnable = TRUE;
 #endif //_TEST_APP_UART4_TX_USE_DMA_
 #ifdef _TEST_APP_UART4_RX_USE_DMA_
-    (&p_res[TEST_APP_ARM_UART4])->DMA.RxEnable = TRUE;
+    (p_res[TEST_APP_ARM_UART4]).DMA.RxEnable = TRUE;
 #endif //_TEST_APP_UART4_RX_USE_DMA_    
 #else
 #if (defined _TEST_APP_UART4_TX_USE_DMA_ || defined _TEST_APP_UART4_RX_USE_DMA_)
@@ -438,14 +438,14 @@ void TEST_APP_ARM_USART_StartUp(void)
 #endif //_TEST_APP_UART4_ENABLE_
 
 #ifdef _TEST_APP_UART5_ENABLE_
-    (&p_res[TEST_APP_ARM_UART5])->Status.DrvStateOn = TRUE;
-    (&p_res[TEST_APP_ARM_UART5])->Status.DrvStatus = TEST_APP_ARM_DRIVER_NO_ERROR;
-    (&p_res[TEST_APP_ARM_UART5])->Status.DrvFlag = 0;
+    (p_res[TEST_APP_ARM_UART5]).Status.DrvStateOn = TRUE;
+    (p_res[TEST_APP_ARM_UART5]).Status.DrvStatus = TEST_APP_ARM_DRIVER_NO_ERROR;
+    (p_res[TEST_APP_ARM_UART5]).Status.DrvFlag = 0;
 #ifdef _TEST_APP_UART5_TX_USE_DMA_
-    (&p_res[TEST_APP_ARM_UART5])->DMA.TxEnable = TRUE;
+    (p_res[TEST_APP_ARM_UART5]).DMA.TxEnable = TRUE;
 #endif //_TEST_APP_UART5_TX_USE_DMA_
 #ifdef _TEST_APP_UART5_RX_USE_DMA_
-    (&p_res[TEST_APP_ARM_UART5])->DMA.RxEnable = TRUE;
+    (p_res[TEST_APP_ARM_UART5]).DMA.RxEnable = TRUE;
 #endif //_TEST_APP_UART5_RX_USE_DMA_    
 #else
 #if (defined _TEST_APP_UART5_TX_USE_DMA_ || defined _TEST_APP_UART5_RX_USE_DMA_)
@@ -454,14 +454,14 @@ void TEST_APP_ARM_USART_StartUp(void)
 #endif //_TEST_APP_UART5_ENABLE_
 
 #ifdef _TEST_APP_UART7_ENABLE_
-    (&p_res[TEST_APP_ARM_UART7])->Status.DrvStateOn = TRUE;
-    (&p_res[TEST_APP_ARM_UART7])->Status.DrvStatus = TEST_APP_ARM_DRIVER_NO_ERROR;
-    (&p_res[TEST_APP_ARM_UART7])->Status.DrvFlag = 0;
+    (p_res[TEST_APP_ARM_UART7]).Status.DrvStateOn = TRUE;
+    (p_res[TEST_APP_ARM_UART7]).Status.DrvStatus = TEST_APP_ARM_DRIVER_NO_ERROR;
+    (p_res[TEST_APP_ARM_UART7]).Status.DrvFlag = 0;
 #ifdef _TEST_APP_UART7_TX_USE_DMA_
-    (&p_res[TEST_APP_ARM_UART7])->DMA.TxEnable = TRUE;
+    (p_res[TEST_APP_ARM_UART7]).DMA.TxEnable = TRUE;
 #endif //_TEST_APP_UART7_TX_USE_DMA_
 #ifdef _TEST_APP_UART7_RX_USE_DMA_
-    (&p_res[TEST_APP_ARM_UART7])->DMA.RxEnable = TRUE;
+    (p_res[TEST_APP_ARM_UART7]).DMA.RxEnable = TRUE;
 #endif //_TEST_APP_UART7_RX_USE_DMA_    
 #else
 #if (defined _TEST_APP_UART7_TX_USE_DMA_ || defined _TEST_APP_UART7_RX_USE_DMA_)
@@ -470,14 +470,14 @@ void TEST_APP_ARM_USART_StartUp(void)
 #endif //_TEST_APP_UART7_ENABLE_
 
 #ifdef _TEST_APP_UART8_ENABLE_
-    (&p_res[TEST_APP_ARM_UART8])->Status.DrvStateOn = TRUE;
-    (&p_res[TEST_APP_ARM_UART8])->Status.DrvStatus = TEST_APP_ARM_DRIVER_NO_ERROR;
-    (&p_res[TEST_APP_ARM_UART8])->Status.DrvFlag = 0;
+    (p_res[TEST_APP_ARM_UART8]).Status.DrvStateOn = TRUE;
+    (p_res[TEST_APP_ARM_UART8]).Status.DrvStatus = TEST_APP_ARM_DRIVER_NO_ERROR;
+    (p_res[TEST_APP_ARM_UART8]).Status.DrvFlag = 0;
 #ifdef _TEST_APP_UART8_TX_USE_DMA_
-    (&p_res[TEST_APP_ARM_UART8])->DMA.TxEnable = TRUE;
+    (p_res[TEST_APP_ARM_UART8]).DMA.TxEnable = TRUE;
 #endif //_TEST_APP_UART8_TX_USE_DMA_
 #ifdef _TEST_APP_UART8_RX_USE_DMA_
-    (&p_res[TEST_APP_ARM_UART8])->DMA.RxEnable = TRUE;
+    (p_res[TEST_APP_ARM_UART8]).DMA.RxEnable = TRUE;
 #endif //_TEST_APP_UART8_RX_USE_DMA_    
 #else
 #if (defined _TEST_APP_UART8_TX_USE_DMA_ || defined _TEST_APP_UART8_RX_USE_DMA_)

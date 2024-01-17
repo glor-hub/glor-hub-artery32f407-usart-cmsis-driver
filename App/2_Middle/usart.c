@@ -105,13 +105,13 @@ error_status TEST_APP_USART_Init(void)
     TEST_APP_ARM_USART_Driver_t *p_drv = pARM_USART_Driver[TEST_APP_ARM_USART1];
     for(usart_type = TEST_APP_ARM_USART1; usart_type < TEST_APP_ARM_USART_TYPES;
         usart_type++) {
-        if((&p_drv[usart_type])->GetStatus().DrvStateOn) {
+        if(p_drv[usart_type].GetStatus().DrvStateOn) {
             if(usart_type != TEST_APP_ARM_UART8) {
-                drv_status |= (&p_drv[usart_type])->Initialize(TEST_APP_ARM_USART_BAUDRATE_57600, USART_DATA_8BITS,
+                drv_status |= p_drv[usart_type].Initialize(TEST_APP_ARM_USART_BAUDRATE_57600, USART_DATA_8BITS,
                               USART_STOP_1_BIT, USART_PARITY_NONE,
                               TEST_APP_ARM_USART_GPIO_PIN_DEF_DEFAULT);
             } else {
-                drv_status |= (&p_drv[usart_type])->Initialize(TEST_APP_ARM_USART_BAUDRATE_57600, USART_DATA_8BITS,
+                drv_status |= p_drv[usart_type].Initialize(TEST_APP_ARM_USART_BAUDRATE_57600, USART_DATA_8BITS,
                               USART_STOP_1_BIT, USART_PARITY_NONE,
                               TEST_APP_ARM_UART8_GPIO_PIN_DEF_REMAP1);
             }
@@ -128,8 +128,8 @@ error_status TEST_APP_USART_Uninit(void)
     TEST_APP_ARM_USART_Driver_t *p_drv = pARM_USART_Driver[TEST_APP_ARM_USART1];
     for(usart_type = TEST_APP_ARM_USART1; usart_type < TEST_APP_ARM_USART_TYPES;
         usart_type++) {
-        if(!(&p_drv[usart_type])->GetStatus().DrvStateOn) {
-            drv_status |= (&p_drv[usart_type])->Uninitialize();
+        if(!p_drv[usart_type].GetStatus().DrvStateOn) {
+            drv_status |= p_drv[usart_type].Uninitialize();
         }
     }
     return TEST_APP_ARM_DRIVER_isReady(drv_status) ? SUCCESS : ERROR;
@@ -141,8 +141,8 @@ void TEST_APP_USART_cb(void)
     TEST_APP_ARM_USART_Driver_t *p_drv = pARM_USART_Driver[TEST_APP_ARM_USART1];
     for(usart_type = TEST_APP_ARM_USART1; usart_type < TEST_APP_ARM_USART_TYPES;
         usart_type++) {
-        if((&p_drv[usart_type])->GetStatus().DrvStateOn) {
-            (&p_drv[usart_type])->Event_cb();
+        if(p_drv[usart_type].GetStatus().DrvStateOn) {
+            p_drv[usart_type].Event_cb();
         }
     }
 }
@@ -172,14 +172,14 @@ error_status TEST_APP_USART_Test(void)
     uint32_t drv_status = TEST_APP_ARM_DRIVER_NO_ERROR;
     uint8_t *pbuff_rx;
     eTEST_APP_ARM_USART_Types_t usart_type;
-    TEST_APP_ARM_USART_Driver_t *p_drv = pARM_USART_Driver[TEST_APP_ARM_USART1];
+    TEST_APP_ARM_USART_Driver_t **pp_drv = &pARM_USART_Driver[TEST_APP_ARM_USART1];
     for(usart_type = TEST_APP_ARM_USART1; usart_type < TEST_APP_ARM_USART_TYPES;
         usart_type++) {
-        if((&p_drv[usart_type])->GetStatus().DrvStateOn) {
-            TEST_APP_USART_printf(&p_drv[usart_type], USART_TEST_MESSAGE[usart_type]);
-            pbuff_rx = (&p_drv[usart_type])->GetTransfer().pRxData;
-            drv_status |= (&p_drv[usart_type])->Recieve(pbuff_rx, 8);
-            drv_status |= (&p_drv[usart_type])->Send(pbuff_rx, 8);
+        if(pp_drv[usart_type]->GetStatus().DrvStateOn) {
+            TEST_APP_USART_printf(pp_drv[usart_type], USART_TEST_MESSAGE[usart_type]);
+            pbuff_rx = pp_drv[usart_type]->GetTransfer().pRxData;
+            drv_status |= pp_drv[usart_type]->Recieve(pbuff_rx, 8);
+            drv_status |= pp_drv[usart_type]->Send(pbuff_rx, 8);
         }
     }
     return TEST_APP_ARM_DRIVER_isReady(drv_status) ? SUCCESS : ERROR;
