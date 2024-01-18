@@ -411,16 +411,7 @@ static eTEST_APP_TimerTypes_t ARM_USART_TimeoutTimer[TEST_APP_ARM_USART_TYPES][A
 
 void TEST_APP_ARM_USART_StartUp(void)
 {
-    uint8_t usart_type;
-    TEST_APP_ARM_USART_Driver_t *p_drv = pARM_USART_Driver[TEST_APP_ARM_USART1];
     TEST_APP_ARM_USART_Resources_t *p_res = &ARM_USART_Resources[TEST_APP_ARM_USART1];
-    for(usart_type = TEST_APP_ARM_USART1; usart_type < TEST_APP_ARM_USART_TYPES;
-        usart_type++) {
-        memset(&p_res[usart_type], 0,
-               sizeof(TEST_APP_ARM_USART_Resources_t));
-        memset(&p_drv[usart_type], 0,
-               sizeof(TEST_APP_ARM_USART_Driver_t));
-    }
 #ifdef _TEST_APP_UART4_ENABLE_
     (p_res[TEST_APP_ARM_UART4]).Status.DrvStateOn = TRUE;
     (p_res[TEST_APP_ARM_UART4]).Status.DrvStatus = TEST_APP_ARM_DRIVER_NO_ERROR;
@@ -550,6 +541,7 @@ static void  ARM_USART_SetResources(TEST_APP_ARM_USART_Resources_t *p_res, eTEST
                                     usart_parity_selection_type parity,
                                     uint32_t gpio_pin_def)
 {
+    p_res->usart_type = usart_type;
     p_res->IrqNum = ARM_USART_IrqNumber[usart_type];
     p_res->Config.BaudRate = baudrate;
     p_res->Config.DataBit = data_bit;
@@ -633,6 +625,7 @@ static uint32_t ARM_USART_Initialize(eTEST_APP_ARM_USART_Types_t usart_type,
     }
 //asynchronous mode is default
     TEST_APP_ARM_CRM_PeriphReset(TEST_APP_PERIPH_USART, p_res->usart_type, TRUE);
+    TEST_APP_ARM_CRM_PeriphReset(TEST_APP_PERIPH_USART, p_res->usart_type, FALSE);
     usart_enable(pARM_USART_Register[usart_type], TRUE);
     usart_init(pARM_USART_Register[usart_type], p_res->Config.BaudRate,
                p_res->Config.DataBit, p_res->Config.StopBit);
@@ -732,6 +725,8 @@ static void ARM_USART_Event_cb(eTEST_APP_ARM_USART_Types_t usart_type)
         p_res->Transfer.RxCnt = 0;
         p_res->Transfer.RxNum = 0;
 #ifdef _TEST_APP_DEBUG_
+        TEST_APP_ARM_USART_Driver_t *p_drv = pARM_USART_Driver[TEST_APP_ARM_USART1];
+        p_drv[usart_type].Send(p_res->Transfer.pRxData, 8);
         TEST_APP_LCD2004_Printf(0, 0, SET, "%s", p_res->Transfer.pRxData);
         LOG("USART recieved test data");
 #endif//_TEST_APP_DEBUG_ 
@@ -866,7 +861,7 @@ static uint32_t ARM_USART_Send(eTEST_APP_ARM_USART_Types_t usart_type, void *pda
     }
 
     if(p_res->Status.XferStatus.TxBusy) {
-        TimerEnable(ARM_USART_TimeoutTimer[usart_type][ARM_USART_TX_CHAN], 200);
+        TimerEnable(ARM_USART_TimeoutTimer[usart_type][ARM_USART_TX_CHAN], 20000);
         while(p_res->Status.XferStatus.TxBusy && (!TimerTestFlag(ARM_USART_TimeoutTimer[usart_type][ARM_USART_TX_CHAN])));
         if(TimerTestFlag(ARM_USART_TimeoutTimer[usart_type][ARM_USART_TX_CHAN])) {
             p_res->Status.DrvStatus |= TEST_APP_ARM_DRIVER_ERROR_BUSY;

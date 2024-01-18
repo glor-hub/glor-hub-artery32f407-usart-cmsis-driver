@@ -17,16 +17,16 @@ UART4
 ********************************************/
 #define _TEST_APP_UART4_ENABLE_
 // #define _TEST_APP_UART4_TX_USE_DMA_
-#define _TEST_APP_UART4_RX_USE_DMA_
+// #define _TEST_APP_UART4_RX_USE_DMA_
 
 /*******************************************
 UART5
 
 ********************************************/
 #define _TEST_APP_UART5_ENABLE_
-#define _TEST_APP_UART5_TX_USE_DMA_
-#define _TEST_APP_UART5_TX_DMA_CIRCULAR_MODE_
-#define _TEST_APP_UART5_RX_USE_DMA_
+// #define _TEST_APP_UART5_TX_USE_DMA_
+// #define _TEST_APP_UART5_TX_DMA_CIRCULAR_MODE_
+// #define _TEST_APP_UART5_RX_USE_DMA_
 // #define _TEST_APP_UART5_RX_DMA_CIRCULAR_MODE_
 
 /*******************************************
@@ -34,9 +34,9 @@ UART7
 
 ********************************************/
 #define _TEST_APP_UART7_ENABLE_
-#define _TEST_APP_UART7_TX_USE_DMA_
-#define _TEST_APP_UART7_TX_DMA_CIRCULAR_MODE_
-#define _TEST_APP_UART7_RX_USE_DMA_
+// #define _TEST_APP_UART7_TX_USE_DMA_
+// #define _TEST_APP_UART7_TX_DMA_CIRCULAR_MODE_
+// #define _TEST_APP_UART7_RX_USE_DMA_
 // #define _TEST_APP_UART7_RX_DMA_CIRCULAR_MODE_
 
 /*******************************************
@@ -44,9 +44,9 @@ UART8
 
 ********************************************/
 #define _TEST_APP_UART8_ENABLE_
-#define _TEST_APP_UART8_TX_USE_DMA_
-#define _TEST_APP_UART8_TX_DMA_CIRCULAR_MODE_
-#define _TEST_APP_UART8_RX_USE_DMA_
+// #define _TEST_APP_UART8_TX_USE_DMA_
+// #define _TEST_APP_UART8_TX_DMA_CIRCULAR_MODE_
+// #define _TEST_APP_UART8_RX_USE_DMA_
 // #define _TEST_APP_UART8_RX_DMA_CIRCULAR_MODE_
 
 /*******************************************

@@ -179,7 +179,6 @@ error_status TEST_APP_USART_Test(void)
             TEST_APP_USART_printf(pp_drv[usart_type], USART_TEST_MESSAGE[usart_type]);
             pbuff_rx = pp_drv[usart_type]->GetTransfer().pRxData;
             drv_status |= pp_drv[usart_type]->Recieve(pbuff_rx, 8);
-            drv_status |= pp_drv[usart_type]->Send(pbuff_rx, 8);
         }
     }
     return TEST_APP_ARM_DRIVER_isReady(drv_status) ? SUCCESS : ERROR;
