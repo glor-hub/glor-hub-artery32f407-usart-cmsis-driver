@@ -532,8 +532,6 @@ void TEST_APP_ARM_USART_IRQHandler(eTEST_APP_ARM_USART_Types_t usart_type)
 //Private
 //================================================================================
 
-
-
 static void  ARM_USART_SetResources(TEST_APP_ARM_USART_Resources_t *p_res, eTEST_APP_ARM_USART_Types_t usart_type,
                                     uint32_t baudrate,
                                     usart_data_bit_num_type data_bit,
@@ -558,6 +556,8 @@ static void  ARM_USART_SetResources(TEST_APP_ARM_USART_Resources_t *p_res, eTEST
     memcpy(&p_res->Gpio, &ARM_USART_GPIO_Def[usart_type][p_res->GpioPinDef], sizeof(TEST_APP_ARM_USART_GPIO_t));
     p_res->DMA.TxChan = ARM_USART_DMA_ChanDef[usart_type][ARM_USART_TX_CHAN];
     p_res->DMA.RxChan = ARM_USART_DMA_ChanDef[usart_type][ARM_USART_RX_CHAN];
+    p_res->DMA.TxEvent_cb = pTEST_APP_ARM_USART_DMA_cb[usart_type][ARM_USART_TX_CHAN];
+    p_res->DMA.RxEvent_cb = pTEST_APP_ARM_USART_DMA_cb[usart_type][ARM_USART_RX_CHAN];
     p_res->DMA.TxFlexModeEnable = ARM_USART_DMA_FlexModeEnable[usart_type][ARM_USART_TX_CHAN];
     p_res->DMA.RxFlexModeEnable = ARM_USART_DMA_FlexModeEnable[usart_type][ARM_USART_RX_CHAN];
     p_res->DMA.TxFlexPeriphReq = ARM_USART_DMA_FlexPeriphReq[usart_type][ARM_USART_TX_CHAN];
@@ -634,7 +634,7 @@ static uint32_t ARM_USART_Initialize(eTEST_APP_ARM_USART_Types_t usart_type,
     p_res->Status.DrvFlag |= TEST_APP_ARM_USART_DRIVER_FLAG_CONFIGURATED;
     if(p_res->DMA.TxEnable) {
         //clock and reset DMA
-        if(!TEST_APP_ARM_DMA_Init(p_res->DMA.TxChan)) {
+        if(!TEST_APP_ARM_DMA_Init(p_res->DMA.TxChan, p_res->DMA.TxEvent_cb)) {
 #ifdef _TEST_APP_DEBUG_
             LOG("USART DMA driver error");
 #endif//_TEST_APP_DEBUG_
@@ -649,7 +649,7 @@ static uint32_t ARM_USART_Initialize(eTEST_APP_ARM_USART_Types_t usart_type,
     }
     if(p_res->DMA.RxEnable) {
         //clock and reset DMA
-        if(!TEST_APP_ARM_DMA_Init(p_res->DMA.RxChan)) {
+        if(!TEST_APP_ARM_DMA_Init(p_res->DMA.RxChan, p_res->DMA.RxEvent_cb)) {
 #ifdef _TEST_APP_DEBUG_
             LOG("USART DMA driver error");
 #endif//_TEST_APP_DEBUG_
@@ -768,9 +768,10 @@ static void ARM_USART_DMA_Event_cb(uint32_t event,
     switch(chan_type) {
         case ARM_USART_TX_CHAN: {
             if(event & TEST_APP_ARM_DMA_EVENT_FULL_DATA) {
-                if(!event & TEST_APP_ARM_DMA_EVENT_FULL_DATA) {
-                    p_res->Status.XferStatus.TxBusy = 0;
-                }
+                p_res->Status.XferStatus.TxBusy = 0;
+                p_res->Transfer.TxCnt = 0;
+                p_res->Transfer.TxNum = 0;
+
 #ifdef _TEST_APP_DEBUG_
                 LOG("USART transmitted test data via DMA");
 #endif//_TEST_APP_DEBUG_
@@ -785,6 +786,11 @@ static void ARM_USART_DMA_Event_cb(uint32_t event,
         case ARM_USART_RX_CHAN: {
             if(event & TEST_APP_ARM_DMA_EVENT_FULL_DATA) {
                 p_res->Status.XferStatus.RxBusy = 0;
+                p_res->Transfer.RxCnt = 0;
+                p_res->Transfer.RxNum = 0;
+                TEST_APP_ARM_USART_Driver_t *p_drv = pARM_USART_Driver[TEST_APP_ARM_USART1];
+                p_drv[usart_type].Send(p_res->Transfer.pRxData, 8);
+                TEST_APP_LCD2004_Printf(0, 0, SET, "%s", p_res->Transfer.pRxData);
 #ifdef _TEST_APP_DEBUG_
                 TEST_APP_LCD2004_Printf(0, 0, SET, "%s", p_res->Transfer.pRxData);
                 LOG("USART recieved test data via DMA");
@@ -823,6 +829,8 @@ static uint32_t ARM_USART_Recieve(eTEST_APP_ARM_USART_Types_t usart_type, void *
         TimerDisable(ARM_USART_TimeoutTimer[usart_type][ARM_USART_RX_CHAN]);
     }
     p_res->Status.XferStatus.RxBusy = 1;
+    usart_interrupt_enable(pARM_USART_Register[usart_type], USART_ERR_INT, TRUE);
+    usart_interrupt_enable(pARM_USART_Register[usart_type], USART_PERR_INT, TRUE);
     if(p_res->DMA.RxEnable) {
         TEST_APP_DMA_Enable(p_res->DMA.RxChan, FALSE);
         TEST_APP_ARM_DMA_Config(p_res->DMA.RxChan,
@@ -830,21 +838,18 @@ static uint32_t ARM_USART_Recieve(eTEST_APP_ARM_USART_Types_t usart_type, void *
                                 (uint32_t)(volatile void *)pdata,
                                 num, DMA_DIR_PERIPHERAL_TO_MEMORY,
                                 TEST_APP_ARM_DMA_LOOP_MODE_DISABLE,
-                                DMA_PRIORITY_LOW,
-                                pTEST_APP_ARM_USART_DMA_cb[usart_type][ARM_USART_RX_CHAN]);
-        TEST_APP_DMA_Enable(p_res->DMA.RxChan, TRUE);
-        TEST_APP_DMA_InterruptEnable(p_res->DMA.RxChan, TEST_APP_ARM_DMA_FULL_DATA_TRANSFER_INT,
-                                     TRUE);
+                                DMA_PRIORITY_LOW);
         TEST_APP_DMA_InterruptEnable(p_res->DMA.RxChan, TEST_APP_ARM_DMA_ERR_DATA_TRANSFER_INT,
                                      TRUE);
+        TEST_APP_DMA_InterruptEnable(p_res->DMA.RxChan, TEST_APP_ARM_DMA_FULL_DATA_TRANSFER_INT,
+                                     TRUE);
+        TEST_APP_DMA_Enable(p_res->DMA.RxChan, TRUE);
     } else {
         p_res->Transfer.RxCnt = 0;
         p_res->Transfer.RxNum = num;
         p_res->Transfer.pRxData = pdata;
         usart_interrupt_enable(pARM_USART_Register[usart_type], USART_RDBF_INT, TRUE);
     }
-    usart_interrupt_enable(pARM_USART_Register[usart_type], USART_ERR_INT, TRUE);
-    usart_interrupt_enable(pARM_USART_Register[usart_type], USART_PERR_INT, TRUE);
     return TEST_APP_ARM_DRIVER_NO_ERROR;
 }
 
@@ -876,16 +881,15 @@ static uint32_t ARM_USART_Send(eTEST_APP_ARM_USART_Types_t usart_type, void *pda
         TEST_APP_DMA_Enable(p_res->DMA.TxChan, FALSE);
         TEST_APP_ARM_DMA_Config(p_res->DMA.TxChan,
                                 (uint32_t)(&pARM_USART_Register[usart_type]->dt),
-                                (uint32_t)(volatile void *)pdata,
+                                (uint32_t)pdata,
                                 num, DMA_DIR_MEMORY_TO_PERIPHERAL,
                                 TEST_APP_ARM_DMA_LOOP_MODE_DISABLE,
-                                DMA_PRIORITY_LOW,
-                                pTEST_APP_ARM_USART_DMA_cb[usart_type][ARM_USART_TX_CHAN]);
-        TEST_APP_DMA_Enable(p_res->DMA.TxChan, TRUE);
-        TEST_APP_DMA_InterruptEnable(p_res->DMA.TxChan, TEST_APP_ARM_DMA_FULL_DATA_TRANSFER_INT,
-                                     TRUE);
+                                DMA_PRIORITY_LOW);
         TEST_APP_DMA_InterruptEnable(p_res->DMA.TxChan, TEST_APP_ARM_DMA_ERR_DATA_TRANSFER_INT,
                                      TRUE);
+        TEST_APP_DMA_InterruptEnable(p_res->DMA.TxChan, TEST_APP_ARM_DMA_FULL_DATA_TRANSFER_INT,
+                                     TRUE);
+        TEST_APP_DMA_Enable(p_res->DMA.TxChan, TRUE);
     } else {
         p_res->Transfer.TxCnt = 0;
         p_res->Transfer.TxNum = num;

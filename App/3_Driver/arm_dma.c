@@ -149,7 +149,7 @@ static IRQn_Type ARM_DMA_IrqNumber[TEST_APP_ARM_DMA_CHANS] = {
 //Public
 //================================================================================
 
-bool TEST_APP_ARM_DMA_Init(eTEST_APP_ARM_DMA_Chan_t chan)
+bool TEST_APP_ARM_DMA_Init(eTEST_APP_ARM_DMA_Chan_t chan, void (*pfunc_cb)(uint32_t event))
 {
     uint32_t drv_status = TEST_APP_ARM_DMA_STA_NO_ERROR;
     ARM_DMA_Resources_t *p_res = &ARM_DMA_Resources[chan];
@@ -158,6 +158,7 @@ bool TEST_APP_ARM_DMA_Init(eTEST_APP_ARM_DMA_Chan_t chan)
         drv_status |= TEST_APP_ARM_DMA_STA_ERROR;
     }
     dma_reset(p_res->Registers.pChannelReg);
+    p_res->Event_cb = pfunc_cb;
     return (drv_status == TEST_APP_ARM_DMA_STA_NO_ERROR);
 }
 
@@ -198,8 +199,7 @@ void TEST_APP_ARM_DMA_Config(eTEST_APP_ARM_DMA_Chan_t chan,
                              uint32_t periph_addr, uint32_t mem_addr,
                              uint16_t buff_size, dma_dir_type dir,
                              confirm_state loop_mode_enable,
-                             dma_priority_level_type priority,
-                             void (*pfunc_cb)(uint32_t event))
+                             dma_priority_level_type priority)
 {
     ARM_DMA_Resources_t *p_res = &ARM_DMA_Resources[chan];
     p_res->Config.memory_inc_enable = TRUE;
@@ -210,7 +210,6 @@ void TEST_APP_ARM_DMA_Config(eTEST_APP_ARM_DMA_Chan_t chan,
     p_res->Config.loop_mode_enable = loop_mode_enable;
     p_res->Config.priority = priority;
     dma_init(p_res->Registers.pChannelReg, &(p_res->Config));
-    p_res->Event_cb = pfunc_cb;
 }
 
 void TEST_APP_DMA_InterruptEnable(eTEST_APP_ARM_DMA_Chan_t chan,

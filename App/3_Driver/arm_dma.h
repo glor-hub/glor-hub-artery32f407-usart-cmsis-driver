@@ -46,7 +46,8 @@ typedef enum {
 #define TEST_APP_ARM_DMA_LOOP_MODE_ENABLE   TRUE
 #define TEST_APP_ARM_DMA_LOOP_MODE_DISABLE  FALSE
 
-bool TEST_APP_ARM_DMA_Init(eTEST_APP_ARM_DMA_Chan_t chan);
+bool TEST_APP_ARM_DMA_Init(eTEST_APP_ARM_DMA_Chan_t chan,
+                           void (*pfunc_cb)(uint32_t event));
 void TEST_APP_ARM_DMA_FlexibleConfig(eTEST_APP_ARM_DMA_Chan_t chan,
                                      dma_flexible_request_type flex_periph_req);
 void TEST_APP_DMA_Enable(eTEST_APP_ARM_DMA_Chan_t chan, confirm_state state);
@@ -56,8 +57,7 @@ void TEST_APP_ARM_DMA_Config(eTEST_APP_ARM_DMA_Chan_t chan,
                              uint32_t periph_addr, uint32_t mem_addr,
                              uint16_t buff_size, dma_dir_type dir,
                              confirm_state loop_mode_enable,
-                             dma_priority_level_type priority,
-                             void (*pfunc_cb)(uint32_t event));
+                             dma_priority_level_type priority);
 void TEST_APP_DMA_InterruptEnable(eTEST_APP_ARM_DMA_Chan_t chan,
                                   eTEST_APP_ARM_DMA_InterruptTypes_t interrupt_type,
                                   confirm_state state);

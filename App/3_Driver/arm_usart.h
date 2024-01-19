@@ -16,8 +16,8 @@ UART4
 
 ********************************************/
 #define _TEST_APP_UART4_ENABLE_
-// #define _TEST_APP_UART4_TX_USE_DMA_
-// #define _TEST_APP_UART4_RX_USE_DMA_
+#define _TEST_APP_UART4_TX_USE_DMA_
+#define _TEST_APP_UART4_RX_USE_DMA_
 
 /*******************************************
 UART5
@@ -145,6 +145,8 @@ typedef struct {
     eTEST_APP_ARM_DMA_Chan_t    RxChan;
     confirm_state               TxEnable;
     confirm_state               RxEnable;
+    void (*TxEvent_cb)(uint32_t event);
+    void (*RxEvent_cb)(uint32_t event);
     confirm_state               TxFlexModeEnable;
     confirm_state               RxFlexModeEnable;
     dma_flexible_request_type   TxFlexPeriphReq;
