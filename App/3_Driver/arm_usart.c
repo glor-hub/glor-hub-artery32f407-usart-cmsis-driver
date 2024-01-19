@@ -30,6 +30,8 @@
 #define ARM_USART_DMA_FLEX_MODE_ENABLE  TRUE
 #define ARM_USART_DMA_FLEX_MODE_DISABLE FALSE
 
+#define ARM_USART_TIMEOUT_MSEC 200
+
 //********************************************************************************
 //Enums
 //********************************************************************************
@@ -336,7 +338,7 @@ static TEST_APP_ARM_USART_GPIO_t ARM_USART_GPIO_Def[TEST_APP_ARM_USART_TYPES][AR
     },
     {   {TEST_APP_ARM_GPIO_PORTE, GPIO_PINS_1,  TEST_APP_ARM_GPIO_PORTE, GPIO_PINS_0},
         {TEST_APP_ARM_GPIO_PORTC, GPIO_PINS_2,  TEST_APP_ARM_GPIO_PORTC, GPIO_PINS_3}
-    },
+    }
 };
 
 static usart_type *pARM_USART_Register[TEST_APP_ARM_USART_TYPES] = {
@@ -545,6 +547,7 @@ static void  ARM_USART_SetResources(TEST_APP_ARM_USART_Resources_t *p_res, eTEST
     p_res->Config.DataBit = data_bit;
     p_res->Config.StopBit = stop_bit;
     p_res->Config.Parity = parity;
+
     TEST_APP_RingBuffer_Init(&(p_res->Event), &ARM_USART_EventBuff[usart_type], ARM_USART_EVENT_BUFF_SIZE);
     p_res->Transfer.pTxData = &ARM_USART_TxBuff[usart_type];
     p_res->Transfer.pRxData = &ARM_USART_RxBuff[usart_type];;
@@ -553,7 +556,13 @@ static void  ARM_USART_SetResources(TEST_APP_ARM_USART_Resources_t *p_res, eTEST
     p_res->Transfer.TxCnt = 0;
     p_res->Transfer.RxCnt = 0;
     p_res->GpioPinDef = gpio_pin_def;
-    memcpy(&p_res->Gpio, &ARM_USART_GPIO_Def[usart_type][p_res->GpioPinDef], sizeof(TEST_APP_ARM_USART_GPIO_t));
+    if(gpio_pin_def == TEST_APP_ARM_USART_GPIO_PIN_DEF_DEFAULT) {
+        memcpy(&p_res->Gpio, &ARM_USART_GPIO_Def[usart_type][ARM_USART_GPIO_PIN_DEF_DEFAULT],
+               sizeof(TEST_APP_ARM_USART_GPIO_t));
+    } else {
+        memcpy(&p_res->Gpio, &ARM_USART_GPIO_Def[usart_type][ARM_USART_GPIO_PIN_DEF_REMAP],
+               sizeof(TEST_APP_ARM_USART_GPIO_t));
+    }
     p_res->DMA.TxChan = ARM_USART_DMA_ChanDef[usart_type][ARM_USART_TX_CHAN];
     p_res->DMA.RxChan = ARM_USART_DMA_ChanDef[usart_type][ARM_USART_RX_CHAN];
     p_res->DMA.TxEvent_cb = pTEST_APP_ARM_USART_DMA_cb[usart_type][ARM_USART_TX_CHAN];
@@ -818,7 +827,7 @@ static uint32_t ARM_USART_Recieve(eTEST_APP_ARM_USART_Types_t usart_type, void *
         return TEST_APP_ARM_DRIVER_ERROR_PARAMETER;
     }
     if(p_res->Status.XferStatus.RxBusy) {
-        TimerEnable(ARM_USART_TimeoutTimer[usart_type][ARM_USART_RX_CHAN], 200);
+        TimerEnable(ARM_USART_TimeoutTimer[usart_type][ARM_USART_RX_CHAN], ARM_USART_TIMEOUT_MSEC);
         while(p_res->Status.XferStatus.RxBusy && (!TimerTestFlag(ARM_USART_TimeoutTimer[usart_type][ARM_USART_RX_CHAN])));
         if(TimerTestFlag(ARM_USART_TimeoutTimer[usart_type][ARM_USART_RX_CHAN])) {
             p_res->Status.DrvStatus |= TEST_APP_ARM_DRIVER_ERROR_BUSY;
@@ -866,7 +875,7 @@ static uint32_t ARM_USART_Send(eTEST_APP_ARM_USART_Types_t usart_type, void *pda
     }
 
     if(p_res->Status.XferStatus.TxBusy) {
-        TimerEnable(ARM_USART_TimeoutTimer[usart_type][ARM_USART_TX_CHAN], 20000);
+        TimerEnable(ARM_USART_TimeoutTimer[usart_type][ARM_USART_TX_CHAN], ARM_USART_TIMEOUT_MSEC);
         while(p_res->Status.XferStatus.TxBusy && (!TimerTestFlag(ARM_USART_TimeoutTimer[usart_type][ARM_USART_TX_CHAN])));
         if(TimerTestFlag(ARM_USART_TimeoutTimer[usart_type][ARM_USART_TX_CHAN])) {
             p_res->Status.DrvStatus |= TEST_APP_ARM_DRIVER_ERROR_BUSY;

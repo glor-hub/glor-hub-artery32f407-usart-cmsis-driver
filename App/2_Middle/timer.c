@@ -87,6 +87,7 @@ void TimerEnable(eTEST_APP_TimerTypes_t timer, uint32_t time)
 void TimerDisable(eTEST_APP_TimerTypes_t timer)
 {
     Timer[timer].State = FALSE;
+    //in msec
     Timer[timer].Time = 0;
     Timer[timer].Counter = 0;
     Timer[timer].Flag = RESET;
