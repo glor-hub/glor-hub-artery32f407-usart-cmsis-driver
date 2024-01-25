@@ -9,18 +9,20 @@
 
 //select UARTx (USARTx (x=1,2,3,6) are not supported in this driver version)
 //use DMA if necessary
+//for use loop mode DMA  - configure DMA with TEST_APP_ARM_DMA_Config() in
+//Recieve/Send function of USART Driver.
 
 /*******************************************
 UART4
 ********************************************/
 #define _TEST_APP_UART4_ENABLE_
-// #define _TEST_APP_UART4_TX_USE_DMA_
-// #define _TEST_APP_UART4_RX_USE_DMA_
+#define _TEST_APP_UART4_TX_USE_DMA_
+#define _TEST_APP_UART4_RX_USE_DMA_
 
 /*******************************************
 UART5
 ********************************************/
-// #define _TEST_APP_UART5_ENABLE_
+#define _TEST_APP_UART5_ENABLE_
 // #define _TEST_APP_UART5_TX_USE_DMA_
 // #define _TEST_APP_UART5_RX_USE_DMA_
 
@@ -34,7 +36,7 @@ UART7
 /*******************************************
 UART8
 ********************************************/
-#define _TEST_APP_UART8_ENABLE_
+//#define _TEST_APP_UART8_ENABLE_
 // #define _TEST_APP_UART8_TX_USE_DMA_
 // #define _TEST_APP_UART8_RX_USE_DMA_
 
@@ -77,7 +79,6 @@ typedef enum {
 #define TEST_APP_ARM_USART_BAUDRATE_115200  ((uint32_t)115200)
 
 //USART Event
-
 #define TEST_APP_ARM_USART_EVENT_RX_COMPLETE         ((uint32_t)1UL << 0)  //Receive completed
 #define TEST_APP_ARM_USART_EVENT_TX_COMPLETE         ((uint32_t)1UL << 1)  //Transmit completed (optional)
 #define TEST_APP_ARM_USART_EVENT_TX_UNDERFLOW        ((uint32_t)1UL << 2)  //Transmit data not available (Synchronous Slave)

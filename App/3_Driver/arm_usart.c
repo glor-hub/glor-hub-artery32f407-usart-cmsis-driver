@@ -24,9 +24,6 @@
 #define ARM_USART_TX_BUFF_SIZE 256
 #define ARM_USART_RX_BUFF_SIZE 256
 
-#define ARM_USART_ENABLE  TRUE
-#define ARM_USART_DISABLE FALSE
-
 #define ARM_USART_DMA_FLEX_MODE_ENABLE  TRUE
 #define ARM_USART_DMA_FLEX_MODE_DISABLE FALSE
 
@@ -655,6 +652,8 @@ static uint32_t ARM_USART_Initialize(eTEST_APP_ARM_USART_Types_t usart_type,
         }
         TEST_APP_DMA_ClearAndEnableIRQ(p_res->DMA.TxChan);
         usart_dma_transmitter_enable(pARM_USART_Register[usart_type], TRUE);
+        p_res->Status.DrvFlag |= TEST_APP_ARM_USART_DRIVER_FLAG_DMA_TX_ENABLED;
+
     }
     if(p_res->DMA.RxEnable) {
         //clock and reset DMA
@@ -670,6 +669,7 @@ static uint32_t ARM_USART_Initialize(eTEST_APP_ARM_USART_Types_t usart_type,
         }
         TEST_APP_DMA_ClearAndEnableIRQ(p_res->DMA.RxChan);
         usart_dma_receiver_enable(pARM_USART_Register[usart_type], TRUE);
+        p_res->Status.DrvFlag |= TEST_APP_ARM_USART_DRIVER_FLAG_DMA_RX_ENABLED;
     }
     usart_transmitter_enable(pARM_USART_Register[usart_type], TRUE);
     p_res->Status.DrvFlag |= TEST_APP_ARM_USART_DRIVER_FLAG_TX_ENABLED;
@@ -694,11 +694,14 @@ static uint32_t ARM_USART_Uninitialize(eTEST_APP_ARM_USART_Types_t usart_type)
         NVIC_ClearPendingIRQ(p_res->IrqNum);
         if(p_res->DMA.TxEnable) {
             usart_dma_transmitter_enable(pARM_USART_Register[usart_type], FALSE);
+            p_res->Status.DrvFlag &= ~TEST_APP_ARM_USART_DRIVER_FLAG_DMA_TX_ENABLED;
+
             TEST_APP_DMA_DisableAndClearIRQ(p_res->DMA.TxChan);
             TEST_APP_DMA_Enable(p_res->DMA.TxChan, FALSE);
         }
         if(p_res->DMA.RxEnable) {
             usart_dma_receiver_enable(pARM_USART_Register[usart_type], FALSE);
+            p_res->Status.DrvFlag &= ~TEST_APP_ARM_USART_DRIVER_FLAG_DMA_TX_ENABLED;
             TEST_APP_DMA_DisableAndClearIRQ(p_res->DMA.RxChan);
             TEST_APP_DMA_Enable(p_res->DMA.RxChan, FALSE);
         }
