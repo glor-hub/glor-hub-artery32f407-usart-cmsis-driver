@@ -51,11 +51,6 @@ typedef enum {
     ARM_USART_PIN_DEFS
 } eARM_USART_PinDefs_t;
 
-typedef TEST_APP_ARM_USART_Transfer_t (*pGetTransfer_t)(void);
-
-typedef TEST_APP_ARM_USART_Status_t (*pGetStatus_t)(void);
-
-
 //********************************************************************************
 //Prototypes
 //********************************************************************************
