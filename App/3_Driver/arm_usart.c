@@ -45,11 +45,6 @@ typedef enum {
     ARM_USART_CHANS
 } eARM_USART_Chans_t;
 
-typedef enum {
-    ARM_USART_GPIO_PIN_DEF_DEFAULT = 0,
-    ARM_USART_GPIO_PIN_DEF_REMAP,
-    ARM_USART_PIN_DEFS
-} eARM_USART_PinDefs_t;
 
 //********************************************************************************
 //Prototypes
@@ -60,56 +55,56 @@ static void  ARM_USART_SetResources(TEST_APP_ARM_USART_Resources_t *p_res, eTEST
                                     usart_data_bit_num_type data_bit,
                                     usart_stop_bit_num_type stop_bit,
                                     usart_parity_selection_type parity,
-                                    uint32_t gpio_pin_def);
+                                    eTEST_APP_ARM_USART_PinDefTypes_t gpio_pin_def_type);
 static uint32_t ARM_USART_GPIO_Config(eTEST_APP_ARM_USART_Types_t usart_type, confirm_state new_state);
 
 static uint32_t ARM_USART_Initialize(eTEST_APP_ARM_USART_Types_t usart_type,
                                      uint32_t baudrate,
-                                     usart_data_bit_num_type dataBit,
-                                     usart_stop_bit_num_type stopBit,
+                                     usart_data_bit_num_type data_bit,
+                                     usart_stop_bit_num_type stop_bit,
                                      usart_parity_selection_type parity,
-                                     uint32_t gpio_pin_def);
+                                     eTEST_APP_ARM_USART_PinDefTypes_t gpio_pin_def_type);
 
 static uint32_t ARM_USART_Initialize_1(uint32_t baudrate,
                                        usart_data_bit_num_type dataBit,
                                        usart_stop_bit_num_type stopBit,
                                        usart_parity_selection_type parity,
-                                       uint32_t gpio_pin_def);
+                                       eTEST_APP_ARM_USART_PinDefTypes_t gpio_pin_def_type);
 static uint32_t ARM_USART_Initialize_2(uint32_t baudrate,
                                        usart_data_bit_num_type dataBit,
                                        usart_stop_bit_num_type stopBit,
                                        usart_parity_selection_type parity,
-                                       uint32_t gpio_pin_def);
+                                       eTEST_APP_ARM_USART_PinDefTypes_t gpio_pin_def_type);
 static uint32_t ARM_USART_Initialize_3(uint32_t baudrate,
                                        usart_data_bit_num_type dataBit,
                                        usart_stop_bit_num_type stopBit,
                                        usart_parity_selection_type parity,
-                                       uint32_t gpio_pin_def);
+                                       eTEST_APP_ARM_USART_PinDefTypes_t gpio_pin_def_type);
 static uint32_t ARM_USART_Initialize_4(uint32_t baudrate,
                                        usart_data_bit_num_type dataBit,
                                        usart_stop_bit_num_type stopBit,
                                        usart_parity_selection_type parity,
-                                       uint32_t gpio_pin_def);
+                                       eTEST_APP_ARM_USART_PinDefTypes_t gpio_pin_def_type);
 static uint32_t ARM_USART_Initialize_5(uint32_t baudrate,
                                        usart_data_bit_num_type dataBit,
                                        usart_stop_bit_num_type stopBit,
                                        usart_parity_selection_type parity,
-                                       uint32_t gpio_pin_def);
+                                       eTEST_APP_ARM_USART_PinDefTypes_t gpio_pin_def_type);
 static uint32_t ARM_USART_Initialize_6(uint32_t baudrate,
                                        usart_data_bit_num_type dataBit,
                                        usart_stop_bit_num_type stopBit,
                                        usart_parity_selection_type parity,
-                                       uint32_t gpio_pin_def);
+                                       eTEST_APP_ARM_USART_PinDefTypes_t gpio_pin_def_type);
 static uint32_t ARM_USART_Initialize_7(uint32_t baudrate,
                                        usart_data_bit_num_type dataBit,
                                        usart_stop_bit_num_type stopBit,
                                        usart_parity_selection_type parity,
-                                       uint32_t gpio_pin_def);
+                                       eTEST_APP_ARM_USART_PinDefTypes_t gpio_pin_def_type);
 static uint32_t ARM_USART_Initialize_8(uint32_t baudrate,
                                        usart_data_bit_num_type dataBit,
                                        usart_stop_bit_num_type stopBit,
                                        usart_parity_selection_type parity,
-                                       uint32_t gpio_pin_def);
+                                       eTEST_APP_ARM_USART_PinDefTypes_t gpio_pin_def_type);
 
 static uint32_t ARM_USART_Uninitialize(eTEST_APP_ARM_USART_Types_t usart_type);
 static uint32_t ARM_USART_Uninitialize_1(void);
@@ -306,7 +301,7 @@ static uint32_t ARM_USART_EventBuff[TEST_APP_ARM_USART_TYPES][ARM_USART_EVENT_BU
 static uint32_t ARM_USART_TxBuff[TEST_APP_ARM_USART_TYPES][ARM_USART_TX_BUFF_SIZE];
 static uint32_t ARM_USART_RxBuff[TEST_APP_ARM_USART_TYPES][ARM_USART_RX_BUFF_SIZE];
 
-static TEST_APP_ARM_USART_GPIO_t ARM_USART_GPIO_Def[TEST_APP_ARM_USART_TYPES][ARM_USART_PIN_DEFS] = {
+static TEST_APP_ARM_USART_GPIO_t ARM_USART_GPIO_Def[TEST_APP_ARM_USART_TYPES][TEST_APP_ARM_USART_GPIO_PIN_DEF_TYPES] = {
     {   {TEST_APP_ARM_GPIO_PORTA, GPIO_PINS_9,  TEST_APP_ARM_GPIO_PORTA, GPIO_PINS_10},
         {TEST_APP_ARM_GPIO_PORTB, GPIO_PINS_6,  TEST_APP_ARM_GPIO_PORTB, GPIO_PINS_7}
     },
@@ -333,6 +328,33 @@ static TEST_APP_ARM_USART_GPIO_t ARM_USART_GPIO_Def[TEST_APP_ARM_USART_TYPES][AR
     }
 };
 
+uint32_t ARM_USART_GPIO_IOMUX_Map_Def[TEST_APP_ARM_USART_TYPES][TEST_APP_ARM_USART_GPIO_PIN_DEF_TYPES] = {
+    {
+        TEST_APP_ARM_USART_GPIO_IOMUX_MAP_DEFAULT, USART1_GMUX_0001
+    },
+    {
+        TEST_APP_ARM_USART_GPIO_IOMUX_MAP_DEFAULT, USART2_GMUX_0001
+    },
+    {
+        TEST_APP_ARM_USART_GPIO_IOMUX_MAP_DEFAULT, USART3_GMUX_0001
+    },
+    {
+        TEST_APP_ARM_USART_GPIO_IOMUX_MAP_DEFAULT, UART4_GMUX_0010
+    },
+    {
+        TEST_APP_ARM_USART_GPIO_IOMUX_MAP_DEFAULT, UART5_GMUX_0001
+    },
+    {
+        TEST_APP_ARM_USART_GPIO_IOMUX_MAP_DEFAULT, USART6_GMUX
+    },
+    {
+        TEST_APP_ARM_USART_GPIO_IOMUX_MAP_DEFAULT, UART7_GMUX
+    },
+    {
+        TEST_APP_ARM_USART_GPIO_IOMUX_MAP_DEFAULT, UART8_GMUX
+    }
+};
+
 static usart_type *pARM_USART_Register[TEST_APP_ARM_USART_TYPES] = {
     USART1,
     USART2,
@@ -355,6 +377,19 @@ static IRQn_Type ARM_USART_IrqNumber[TEST_APP_ARM_USART_TYPES] = {
     UART8_IRQn
 };
 
+static eTEST_APP_TimerTypes_t ARM_USART_TimeoutTimer[TEST_APP_ARM_USART_TYPES][ARM_USART_CHANS] = {
+    {TIMER_USART1_TIMEOUT_TX,    TIMER_USART1_TIMEOUT_RX},
+    {TIMER_USART2_TIMEOUT_TX,    TIMER_USART2_TIMEOUT_RX},
+    {TIMER_USART3_TIMEOUT_TX,    TIMER_USART3_TIMEOUT_RX},
+    {TIMER_UART4_TIMEOUT_TX,     TIMER_UART4_TIMEOUT_RX},
+    {TIMER_UART5_TIMEOUT_TX,     TIMER_UART5_TIMEOUT_RX},
+    {TIMER_USART6_TIMEOUT_TX,    TIMER_USART6_TIMEOUT_RX},
+    {TIMER_UART7_TIMEOUT_TX,     TIMER_UART7_TIMEOUT_RX},
+    {TIMER_UART8_TIMEOUT_TX,     TIMER_UART8_TIMEOUT_RX,}
+};
+
+
+//USART with DMA
 static eTEST_APP_ARM_DMA_Chan_t ARM_USART_DMA_ChanDef[TEST_APP_ARM_USART_TYPES][ARM_USART_CHANS] = {
     {TEST_APP_ARM_DMA_CHAN_UNDEFINED,   TEST_APP_ARM_DMA_CHAN_UNDEFINED},
     {TEST_APP_ARM_DMA_CHAN_UNDEFINED,   TEST_APP_ARM_DMA_CHAN_UNDEFINED},
@@ -388,16 +423,7 @@ static dma_flexible_request_type ARM_USART_DMA_FlexPeriphReq[TEST_APP_ARM_USART_
     {DMA_FLEXIBLE_UART8_TX, DMA_FLEXIBLE_UART8_RX}
 };
 
-static eTEST_APP_TimerTypes_t ARM_USART_TimeoutTimer[TEST_APP_ARM_USART_TYPES][ARM_USART_CHANS] = {
-    {TIMER_USART1_TIMEOUT_TX,    TIMER_USART1_TIMEOUT_RX},
-    {TIMER_USART2_TIMEOUT_TX,    TIMER_USART2_TIMEOUT_RX},
-    {TIMER_USART3_TIMEOUT_TX,    TIMER_USART3_TIMEOUT_RX},
-    {TIMER_UART4_TIMEOUT_TX,     TIMER_UART4_TIMEOUT_RX},
-    {TIMER_UART5_TIMEOUT_TX,     TIMER_UART5_TIMEOUT_RX},
-    {TIMER_USART6_TIMEOUT_TX,    TIMER_USART6_TIMEOUT_RX},
-    {TIMER_UART7_TIMEOUT_TX,     TIMER_UART7_TIMEOUT_RX},
-    {TIMER_UART8_TIMEOUT_TX,     TIMER_UART8_TIMEOUT_RX,}
-};
+
 
 //================================================================================
 //Public
@@ -409,7 +435,7 @@ void TEST_APP_ARM_USART_StartUp(void)
 #ifdef _TEST_APP_UART4_ENABLE_
     (p_res[TEST_APP_ARM_UART4]).Status.DrvStateOn = TRUE;
     (p_res[TEST_APP_ARM_UART4]).Status.DrvStatus = TEST_APP_ARM_DRIVER_NO_ERROR;
-    (p_res[TEST_APP_ARM_UART4]).Status.DrvFlag = 0;
+    (p_res[TEST_APP_ARM_UART4]).Status.DrvFlag = 0x0000;
 #ifdef _TEST_APP_UART4_TX_USE_DMA_
     (p_res[TEST_APP_ARM_UART4]).DMA.TxEnable = TRUE;
 #endif //_TEST_APP_UART4_TX_USE_DMA_
@@ -425,7 +451,7 @@ void TEST_APP_ARM_USART_StartUp(void)
 #ifdef _TEST_APP_UART5_ENABLE_
     (p_res[TEST_APP_ARM_UART5]).Status.DrvStateOn = TRUE;
     (p_res[TEST_APP_ARM_UART5]).Status.DrvStatus = TEST_APP_ARM_DRIVER_NO_ERROR;
-    (p_res[TEST_APP_ARM_UART5]).Status.DrvFlag = 0;
+    (p_res[TEST_APP_ARM_UART5]).Status.DrvFlag = 0x0000;
 #ifdef _TEST_APP_UART5_TX_USE_DMA_
     (p_res[TEST_APP_ARM_UART5]).DMA.TxEnable = TRUE;
 #endif //_TEST_APP_UART5_TX_USE_DMA_
@@ -441,7 +467,7 @@ void TEST_APP_ARM_USART_StartUp(void)
 #ifdef _TEST_APP_UART7_ENABLE_
     (p_res[TEST_APP_ARM_UART7]).Status.DrvStateOn = TRUE;
     (p_res[TEST_APP_ARM_UART7]).Status.DrvStatus = TEST_APP_ARM_DRIVER_NO_ERROR;
-    (p_res[TEST_APP_ARM_UART7]).Status.DrvFlag = 0;
+    (p_res[TEST_APP_ARM_UART7]).Status.DrvFlag = 0x0000;
 #ifdef _TEST_APP_UART7_TX_USE_DMA_
     (p_res[TEST_APP_ARM_UART7]).DMA.TxEnable = TRUE;
 #endif //_TEST_APP_UART7_TX_USE_DMA_
@@ -457,7 +483,7 @@ void TEST_APP_ARM_USART_StartUp(void)
 #ifdef _TEST_APP_UART8_ENABLE_
     (p_res[TEST_APP_ARM_UART8]).Status.DrvStateOn = TRUE;
     (p_res[TEST_APP_ARM_UART8]).Status.DrvStatus = TEST_APP_ARM_DRIVER_NO_ERROR;
-    (p_res[TEST_APP_ARM_UART8]).Status.DrvFlag = 0;
+    (p_res[TEST_APP_ARM_UART8]).Status.DrvFlag = 0x0000;
 #ifdef _TEST_APP_UART8_TX_USE_DMA_
     (p_res[TEST_APP_ARM_UART8]).DMA.TxEnable = TRUE;
 #endif //_TEST_APP_UART8_TX_USE_DMA_
@@ -531,10 +557,11 @@ static void  ARM_USART_SetResources(TEST_APP_ARM_USART_Resources_t *p_res, eTEST
                                     usart_data_bit_num_type data_bit,
                                     usart_stop_bit_num_type stop_bit,
                                     usart_parity_selection_type parity,
-                                    uint32_t gpio_pin_def)
+                                    eTEST_APP_ARM_USART_PinDefTypes_t gpio_pin_def_type)
 {
     p_res->usart_type = usart_type;
     p_res->IrqNum = ARM_USART_IrqNumber[usart_type];
+    p_res->GpioPinDefType = gpio_pin_def_type;
     p_res->Config.BaudRate = baudrate;
     p_res->Config.DataBit = data_bit;
     p_res->Config.StopBit = stop_bit;
@@ -547,14 +574,8 @@ static void  ARM_USART_SetResources(TEST_APP_ARM_USART_Resources_t *p_res, eTEST
     p_res->Transfer.RxNum = 0;
     p_res->Transfer.TxCnt = 0;
     p_res->Transfer.RxCnt = 0;
-    p_res->GpioPinDef = gpio_pin_def;
-    if(gpio_pin_def == TEST_APP_ARM_USART_GPIO_PIN_DEF_DEFAULT) {
-        memcpy(&p_res->Gpio, &ARM_USART_GPIO_Def[usart_type][ARM_USART_GPIO_PIN_DEF_DEFAULT],
-               sizeof(TEST_APP_ARM_USART_GPIO_t));
-    } else {
-        memcpy(&p_res->Gpio, &ARM_USART_GPIO_Def[usart_type][ARM_USART_GPIO_PIN_DEF_REMAP],
-               sizeof(TEST_APP_ARM_USART_GPIO_t));
-    }
+    memcpy(&p_res->Gpio, &ARM_USART_GPIO_Def[usart_type][gpio_pin_def_type],
+           sizeof(TEST_APP_ARM_USART_GPIO_t));
     p_res->DMA.TxChan = ARM_USART_DMA_ChanDef[usart_type][ARM_USART_TX_CHAN];
     p_res->DMA.RxChan = ARM_USART_DMA_ChanDef[usart_type][ARM_USART_RX_CHAN];
     p_res->DMA.TxEvent_cb = pTEST_APP_ARM_USART_DMA_cb[usart_type][ARM_USART_TX_CHAN];
@@ -582,9 +603,9 @@ static uint32_t ARM_USART_GPIO_Config(eTEST_APP_ARM_USART_Types_t usart_type, co
             return TEST_APP_ARM_DRIVER_ERROR;
         }
         //enable GPIO IOMUX clock (for pin remapping)
-        if(!(p_res->GpioPinDef == TEST_APP_ARM_USART_GPIO_PIN_DEF_DEFAULT)) {
+        if(!(p_res->GpioPinDefType == TEST_APP_ARM_USART_GPIO_PIN_DEF_TYPE_DEFAULT)) {
             crm_periph_clock_enable(CRM_IOMUX_PERIPH_CLOCK, TRUE);
-            gpio_pin_remap_config(p_res->GpioPinDef, TRUE);
+            gpio_pin_remap_config(ARM_USART_GPIO_IOMUX_Map_Def[usart_type][p_res->GpioPinDefType], TRUE);
             //in remap mode configure both Tx and Rx as multiplexed function mode
             TEST_APP_ARM_GPIO_Config(p_res->Gpio.TxPort, p_res->Gpio.TxPin, GPIO_MODE_MUX, GPIO_OUTPUT_PUSH_PULL,
                                      GPIO_PULL_NONE, GPIO_DRIVE_STRENGTH_STRONGER);
@@ -603,8 +624,8 @@ static uint32_t ARM_USART_GPIO_Config(eTEST_APP_ARM_USART_Types_t usart_type, co
         TEST_APP_ARM_GPIO_Release(p_res->Gpio.TxPort, p_res->Gpio.TxPin);
         TEST_APP_ARM_GPIO_Release(p_res->Gpio.RxPort, p_res->Gpio.RxPin);
         //disable remap (for pins remapping release)
-        if(!(p_res->GpioPinDef == TEST_APP_ARM_USART_GPIO_PIN_DEF_DEFAULT)) {
-            gpio_pin_remap_config(p_res->GpioPinDef, FALSE);
+        if(!(p_res->GpioPinDefType == TEST_APP_ARM_USART_GPIO_PIN_DEF_TYPE_DEFAULT)) {
+            gpio_pin_remap_config(ARM_USART_GPIO_IOMUX_Map_Def[usart_type][p_res->GpioPinDefType], FALSE);
         }
     }
     return TEST_APP_ARM_DRIVER_NO_ERROR;
@@ -612,14 +633,14 @@ static uint32_t ARM_USART_GPIO_Config(eTEST_APP_ARM_USART_Types_t usart_type, co
 
 static uint32_t ARM_USART_Initialize(eTEST_APP_ARM_USART_Types_t usart_type,
                                      uint32_t baudrate,
-                                     usart_data_bit_num_type dataBit,
-                                     usart_stop_bit_num_type stopBit,
+                                     usart_data_bit_num_type data_bit,
+                                     usart_stop_bit_num_type stop_bit,
                                      usart_parity_selection_type parity,
-                                     uint32_t gpio_pin_def)
+                                     eTEST_APP_ARM_USART_PinDefTypes_t gpio_pin_def_type)
 {
     TEST_APP_ARM_USART_Resources_t *p_res = &ARM_USART_Resources[usart_type];
     uint32_t drv_status = TEST_APP_ARM_DRIVER_NO_ERROR;
-    ARM_USART_SetResources(p_res, usart_type, baudrate, dataBit, stopBit, parity, gpio_pin_def);
+    ARM_USART_SetResources(p_res, usart_type, baudrate, data_bit, stop_bit, parity, gpio_pin_def_type);
     if(!(TEST_APP_ARM_CRM_PeriphClockEnable(TEST_APP_PERIPH_USART, p_res->usart_type, TRUE))) {
         p_res->Status.DrvStatus |= TEST_APP_ARM_DRIVER_ERROR;
         return TEST_APP_ARM_DRIVER_ERROR;
@@ -953,7 +974,7 @@ static uint32_t ARM_USART_Initialize_1(uint32_t baudrate,
                                        usart_data_bit_num_type dataBit,
                                        usart_stop_bit_num_type stopBit,
                                        usart_parity_selection_type parity,
-                                       uint32_t gpio_pin_def)
+                                       eTEST_APP_ARM_USART_PinDefTypes_t gpio_pin_def_type)
 {
     return TEST_APP_ARM_DRIVER_ERROR_UNSUPPORTED;
 }
@@ -963,7 +984,7 @@ static uint32_t ARM_USART_Initialize_2(uint32_t baudrate,
                                        usart_data_bit_num_type dataBit,
                                        usart_stop_bit_num_type stopBit,
                                        usart_parity_selection_type parity,
-                                       uint32_t gpio_pin_def)
+                                       eTEST_APP_ARM_USART_PinDefTypes_t gpio_pin_def_type)
 {
     return TEST_APP_ARM_DRIVER_ERROR_UNSUPPORTED;
 }
@@ -972,7 +993,7 @@ static uint32_t ARM_USART_Initialize_3(uint32_t baudrate,
                                        usart_data_bit_num_type dataBit,
                                        usart_stop_bit_num_type stopBit,
                                        usart_parity_selection_type parity,
-                                       uint32_t gpio_pin_def)
+                                       eTEST_APP_ARM_USART_PinDefTypes_t gpio_pin_def_type)
 {
     return TEST_APP_ARM_DRIVER_ERROR_UNSUPPORTED;
 }
@@ -981,35 +1002,35 @@ static uint32_t ARM_USART_Initialize_4(uint32_t baudrate,
                                        usart_data_bit_num_type dataBit,
                                        usart_stop_bit_num_type stopBit,
                                        usart_parity_selection_type parity,
-                                       uint32_t gpio_pin_def)
+                                       eTEST_APP_ARM_USART_PinDefTypes_t gpio_pin_def_type)
 {
     return ARM_USART_Initialize(TEST_APP_ARM_UART4,
                                 baudrate,
                                 dataBit,
                                 stopBit,
                                 parity,
-                                gpio_pin_def);
+                                gpio_pin_def_type);
 }
 
 static uint32_t ARM_USART_Initialize_5(uint32_t baudrate,
                                        usart_data_bit_num_type dataBit,
                                        usart_stop_bit_num_type stopBit,
                                        usart_parity_selection_type parity,
-                                       uint32_t gpio_pin_def)
+                                       eTEST_APP_ARM_USART_PinDefTypes_t gpio_pin_def_type)
 {
     return ARM_USART_Initialize(TEST_APP_ARM_UART5,
                                 baudrate,
                                 dataBit,
                                 stopBit,
                                 parity,
-                                gpio_pin_def);
+                                gpio_pin_def_type);
 }
 
 static uint32_t ARM_USART_Initialize_6(uint32_t baudrate,
                                        usart_data_bit_num_type dataBit,
                                        usart_stop_bit_num_type stopBit,
                                        usart_parity_selection_type parity,
-                                       uint32_t gpio_pin_def)
+                                       eTEST_APP_ARM_USART_PinDefTypes_t gpio_pin_def_type)
 {
     return TEST_APP_ARM_DRIVER_ERROR_UNSUPPORTED;
 }
@@ -1018,28 +1039,28 @@ static uint32_t ARM_USART_Initialize_7(uint32_t baudrate,
                                        usart_data_bit_num_type dataBit,
                                        usart_stop_bit_num_type stopBit,
                                        usart_parity_selection_type parity,
-                                       uint32_t gpio_pin_def)
+                                       eTEST_APP_ARM_USART_PinDefTypes_t gpio_pin_def_type)
 {
     return ARM_USART_Initialize(TEST_APP_ARM_UART7,
                                 baudrate,
                                 dataBit,
                                 stopBit,
                                 parity,
-                                gpio_pin_def);
+                                gpio_pin_def_type);
 }
 
 static uint32_t ARM_USART_Initialize_8(uint32_t baudrate,
                                        usart_data_bit_num_type dataBit,
                                        usart_stop_bit_num_type stopBit,
                                        usart_parity_selection_type parity,
-                                       uint32_t gpio_pin_def)
+                                       eTEST_APP_ARM_USART_PinDefTypes_t gpio_pin_def_type)
 {
     return ARM_USART_Initialize(TEST_APP_ARM_UART8,
                                 baudrate,
                                 dataBit,
                                 stopBit,
                                 parity,
-                                gpio_pin_def);
+                                gpio_pin_def_type);
 }
 
 static uint32_t ARM_USART_Uninitialize_1(void)

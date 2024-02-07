@@ -64,12 +64,15 @@ typedef enum {
 #define TEST_APP_ARM_USART_DRIVER_FLAG_DMA_TX_ENABLED       (uint32_t)(1U << 4)
 #define TEST_APP_ARM_USART_DRIVER_FLAG_DMA_RX_ENABLED       (uint32_t)(1U << 5)
 
-//USART default/remap pin definitions
-#define TEST_APP_ARM_USART_GPIO_PIN_DEF_DEFAULT     (uint32_t)0x00
-#define TEST_APP_ARM_UART4_GPIO_PIN_DEF_REMAP1      UART4_GMUX_0010
-#define TEST_APP_ARM_UART5_GPIO_PIN_DEF_REMAP1      UART5_GMUX_0001
-#define TEST_APP_ARM_UART7_GPIO_PIN_DEF_REMAP1      UART7_GMUX
-#define TEST_APP_ARM_UART8_GPIO_PIN_DEF_REMAP1      UART8_GMUX
+typedef enum {
+    TEST_APP_ARM_USART_GPIO_PIN_DEF_TYPE_DEFAULT = 0,
+    TEST_APP_ARM_USART_GPIO_PIN_DEF_TYPE_REMAP1,
+    TEST_APP_ARM_USART_GPIO_PIN_DEF_TYPES
+} eTEST_APP_ARM_USART_PinDefTypes_t;
+
+
+//USART GPIO IOMUX Mapping default definition (Remapping definitions - in ARM_USART_GPIO_IOMUX_Map_Def[])
+#define TEST_APP_ARM_USART_GPIO_IOMUX_MAP_DEFAULT     (uint32_t)0x00
 
 //USART Baudrate
 #define TEST_APP_ARM_USART_BAUDRATE_9600    ((uint32_t)9600)
@@ -144,15 +147,15 @@ typedef struct {
 } TEST_APP_ARM_USART_DMA_t;
 
 typedef struct {
-    eTEST_APP_ARM_USART_Types_t     usart_type;
-    IRQn_Type                       IrqNum;     // USART IRQ Number
-    uint32_t                        GpioPinDef;
-    TEST_APP_RingBuffer_t           Event;
-    TEST_APP_ARM_USART_Config_t     Config;
-    TEST_APP_ARM_USART_GPIO_t       Gpio;
-    TEST_APP_ARM_USART_Transfer_t   Transfer;
-    TEST_APP_ARM_USART_Status_t     Status;
-    TEST_APP_ARM_USART_DMA_t        DMA;
+    eTEST_APP_ARM_USART_Types_t         usart_type;
+    IRQn_Type                           IrqNum;     // USART IRQ Number
+    TEST_APP_RingBuffer_t               Event;
+    TEST_APP_ARM_USART_Config_t         Config;
+    eTEST_APP_ARM_USART_PinDefTypes_t   GpioPinDefType; //pin remapping or not
+    TEST_APP_ARM_USART_GPIO_t           Gpio;
+    TEST_APP_ARM_USART_Transfer_t       Transfer;
+    TEST_APP_ARM_USART_Status_t         Status;
+    TEST_APP_ARM_USART_DMA_t            DMA;
 } TEST_APP_ARM_USART_Resources_t;
 
 typedef struct {
@@ -160,7 +163,7 @@ typedef struct {
                            usart_data_bit_num_type dataBit,
                            usart_stop_bit_num_type stopBit,
                            usart_parity_selection_type parity,
-                           uint32_t gpio_pin_def);
+                           eTEST_APP_ARM_USART_PinDefTypes_t gpio_pin_def_type);
     uint32_t (*Uninitialize)(void);
     void (*Event_cb)(void);
     uint32_t (*Send)(void *pdata, uint32_t num);
