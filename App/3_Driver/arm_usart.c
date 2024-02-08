@@ -328,31 +328,16 @@ static TEST_APP_ARM_USART_GPIO_t ARM_USART_GPIO_Def[TEST_APP_ARM_USART_TYPES][TE
     }
 };
 
-uint32_t ARM_USART_GPIO_IOMUX_Map_Def[TEST_APP_ARM_USART_TYPES][TEST_APP_ARM_USART_GPIO_PIN_DEF_TYPES] = {
-    {
-        TEST_APP_ARM_USART_GPIO_IOMUX_MAP_DEFAULT, USART1_GMUX_0001
-    },
-    {
-        TEST_APP_ARM_USART_GPIO_IOMUX_MAP_DEFAULT, USART2_GMUX_0001
-    },
-    {
-        TEST_APP_ARM_USART_GPIO_IOMUX_MAP_DEFAULT, USART3_GMUX_0001
-    },
-    {
-        TEST_APP_ARM_USART_GPIO_IOMUX_MAP_DEFAULT, UART4_GMUX_0010
-    },
-    {
-        TEST_APP_ARM_USART_GPIO_IOMUX_MAP_DEFAULT, UART5_GMUX_0001
-    },
-    {
-        TEST_APP_ARM_USART_GPIO_IOMUX_MAP_DEFAULT, USART6_GMUX
-    },
-    {
-        TEST_APP_ARM_USART_GPIO_IOMUX_MAP_DEFAULT, UART7_GMUX
-    },
-    {
-        TEST_APP_ARM_USART_GPIO_IOMUX_MAP_DEFAULT, UART8_GMUX
-    }
+//USART GPIO multiplex I/O (IOMUX) remapping definitions
+uint32_t ARM_USART_GPIO_IOMUX_Remap_Def[TEST_APP_ARM_USART_TYPES] = {
+    USART1_GMUX_0001,
+    USART2_GMUX_0001,
+    USART3_GMUX_0001,
+    UART4_GMUX_0010,
+    UART5_GMUX_0001,
+    USART6_GMUX,
+    UART7_GMUX,
+    UART8_GMUX
 };
 
 static usart_type *pARM_USART_Register[TEST_APP_ARM_USART_TYPES] = {
@@ -605,7 +590,7 @@ static uint32_t ARM_USART_GPIO_Config(eTEST_APP_ARM_USART_Types_t usart_type, co
         //enable GPIO IOMUX clock (for pin remapping)
         if(!(p_res->GpioPinDefType == TEST_APP_ARM_USART_GPIO_PIN_DEF_TYPE_DEFAULT)) {
             crm_periph_clock_enable(CRM_IOMUX_PERIPH_CLOCK, TRUE);
-            gpio_pin_remap_config(ARM_USART_GPIO_IOMUX_Map_Def[usart_type][p_res->GpioPinDefType], TRUE);
+            gpio_pin_remap_config(ARM_USART_GPIO_IOMUX_Remap_Def[usart_type], TRUE);
             //in remap mode configure both Tx and Rx as multiplexed function mode
             TEST_APP_ARM_GPIO_Config(p_res->Gpio.TxPort, p_res->Gpio.TxPin, GPIO_MODE_MUX, GPIO_OUTPUT_PUSH_PULL,
                                      GPIO_PULL_NONE, GPIO_DRIVE_STRENGTH_STRONGER);
@@ -625,7 +610,7 @@ static uint32_t ARM_USART_GPIO_Config(eTEST_APP_ARM_USART_Types_t usart_type, co
         TEST_APP_ARM_GPIO_Release(p_res->Gpio.RxPort, p_res->Gpio.RxPin);
         //disable remap (for pins remapping release)
         if(!(p_res->GpioPinDefType == TEST_APP_ARM_USART_GPIO_PIN_DEF_TYPE_DEFAULT)) {
-            gpio_pin_remap_config(ARM_USART_GPIO_IOMUX_Map_Def[usart_type][p_res->GpioPinDefType], FALSE);
+            gpio_pin_remap_config(ARM_USART_GPIO_IOMUX_Remap_Def[usart_type], FALSE);
         }
     }
     return TEST_APP_ARM_DRIVER_NO_ERROR;

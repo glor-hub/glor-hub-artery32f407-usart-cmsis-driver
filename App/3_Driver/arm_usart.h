@@ -56,14 +56,6 @@ typedef enum {
     TEST_APP_ARM_USART_TYPES
 } eTEST_APP_ARM_USART_Types_t;
 
-// USART Driver state
-#define TEST_APP_ARM_USART_DRIVER_FLAG_INITIALIZED          (uint32_t)(1U << 0)
-#define TEST_APP_ARM_USART_DRIVER_FLAG_CONFIGURATED         (uint32_t)(1U << 1)
-#define TEST_APP_ARM_USART_DRIVER_FLAG_TX_ENABLED           (uint32_t)(1U << 2)
-#define TEST_APP_ARM_USART_DRIVER_FLAG_RX_ENABLED           (uint32_t)(1U << 3)
-#define TEST_APP_ARM_USART_DRIVER_FLAG_DMA_TX_ENABLED       (uint32_t)(1U << 4)
-#define TEST_APP_ARM_USART_DRIVER_FLAG_DMA_RX_ENABLED       (uint32_t)(1U << 5)
-
 typedef enum {
     TEST_APP_ARM_USART_GPIO_PIN_DEF_TYPE_DEFAULT = 0,
     TEST_APP_ARM_USART_GPIO_PIN_DEF_TYPE_REMAP1,
@@ -71,8 +63,13 @@ typedef enum {
 } eTEST_APP_ARM_USART_PinDefTypes_t;
 
 
-//USART GPIO IOMUX Mapping default definition (Remapping definitions - in ARM_USART_GPIO_IOMUX_Map_Def[])
-#define TEST_APP_ARM_USART_GPIO_IOMUX_MAP_DEFAULT     (uint32_t)0x00
+// USART Driver state
+#define TEST_APP_ARM_USART_DRIVER_FLAG_INITIALIZED          (uint32_t)(1U << 0)
+#define TEST_APP_ARM_USART_DRIVER_FLAG_CONFIGURATED         (uint32_t)(1U << 1)
+#define TEST_APP_ARM_USART_DRIVER_FLAG_TX_ENABLED           (uint32_t)(1U << 2)
+#define TEST_APP_ARM_USART_DRIVER_FLAG_RX_ENABLED           (uint32_t)(1U << 3)
+#define TEST_APP_ARM_USART_DRIVER_FLAG_DMA_TX_ENABLED       (uint32_t)(1U << 4)
+#define TEST_APP_ARM_USART_DRIVER_FLAG_DMA_RX_ENABLED       (uint32_t)(1U << 5)
 
 //USART Baudrate
 #define TEST_APP_ARM_USART_BAUDRATE_9600    ((uint32_t)9600)
