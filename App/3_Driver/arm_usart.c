@@ -633,12 +633,16 @@ static uint32_t ARM_USART_Initialize(eTEST_APP_ARM_USART_Types_t usart_type,
 //asynchronous mode is default
     TEST_APP_ARM_CRM_PeriphReset(TEST_APP_PERIPH_USART, p_res->usart_type, TRUE);
     TEST_APP_ARM_CRM_PeriphReset(TEST_APP_PERIPH_USART, p_res->usart_type, FALSE);
-    usart_enable(pARM_USART_Register[usart_type], TRUE);
+    drv_status |= ARM_USART_GPIO_Config(usart_type, TRUE);
     usart_init(pARM_USART_Register[usart_type], p_res->Config.BaudRate,
                p_res->Config.DataBit, p_res->Config.StopBit);
     usart_parity_selection_config(pARM_USART_Register[usart_type],
                                   p_res->Config.Parity);
     p_res->Status.DrvFlag |= TEST_APP_ARM_USART_DRIVER_FLAG_CONFIGURATED;
+    usart_transmitter_enable(pARM_USART_Register[usart_type], TRUE);
+    p_res->Status.DrvFlag |= TEST_APP_ARM_USART_DRIVER_FLAG_TX_ENABLED;
+    usart_receiver_enable(pARM_USART_Register[usart_type], TRUE);
+    p_res->Status.DrvFlag |= TEST_APP_ARM_USART_DRIVER_FLAG_RX_ENABLED;
     if(p_res->DMA.TxEnable) {
         //clock and reset DMA
         if(!TEST_APP_ARM_DMA_Init(p_res->DMA.TxChan, p_res->DMA.TxEvent_cb)) {
@@ -672,16 +676,12 @@ static uint32_t ARM_USART_Initialize(eTEST_APP_ARM_USART_Types_t usart_type,
         usart_dma_receiver_enable(pARM_USART_Register[usart_type], TRUE);
         p_res->Status.DrvFlag |= TEST_APP_ARM_USART_DRIVER_FLAG_DMA_RX_ENABLED;
     }
-    usart_transmitter_enable(pARM_USART_Register[usart_type], TRUE);
-    p_res->Status.DrvFlag |= TEST_APP_ARM_USART_DRIVER_FLAG_TX_ENABLED;
-    usart_receiver_enable(pARM_USART_Register[usart_type], TRUE);
-    p_res->Status.DrvFlag |= TEST_APP_ARM_USART_DRIVER_FLAG_RX_ENABLED;
-    drv_status |= ARM_USART_GPIO_Config(usart_type, TRUE);
 //clear and enable UARTx IRQ
     NVIC_ClearPendingIRQ(p_res->IrqNum);
     NVIC_EnableIRQ(p_res->IrqNum);
     p_res->Status.DrvFlag |= TEST_APP_ARM_USART_DRIVER_FLAG_INITIALIZED;
     p_res->Status.DrvStatus |= drv_status;
+    usart_enable(pARM_USART_Register[usart_type], TRUE);
     return drv_status;
 }
 
@@ -690,6 +690,7 @@ static uint32_t ARM_USART_Uninitialize(eTEST_APP_ARM_USART_Types_t usart_type)
     TEST_APP_ARM_USART_Resources_t *p_res = &ARM_USART_Resources[usart_type];
     uint32_t drv_status = TEST_APP_ARM_DRIVER_NO_ERROR;
     if(p_res->Status.DrvFlag & TEST_APP_ARM_USART_DRIVER_FLAG_INITIALIZED) {
+        usart_enable(pARM_USART_Register[usart_type], FALSE);
         //disable and clear UARTx IRQ
         NVIC_DisableIRQ(p_res->IrqNum);
         NVIC_ClearPendingIRQ(p_res->IrqNum);
@@ -711,7 +712,6 @@ static uint32_t ARM_USART_Uninitialize(eTEST_APP_ARM_USART_Types_t usart_type)
         usart_receiver_enable(pARM_USART_Register[usart_type], FALSE);
         p_res->Status.DrvFlag &= ~TEST_APP_ARM_USART_DRIVER_FLAG_RX_ENABLED;
         drv_status |= ARM_USART_GPIO_Config(usart_type, FALSE);
-        usart_enable(pARM_USART_Register[usart_type], FALSE);
         TEST_APP_ARM_CRM_PeriphReset(TEST_APP_PERIPH_USART, p_res->usart_type, TRUE);
         p_res->Status.DrvFlag &= ~TEST_APP_ARM_USART_DRIVER_FLAG_CONFIGURATED;
         if(!(TEST_APP_ARM_CRM_PeriphClockEnable(TEST_APP_PERIPH_USART, p_res->usart_type, FALSE))) {
