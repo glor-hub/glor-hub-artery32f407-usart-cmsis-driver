@@ -417,69 +417,69 @@ static dma_flexible_request_type ARM_USART_DMA_FlexPeriphReq[TEST_APP_ARM_USART_
 void TEST_APP_ARM_USART_StartUp(void)
 {
     TEST_APP_ARM_USART_Resources_t *p_res = &ARM_USART_Resources[TEST_APP_ARM_USART1];
-#ifdef _TEST_APP_UART4_ENABLE_
+#if _TEST_APP_UART4_ENABLED_ > 0
     (p_res[TEST_APP_ARM_UART4]).Status.DrvStateOn = TRUE;
     (p_res[TEST_APP_ARM_UART4]).Status.DrvStatus = TEST_APP_ARM_DRIVER_NO_ERROR;
     (p_res[TEST_APP_ARM_UART4]).Status.DrvFlag = 0x0000;
-#ifdef _TEST_APP_UART4_TX_USE_DMA_
+#if _TEST_APP_UART4_TX_DMA_ENABLED_ > 0
     (p_res[TEST_APP_ARM_UART4]).DMA.TxEnable = TRUE;
-#endif //_TEST_APP_UART4_TX_USE_DMA_
-#ifdef _TEST_APP_UART4_RX_USE_DMA_
+#endif //_TEST_APP_UART4_TX_DMA_ENABLED_ > 0
+#if _TEST_APP_UART4_RX_DMA_ENABLED_ > 0
     (p_res[TEST_APP_ARM_UART4]).DMA.RxEnable = TRUE;
-#endif //_TEST_APP_UART4_RX_USE_DMA_    
+#endif //_TEST_APP_UART4_RX_DMA_ENABLED_ > 0   
 #else
-#if (defined _TEST_APP_UART4_TX_USE_DMA_ || defined _TEST_APP_UART4_RX_USE_DMA_)
+#if (_TEST_APP_UART4_TX_DMA_ENABLED_ > 0 || _TEST_APP_UART4_RX_DMA_ENABLED_ > 0)
 #error "UART4 DMA configuration error"
-#endif //(defined _TEST_APP_UART4_TX_USE_DMA_ || defined _TEST_APP_UART4_RX_USE_DMA_)
-#endif //_TEST_APP_UART4_ENABLE_
+#endif //(_TEST_APP_UART4_TX_DMA_ENABLED_ > 0 || _TEST_APP_UART4_RX_DMA_ENABLED_ > 0)
+#endif //_TEST_APP_UART4_ENABLED_ > 0
 
-#ifdef _TEST_APP_UART5_ENABLE_
+#if _TEST_APP_UART5_ENABLED_ > 0
     (p_res[TEST_APP_ARM_UART5]).Status.DrvStateOn = TRUE;
     (p_res[TEST_APP_ARM_UART5]).Status.DrvStatus = TEST_APP_ARM_DRIVER_NO_ERROR;
     (p_res[TEST_APP_ARM_UART5]).Status.DrvFlag = 0x0000;
-#ifdef _TEST_APP_UART5_TX_USE_DMA_
+#if _TEST_APP_UART5_TX_DMA_ENABLED_ > 0
     (p_res[TEST_APP_ARM_UART5]).DMA.TxEnable = TRUE;
-#endif //_TEST_APP_UART5_TX_USE_DMA_
-#ifdef _TEST_APP_UART5_RX_USE_DMA_
+#endif //_TEST_APP_UART5_TX_DMA_ENABLED_ > 0
+#if _TEST_APP_UART5_RX_DMA_ENABLED_ > 0
     (p_res[TEST_APP_ARM_UART5]).DMA.RxEnable = TRUE;
-#endif //_TEST_APP_UART5_RX_USE_DMA_    
+#endif //_TEST_APP_UART5_RX_DMA_ENABLED_ > 0   
 #else
-#if (defined _TEST_APP_UART5_TX_USE_DMA_ || defined _TEST_APP_UART5_RX_USE_DMA_)
+#if (_TEST_APP_UART5_TX_DMA_ENABLED_ > 0 || _TEST_APP_UART5_RX_DMA_ENABLED_ > 0)
 #error "UART5 DMA configuration error"
-#endif //(defined _TEST_APP_UART5_TX_USE_DMA_ || defined _TEST_APP_UART5_RX_USE_DMA_)
-#endif //_TEST_APP_UART5_ENABLE_
+#endif //(_TEST_APP_UART5_TX_DMA_ENABLED_ > 0 || _TEST_APP_UART5_RX_DMA_ENABLED_ > 0)
+#endif //_TEST_APP_UART5_ENABLED_ > 0
 
-#ifdef _TEST_APP_UART7_ENABLE_
+#if _TEST_APP_UART7_ENABLED_ > 0
     (p_res[TEST_APP_ARM_UART7]).Status.DrvStateOn = TRUE;
     (p_res[TEST_APP_ARM_UART7]).Status.DrvStatus = TEST_APP_ARM_DRIVER_NO_ERROR;
     (p_res[TEST_APP_ARM_UART7]).Status.DrvFlag = 0x0000;
-#ifdef _TEST_APP_UART7_TX_USE_DMA_
+#if _TEST_APP_UART7_TX_DMA_ENABLED_ > 0
     (p_res[TEST_APP_ARM_UART7]).DMA.TxEnable = TRUE;
-#endif //_TEST_APP_UART7_TX_USE_DMA_
-#ifdef _TEST_APP_UART7_RX_USE_DMA_
+#endif //_TEST_APP_UART7_TX_DMA_ENABLED_ > 0
+#if _TEST_APP_UART7_RX_DMA_ENABLED_ > 0
     (p_res[TEST_APP_ARM_UART7]).DMA.RxEnable = TRUE;
-#endif //_TEST_APP_UART7_RX_USE_DMA_    
+#endif //_TEST_APP_UART7_RX_DMA_ENABLED_ > 0   
 #else
-#if (defined _TEST_APP_UART7_TX_USE_DMA_ || defined _TEST_APP_UART7_RX_USE_DMA_)
+#if (_TEST_APP_UART7_TX_DMA_ENABLED_ > 0 || _TEST_APP_UART7_RX_DMA_ENABLED_ > 0)
 #error "UART7 DMA configuration error"
-#endif //(defined _TEST_APP_UART7_TX_USE_DMA_ || defined _TEST_APP_UART7_RX_USE_DMA_)
-#endif //_TEST_APP_UART7_ENABLE_
+#endif //(_TEST_APP_UART7_TX_DMA_ENABLED_ > 0 || _TEST_APP_UART7_RX_DMA_ENABLED_ > 0)
+#endif //_TEST_APP_UART7_ENABLED_ > 0
 
-#ifdef _TEST_APP_UART8_ENABLE_
+#if _TEST_APP_UART8_ENABLED_ > 0
     (p_res[TEST_APP_ARM_UART8]).Status.DrvStateOn = TRUE;
     (p_res[TEST_APP_ARM_UART8]).Status.DrvStatus = TEST_APP_ARM_DRIVER_NO_ERROR;
     (p_res[TEST_APP_ARM_UART8]).Status.DrvFlag = 0x0000;
-#ifdef _TEST_APP_UART8_TX_USE_DMA_
+#if _TEST_APP_UART8_TX_DMA_ENABLED_ > 0
     (p_res[TEST_APP_ARM_UART8]).DMA.TxEnable = TRUE;
-#endif //_TEST_APP_UART8_TX_USE_DMA_
-#ifdef _TEST_APP_UART8_RX_USE_DMA_
+#endif //_TEST_APP_UART8_TX_DMA_ENABLED_ > 0
+#if _TEST_APP_UART8_RX_DMA_ENABLED_ > 0
     (p_res[TEST_APP_ARM_UART8]).DMA.RxEnable = TRUE;
-#endif //_TEST_APP_UART8_RX_USE_DMA_    
+#endif //_TEST_APP_UART8_RX_DMA_ENABLED_ > 0   
 #else
-#if (defined _TEST_APP_UART8_TX_USE_DMA_ || defined _TEST_APP_UART8_RX_USE_DMA_)
+#if (_TEST_APP_UART8_TX_DMA_ENABLED_ > 0 || _TEST_APP_UART8_RX_DMA_ENABLED_ > 0)
 #error "UART8 DMA configuration error"
-#endif //(defined _TEST_APP_UART8_TX_USE_DMA_ || defined _TEST_APP_UART8_RX_USE_DMA_)
-#endif //_TEST_APP_UART8_ENABLE_
+#endif //(_TEST_APP_UART8_TX_DMA_ENABLED_ > 0 || _TEST_APP_UART8_RX_DMA_ENABLED_ > 0)
+#endif //_TEST_APP_UART8_ENABLED_ > 0
 }
 
 void TEST_APP_ARM_USART_IRQHandler(eTEST_APP_ARM_USART_Types_t usart_type)

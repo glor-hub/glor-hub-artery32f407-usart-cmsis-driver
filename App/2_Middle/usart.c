@@ -106,14 +106,14 @@ error_status TEST_APP_USART_Init(void)
     for(usart_type = TEST_APP_ARM_USART1; usart_type < TEST_APP_ARM_USART_TYPES;
         usart_type++) {
         if(p_drv[usart_type].GetStatus().DrvStateOn) {
-            if(usart_type != TEST_APP_ARM_UART8) {
+            if(usart_type == TEST_APP_ARM_UART7) {
                 drv_status |= p_drv[usart_type].Initialize(TEST_APP_ARM_USART_BAUDRATE_57600, USART_DATA_8BITS,
                               USART_STOP_1_BIT, USART_PARITY_NONE,
-                              TEST_APP_ARM_USART_GPIO_PIN_DEF_DEFAULT);
+                              TEST_APP_ARM_USART_GPIO_PIN_DEF_TYPE_DEFAULT);
             } else {
                 drv_status |= p_drv[usart_type].Initialize(TEST_APP_ARM_USART_BAUDRATE_57600, USART_DATA_8BITS,
                               USART_STOP_1_BIT, USART_PARITY_NONE,
-                              TEST_APP_ARM_UART8_GPIO_PIN_DEF_REMAP1);
+                              TEST_APP_ARM_USART_GPIO_PIN_DEF_TYPE_REMAP1);
             }
         }
     }

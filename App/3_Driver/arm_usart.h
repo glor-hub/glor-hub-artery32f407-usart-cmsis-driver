@@ -15,30 +15,30 @@
 /*******************************************
 UART4
 ********************************************/
-#define _TEST_APP_UART4_ENABLE_
-#define _TEST_APP_UART4_TX_USE_DMA_
-#define _TEST_APP_UART4_RX_USE_DMA_
+#define _TEST_APP_UART4_ENABLED_        (1)
+#define _TEST_APP_UART4_TX_DMA_ENABLED_ (1)
+#define _TEST_APP_UART4_RX_DMA_ENABLED_ (1)
 
 /*******************************************
 UART5
 ********************************************/
-#define _TEST_APP_UART5_ENABLE_
-// #define _TEST_APP_UART5_TX_USE_DMA_
-// #define _TEST_APP_UART5_RX_USE_DMA_
+#define _TEST_APP_UART5_ENABLED_        (1)
+#define _TEST_APP_UART5_TX_DMA_ENABLED_ (0)
+#define _TEST_APP_UART5_RX_DMA_ENABLED_ (0)
 
 /*******************************************
 UART7
 ********************************************/
-// #define _TEST_APP_UART7_ENABLE_
-// #define _TEST_APP_UART7_TX_USE_DMA_
-// #define _TEST_APP_UART7_RX_USE_DMA_
+#define _TEST_APP_UART7_ENABLED_        (0)
+#define _TEST_APP_UART7_TX_DMA_ENABLED_ (0)
+#define _TEST_APP_UART7_RX_DMA_ENABLED_ (0)
 
 /*******************************************
 UART8
 ********************************************/
-//#define _TEST_APP_UART8_ENABLE_
-// #define _TEST_APP_UART8_TX_USE_DMA_
-// #define _TEST_APP_UART8_RX_USE_DMA_
+#define _TEST_APP_UART8_ENABLED_        (0)
+#define _TEST_APP_UART8_TX_DMA_ENABLED_ (0)
+#define _TEST_APP_UART8_RX_DMA_ENABLED_ (0)
 
 /*******************************************
 
