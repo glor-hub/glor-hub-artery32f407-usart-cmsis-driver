@@ -9,8 +9,11 @@ typedef enum {
     TEST_APP_ARM_GPIO_PORTC,
     TEST_APP_ARM_GPIO_PORTD,
     TEST_APP_ARM_GPIO_PORTE,
-    TEST_APP_ARM_GPIO_PORTS
+    TEST_APP_ARM_GPIO_PORTS,
+    TEST_APP_ARM_GPIO_PORT_NOT_DEFINED
 } eTEST_APP_ARM_GPIO_Ports_t;
+
+#define TEST_APP_ARM_GPIO_PIN_NOT_DEFINED   (uint32_t)0x0000
 
 void TEST_APP_ARM_GPIO_Config(eTEST_APP_ARM_GPIO_Ports_t port, uint32_t pins,
                               gpio_mode_type mode, gpio_output_type out_type,
