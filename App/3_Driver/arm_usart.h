@@ -144,7 +144,6 @@ typedef struct {
 } TEST_APP_ARM_USART_DMA_t;
 
 typedef struct {
-    eTEST_APP_ARM_USART_Types_t         usart_type;
     IRQn_Type                           IrqNum;     // USART IRQ Number
     TEST_APP_RingBuffer_t               Event;
     TEST_APP_ARM_USART_Config_t         Config;

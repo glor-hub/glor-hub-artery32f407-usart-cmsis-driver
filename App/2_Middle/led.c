@@ -5,7 +5,7 @@
 #include "led.h"
 #include "arm_gpio.h"
 #include "arm_clock.h"
-#include "timer.h"
+#include "systick_timer.h"
 
 //********************************************************************************
 //Macros
@@ -62,33 +62,33 @@ void TEST_APP_LED_Driver(eTEST_APP_LedColors_t color, uint8_t led_state)
     switch(color) {
         case LED_RED: {
             if(!led_state) {
-                TEST_APP_ARM_GPIO_BitsSet(TEST_APP_ARM_GPIO_PORTD, GPIO_PINS_13);
+                TEST_APP_ARM_GPIO_SetBits(TEST_APP_ARM_GPIO_PORTD, GPIO_PINS_13);
             } else {
-                TEST_APP_ARM_GPIO_BitsReset(TEST_APP_ARM_GPIO_PORTD, GPIO_PINS_13);
+                TEST_APP_ARM_GPIO_ResetBits(TEST_APP_ARM_GPIO_PORTD, GPIO_PINS_13);
             }
             break;
         }
         case LED_YELLOW: {
             if(!led_state) {
-                TEST_APP_ARM_GPIO_BitsSet(TEST_APP_ARM_GPIO_PORTD, GPIO_PINS_14);
+                TEST_APP_ARM_GPIO_SetBits(TEST_APP_ARM_GPIO_PORTD, GPIO_PINS_14);
             } else {
-                TEST_APP_ARM_GPIO_BitsReset(TEST_APP_ARM_GPIO_PORTD, GPIO_PINS_14);
+                TEST_APP_ARM_GPIO_ResetBits(TEST_APP_ARM_GPIO_PORTD, GPIO_PINS_14);
             }
             break;
         }
         case LED_GREEN: {
             if(!led_state) {
-                TEST_APP_ARM_GPIO_BitsSet(TEST_APP_ARM_GPIO_PORTD, GPIO_PINS_15);
+                TEST_APP_ARM_GPIO_SetBits(TEST_APP_ARM_GPIO_PORTD, GPIO_PINS_15);
             } else {
-                TEST_APP_ARM_GPIO_BitsReset(TEST_APP_ARM_GPIO_PORTD, GPIO_PINS_15);
+                TEST_APP_ARM_GPIO_ResetBits(TEST_APP_ARM_GPIO_PORTD, GPIO_PINS_15);
             }
             break;
         }
         case LEDS: {
             if(!led_state) {
-                TEST_APP_ARM_GPIO_BitsSet(TEST_APP_ARM_GPIO_PORTD, GPIO_PINS_13 | GPIO_PINS_14 | GPIO_PINS_15);
+                TEST_APP_ARM_GPIO_SetBits(TEST_APP_ARM_GPIO_PORTD, GPIO_PINS_13 | GPIO_PINS_14 | GPIO_PINS_15);
             } else {
-                TEST_APP_ARM_GPIO_BitsReset(TEST_APP_ARM_GPIO_PORTD, GPIO_PINS_13 | GPIO_PINS_14 | GPIO_PINS_15);
+                TEST_APP_ARM_GPIO_ResetBits(TEST_APP_ARM_GPIO_PORTD, GPIO_PINS_13 | GPIO_PINS_14 | GPIO_PINS_15);
             }
             break;
         }
@@ -102,19 +102,19 @@ void TEST_APP_LED_Test(void)
 {
     TEST_APP_LED_Init(LEDS);
     TEST_APP_LED_Driver(LEDS, FALSE);
-    TimerDoDelay_ms(500);
+    TEST_APP_SYSTICK_TIMER_DoDelay_ms(500);
     TEST_APP_LED_Driver(LED_RED, TRUE);
-    TimerDoDelay_ms(500);
+    TEST_APP_SYSTICK_TIMER_DoDelay_ms(500);
     TEST_APP_LED_Driver(LED_RED, FALSE);
     TEST_APP_LED_Driver(LED_YELLOW, TRUE);
-    TimerDoDelay_ms(500);
+    TEST_APP_SYSTICK_TIMER_DoDelay_ms(500);
     TEST_APP_LED_Driver(LED_YELLOW, FALSE);
     TEST_APP_LED_Driver(LED_GREEN, TRUE);
-    TimerDoDelay_ms(500);
+    TEST_APP_SYSTICK_TIMER_DoDelay_ms(500);
     TEST_APP_LED_Driver(LED_GREEN, FALSE);
-    TimerDoDelay_ms(500);
+    TEST_APP_SYSTICK_TIMER_DoDelay_ms(500);
     TEST_APP_LED_Driver(LEDS, TRUE);
-    TimerDoDelay_ms(500);
+    TEST_APP_SYSTICK_TIMER_DoDelay_ms(500);
 }
 
 //================================================================================

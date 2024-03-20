@@ -10,7 +10,6 @@
 #include "arm_gpio.h"
 #include "arm_clock.h"
 #include "ringbuffer.h"
-#include "timer.h"
 
 #ifdef _TEST_APP_DEBUG_
 #include "assert.h"

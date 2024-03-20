@@ -10,8 +10,8 @@
 #include "common.h"
 #include "arm_gpio.h"
 #include "arm_clock.h"
-#include "timer.h"
 #include "gpio.h"
+#include "systick_timer.h"
 
 //********************************************************************************
 //Macros
@@ -142,37 +142,37 @@ static void LCD2004_SetPos(uint8_t row, uint8_t col);
 void TEST_APP_LCD2004_Init(void)
 {
     LCD2004_GPIO_Init();
-    TimerDoDelay_ms(40);
-    TEST_APP_ARM_GPIO_BitsReset(LCD2004_PORT, LCD2004_PIN_RS);
-    TEST_APP_ARM_GPIO_BitsReset(LCD2004_PORT, LCD2004_PIN_RW);
+    TEST_APP_SYSTICK_TIMER_DoDelay_ms(40);
+    TEST_APP_ARM_GPIO_ResetBits(LCD2004_PORT, LCD2004_PIN_RS);
+    TEST_APP_ARM_GPIO_ResetBits(LCD2004_PORT, LCD2004_PIN_RW);
     LCD2004_WriteLowTetradByte(0x03);
     LCD2004_DoStrobe();
-    TimerDoDelay_ms(5);
+    TEST_APP_SYSTICK_TIMER_DoDelay_ms(5);
     LCD2004_WriteLowTetradByte(0x03);
     LCD2004_DoStrobe();
     LCD2004_DoDelay_us(100);
     LCD2004_WriteLowTetradByte(0x03);
     LCD2004_DoStrobe();
-    TimerDoDelay_ms(1);
+    TEST_APP_SYSTICK_TIMER_DoDelay_ms(1);
     LCD2004_WriteLowTetradByte(0x02);
     LCD2004_DoStrobe();
-    TimerDoDelay_ms(1);
+    TEST_APP_SYSTICK_TIMER_DoDelay_ms(1);
     LCD2004_SendCmd(LCD2004_CMD_SET_4BIT_INTERFACE_MODE);
-    TimerDoDelay_ms(1);
+    TEST_APP_SYSTICK_TIMER_DoDelay_ms(1);
     LCD2004_SendCmd(LCD2004_CMD_DISPLAY_OFF);
-    TimerDoDelay_ms(1);
+    TEST_APP_SYSTICK_TIMER_DoDelay_ms(1);
     LCD2004_ClearDisplay();
-    TimerDoDelay_ms(2);
+    TEST_APP_SYSTICK_TIMER_DoDelay_ms(2);
     LCD2004_SendCmd(LCD2004_CMD_SET_ENTRY_MODE);
-    TimerDoDelay_ms(1);
+    TEST_APP_SYSTICK_TIMER_DoDelay_ms(1);
     LCD2004_SendCmd(LCD2004_CMD_DISPLAY_ON);
     LCD2004_HideCursor();
 #ifdef _TEST_APP_DEBUG_
     LCD2004_ShowCursor();
 #endif//_TEST_APP_DEBUG_
-    TimerDoDelay_ms(1);
+    TEST_APP_SYSTICK_TIMER_DoDelay_ms(1);
     LCD2004_SendCmd(LCD2004_CMD_DISPLAY_RETURN_HOME);
-    TimerDoDelay_ms(2);
+    TEST_APP_SYSTICK_TIMER_DoDelay_ms(2);
     LCD2004_BuffClear();
 
 }
@@ -202,11 +202,11 @@ void TEST_APP_LCD2004_Test(void)
             TEST_APP_LCD2004_Printf(i, 2 * j, SET, "%d", k++);
         }
     }
-    TimerDoDelay_ms(3000);
+    TEST_APP_SYSTICK_TIMER_DoDelay_ms(3000);
     LCD2004_BuffClear();
     TEST_APP_LCD2004_Printf(0, 0, SET, "%s",
                             "The ARM Cortex-M is a group of 32-bit RISC ARM processor cores.");
-    TimerDoDelay_ms(3000);
+    TEST_APP_SYSTICK_TIMER_DoDelay_ms(3000);
 }
 
 //================================================================================
@@ -225,39 +225,39 @@ static void LCD2004_GPIO_Init(void)
 static void LCD2004_WriteLowTetradByte(uint8_t byte)
 {
     if((byte >> 0) & 0x01) {
-        TEST_APP_ARM_GPIO_BitsSet(LCD2004_PORT, LCD2004_PIN_D4);
+        TEST_APP_ARM_GPIO_SetBits(LCD2004_PORT, LCD2004_PIN_D4);
     } else {
-        TEST_APP_ARM_GPIO_BitsReset(LCD2004_PORT, LCD2004_PIN_D4);
+        TEST_APP_ARM_GPIO_ResetBits(LCD2004_PORT, LCD2004_PIN_D4);
     }
     if((byte >> 1) & 0x01) {
-        TEST_APP_ARM_GPIO_BitsSet(LCD2004_PORT, LCD2004_PIN_D5);
+        TEST_APP_ARM_GPIO_SetBits(LCD2004_PORT, LCD2004_PIN_D5);
     } else {
-        TEST_APP_ARM_GPIO_BitsReset(LCD2004_PORT, LCD2004_PIN_D5);
+        TEST_APP_ARM_GPIO_ResetBits(LCD2004_PORT, LCD2004_PIN_D5);
     }
     if((byte >> 2) & 0x01) {
-        TEST_APP_ARM_GPIO_BitsSet(LCD2004_PORT, LCD2004_PIN_D6);
+        TEST_APP_ARM_GPIO_SetBits(LCD2004_PORT, LCD2004_PIN_D6);
     } else {
-        TEST_APP_ARM_GPIO_BitsReset(LCD2004_PORT, LCD2004_PIN_D6);
+        TEST_APP_ARM_GPIO_ResetBits(LCD2004_PORT, LCD2004_PIN_D6);
     }
     if((byte >> 3) & 0x01) {
-        TEST_APP_ARM_GPIO_BitsSet(LCD2004_PORT, LCD2004_PIN_D7);
+        TEST_APP_ARM_GPIO_SetBits(LCD2004_PORT, LCD2004_PIN_D7);
     } else {
-        TEST_APP_ARM_GPIO_BitsReset(LCD2004_PORT, LCD2004_PIN_D7);
+        TEST_APP_ARM_GPIO_ResetBits(LCD2004_PORT, LCD2004_PIN_D7);
     }
 }
 
 static void LCD2004_DoStrobe(void)
 {
-    TEST_APP_ARM_GPIO_BitsSet(LCD2004_PORT, LCD2004_PIN_E);
+    TEST_APP_ARM_GPIO_SetBits(LCD2004_PORT, LCD2004_PIN_E);
     LCD2004_DoDelay_us(1);
-    TEST_APP_ARM_GPIO_BitsReset(LCD2004_PORT, LCD2004_PIN_E);
+    TEST_APP_ARM_GPIO_ResetBits(LCD2004_PORT, LCD2004_PIN_E);
 }
 
 
 static void LCD2004_SendCmd(uint8_t cmd)
 {
-    TEST_APP_ARM_GPIO_BitsReset(LCD2004_PORT, LCD2004_PIN_RS);
-    TEST_APP_ARM_GPIO_BitsReset(LCD2004_PORT, LCD2004_PIN_RW);
+    TEST_APP_ARM_GPIO_ResetBits(LCD2004_PORT, LCD2004_PIN_RS);
+    TEST_APP_ARM_GPIO_ResetBits(LCD2004_PORT, LCD2004_PIN_RW);
     LCD2004_WriteLowTetradByte(cmd >> 4);
     LCD2004_DoDelay_us(1);
     LCD2004_DoStrobe();
@@ -269,8 +269,8 @@ static void LCD2004_SendCmd(uint8_t cmd)
 
 static void LCD2004_SendData(uint8_t data)
 {
-    TEST_APP_ARM_GPIO_BitsSet(LCD2004_PORT, LCD2004_PIN_RS);
-    TEST_APP_ARM_GPIO_BitsReset(LCD2004_PORT, LCD2004_PIN_RW);
+    TEST_APP_ARM_GPIO_SetBits(LCD2004_PORT, LCD2004_PIN_RS);
+    TEST_APP_ARM_GPIO_ResetBits(LCD2004_PORT, LCD2004_PIN_RW);
     LCD2004_WriteLowTetradByte(data >> 4);
     LCD2004_DoDelay_us(1);
     LCD2004_DoStrobe();

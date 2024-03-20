@@ -8,7 +8,8 @@
 #include "arm_gpio.h"
 #include "app.h"
 #include "arm_dma.h"
-#include "timer.h"
+#include "systick_timer.h"
+#include "software_timer.h"
 
 #ifdef _TEST_APP_DEBUG_
 #include "assert.h"
@@ -50,7 +51,7 @@ typedef enum {
 //Prototypes
 //********************************************************************************
 
-static void  ARM_USART_SetResources(TEST_APP_ARM_USART_Resources_t *p_res, eTEST_APP_ARM_USART_Types_t usart_type,
+static void  ARM_USART_SetResources(eTEST_APP_ARM_USART_Types_t usart_type,
                                     uint32_t baudrate,
                                     usart_data_bit_num_type data_bit,
                                     usart_stop_bit_num_type stop_bit,
@@ -218,6 +219,7 @@ TEST_APP_ARM_USART_Driver_t Driver_USART2 = {
     ARM_USART_GetTransfer_2,
     ARM_USART_GetStatus_2
 };
+
 TEST_APP_ARM_USART_Driver_t Driver_USART3 = {
     ARM_USART_Initialize_3,
     ARM_USART_Uninitialize_3,
@@ -227,6 +229,7 @@ TEST_APP_ARM_USART_Driver_t Driver_USART3 = {
     ARM_USART_GetTransfer_3,
     ARM_USART_GetStatus_3
 };
+
 TEST_APP_ARM_USART_Driver_t Driver_UART4 = {
     ARM_USART_Initialize_4,
     ARM_USART_Uninitialize_4,
@@ -236,6 +239,7 @@ TEST_APP_ARM_USART_Driver_t Driver_UART4 = {
     ARM_USART_GetTransfer_4,
     ARM_USART_GetStatus_4
 };
+
 TEST_APP_ARM_USART_Driver_t Driver_UART5 = {
     ARM_USART_Initialize_5,
     ARM_USART_Uninitialize_5,
@@ -245,6 +249,7 @@ TEST_APP_ARM_USART_Driver_t Driver_UART5 = {
     ARM_USART_GetTransfer_5,
     ARM_USART_GetStatus_5
 };
+
 TEST_APP_ARM_USART_Driver_t Driver_USART6 = {
     ARM_USART_Initialize_6,
     ARM_USART_Uninitialize_6,
@@ -254,6 +259,7 @@ TEST_APP_ARM_USART_Driver_t Driver_USART6 = {
     ARM_USART_GetTransfer_6,
     ARM_USART_GetStatus_6
 };
+
 TEST_APP_ARM_USART_Driver_t Driver_UART7 = {
     ARM_USART_Initialize_7,
     ARM_USART_Uninitialize_7,
@@ -263,6 +269,7 @@ TEST_APP_ARM_USART_Driver_t Driver_UART7 = {
     ARM_USART_GetTransfer_7,
     ARM_USART_GetStatus_7
 };
+
 TEST_APP_ARM_USART_Driver_t Driver_UART8 = {
     ARM_USART_Initialize_8,
     ARM_USART_Uninitialize_8,
@@ -362,15 +369,15 @@ static IRQn_Type ARM_USART_IrqNumber[TEST_APP_ARM_USART_TYPES] = {
     UART8_IRQn
 };
 
-static eTEST_APP_TimerTypes_t ARM_USART_TimeoutTimer[TEST_APP_ARM_USART_TYPES][ARM_USART_CHANS] = {
-    {TIMER_USART1_TIMEOUT_TX,    TIMER_USART1_TIMEOUT_RX},
-    {TIMER_USART2_TIMEOUT_TX,    TIMER_USART2_TIMEOUT_RX},
-    {TIMER_USART3_TIMEOUT_TX,    TIMER_USART3_TIMEOUT_RX},
-    {TIMER_UART4_TIMEOUT_TX,     TIMER_UART4_TIMEOUT_RX},
-    {TIMER_UART5_TIMEOUT_TX,     TIMER_UART5_TIMEOUT_RX},
-    {TIMER_USART6_TIMEOUT_TX,    TIMER_USART6_TIMEOUT_RX},
-    {TIMER_UART7_TIMEOUT_TX,     TIMER_UART7_TIMEOUT_RX},
-    {TIMER_UART8_TIMEOUT_TX,     TIMER_UART8_TIMEOUT_RX,}
+static eTEST_APP_SOFTWARE_TIMER_TimerTypes_t ARM_USART_TimeoutTimer[TEST_APP_ARM_USART_TYPES][ARM_USART_CHANS] = {
+    { TEST_APP_SOFTWARE_TIMER_USART1_TIMEOUT_TX,     TEST_APP_SOFTWARE_TIMER_USART1_TIMEOUT_RX},
+    { TEST_APP_SOFTWARE_TIMER_USART2_TIMEOUT_TX,     TEST_APP_SOFTWARE_TIMER_USART2_TIMEOUT_RX},
+    { TEST_APP_SOFTWARE_TIMER_USART3_TIMEOUT_TX,     TEST_APP_SOFTWARE_TIMER_USART3_TIMEOUT_RX},
+    { TEST_APP_SOFTWARE_TIMER_UART4_TIMEOUT_TX,      TEST_APP_SOFTWARE_TIMER_UART4_TIMEOUT_RX},
+    { TEST_APP_SOFTWARE_TIMER_UART5_TIMEOUT_TX,      TEST_APP_SOFTWARE_TIMER_UART5_TIMEOUT_RX},
+    { TEST_APP_SOFTWARE_TIMER_USART6_TIMEOUT_TX,     TEST_APP_SOFTWARE_TIMER_USART6_TIMEOUT_RX},
+    { TEST_APP_SOFTWARE_TIMER_UART7_TIMEOUT_TX,      TEST_APP_SOFTWARE_TIMER_UART7_TIMEOUT_RX},
+    { TEST_APP_SOFTWARE_TIMER_UART8_TIMEOUT_TX,      TEST_APP_SOFTWARE_TIMER_UART8_TIMEOUT_RX,}
 };
 
 
@@ -537,14 +544,14 @@ void TEST_APP_ARM_USART_IRQHandler(eTEST_APP_ARM_USART_Types_t usart_type)
 //Private
 //================================================================================
 
-static void  ARM_USART_SetResources(TEST_APP_ARM_USART_Resources_t *p_res, eTEST_APP_ARM_USART_Types_t usart_type,
+static void  ARM_USART_SetResources(eTEST_APP_ARM_USART_Types_t usart_type,
                                     uint32_t baudrate,
                                     usart_data_bit_num_type data_bit,
                                     usart_stop_bit_num_type stop_bit,
                                     usart_parity_selection_type parity,
                                     eTEST_APP_ARM_USART_PinDefTypes_t gpio_pin_def_type)
 {
-    p_res->usart_type = usart_type;
+    TEST_APP_ARM_USART_Resources_t *p_res = &ARM_USART_Resources[usart_type];
     p_res->IrqNum = ARM_USART_IrqNumber[usart_type];
     p_res->GpioPinDefType = gpio_pin_def_type;
     p_res->Config.BaudRate = baudrate;
@@ -606,8 +613,8 @@ static uint32_t ARM_USART_GPIO_Config(eTEST_APP_ARM_USART_Types_t usart_type, co
         }
     } else {
         //release pins
-        TEST_APP_ARM_GPIO_Release(p_res->Gpio.TxPort, p_res->Gpio.TxPin);
-        TEST_APP_ARM_GPIO_Release(p_res->Gpio.RxPort, p_res->Gpio.RxPin);
+        TEST_APP_ARM_GPIO_ReleaseBits(p_res->Gpio.TxPort, p_res->Gpio.TxPin);
+        TEST_APP_ARM_GPIO_ReleaseBits(p_res->Gpio.RxPort, p_res->Gpio.RxPin);
         //disable remap (for pins remapping release)
         if(!(p_res->GpioPinDefType == TEST_APP_ARM_USART_GPIO_PIN_DEF_TYPE_DEFAULT)) {
             gpio_pin_remap_config(ARM_USART_GPIO_IOMUX_Remap_Def[usart_type], FALSE);
@@ -625,14 +632,14 @@ static uint32_t ARM_USART_Initialize(eTEST_APP_ARM_USART_Types_t usart_type,
 {
     TEST_APP_ARM_USART_Resources_t *p_res = &ARM_USART_Resources[usart_type];
     uint32_t drv_status = TEST_APP_ARM_DRIVER_NO_ERROR;
-    ARM_USART_SetResources(p_res, usart_type, baudrate, data_bit, stop_bit, parity, gpio_pin_def_type);
-    if(!(TEST_APP_ARM_CRM_PeriphClockEnable(TEST_APP_PERIPH_USART, p_res->usart_type, TRUE))) {
+    ARM_USART_SetResources(usart_type, baudrate, data_bit, stop_bit, parity, gpio_pin_def_type);
+    if(!(TEST_APP_ARM_CRM_PeriphClockEnable(TEST_APP_PERIPH_USART, usart_type, TRUE))) {
         p_res->Status.DrvStatus |= TEST_APP_ARM_DRIVER_ERROR;
         return TEST_APP_ARM_DRIVER_ERROR;
     }
 //asynchronous mode is default
-    TEST_APP_ARM_CRM_PeriphReset(TEST_APP_PERIPH_USART, p_res->usart_type, TRUE);
-    TEST_APP_ARM_CRM_PeriphReset(TEST_APP_PERIPH_USART, p_res->usart_type, FALSE);
+    TEST_APP_ARM_CRM_PeriphReset(TEST_APP_PERIPH_USART, usart_type, TRUE);
+    TEST_APP_ARM_CRM_PeriphReset(TEST_APP_PERIPH_USART, usart_type, FALSE);
     drv_status |= ARM_USART_GPIO_Config(usart_type, TRUE);
     usart_init(pARM_USART_Register[usart_type], p_res->Config.BaudRate,
                p_res->Config.DataBit, p_res->Config.StopBit);
@@ -712,9 +719,9 @@ static uint32_t ARM_USART_Uninitialize(eTEST_APP_ARM_USART_Types_t usart_type)
         usart_receiver_enable(pARM_USART_Register[usart_type], FALSE);
         p_res->Status.DrvFlag &= ~TEST_APP_ARM_USART_DRIVER_FLAG_RX_ENABLED;
         drv_status |= ARM_USART_GPIO_Config(usart_type, FALSE);
-        TEST_APP_ARM_CRM_PeriphReset(TEST_APP_PERIPH_USART, p_res->usart_type, TRUE);
+        TEST_APP_ARM_CRM_PeriphReset(TEST_APP_PERIPH_USART, usart_type, TRUE);
         p_res->Status.DrvFlag &= ~TEST_APP_ARM_USART_DRIVER_FLAG_CONFIGURATED;
-        if(!(TEST_APP_ARM_CRM_PeriphClockEnable(TEST_APP_PERIPH_USART, p_res->usart_type, FALSE))) {
+        if(!(TEST_APP_ARM_CRM_PeriphClockEnable(TEST_APP_PERIPH_USART, usart_type, FALSE))) {
             p_res->Status.DrvStatus |= TEST_APP_ARM_DRIVER_ERROR;
             return TEST_APP_ARM_DRIVER_ERROR;
         }
@@ -831,15 +838,17 @@ static uint32_t ARM_USART_Recieve(eTEST_APP_ARM_USART_Types_t usart_type, void *
         return TEST_APP_ARM_DRIVER_ERROR_PARAMETER;
     }
     if(p_res->Status.XferStatus.RxBusy) {
-        TimerEnable(ARM_USART_TimeoutTimer[usart_type][ARM_USART_RX_CHAN], ARM_USART_TIMEOUT_MSEC);
-        while(p_res->Status.XferStatus.RxBusy && (!TimerTestFlag(ARM_USART_TimeoutTimer[usart_type][ARM_USART_RX_CHAN])));
-        if(TimerTestFlag(ARM_USART_TimeoutTimer[usart_type][ARM_USART_RX_CHAN])) {
+        TEST_APP_SOFTWARE_TIMER_TimerEnable(ARM_USART_TimeoutTimer[usart_type][ARM_USART_RX_CHAN],
+                                            ARM_USART_TIMEOUT_MSEC);
+        while(p_res->Status.XferStatus.RxBusy &&
+              (!TEST_APP_SOFTWARE_TIMER_TimerTestFlag(ARM_USART_TimeoutTimer[usart_type][ARM_USART_RX_CHAN])));
+        if(TEST_APP_SOFTWARE_TIMER_TimerTestFlag(ARM_USART_TimeoutTimer[usart_type][ARM_USART_RX_CHAN])) {
             p_res->Status.DrvStatus |= TEST_APP_ARM_DRIVER_ERROR_BUSY;
             return TEST_APP_ARM_DRIVER_ERROR_BUSY;
         } else {
             p_res->Status.DrvStatus &= ~TEST_APP_ARM_DRIVER_ERROR_BUSY;
         }
-        TimerDisable(ARM_USART_TimeoutTimer[usart_type][ARM_USART_RX_CHAN]);
+        TEST_APP_SOFTWARE_TIMER_TimerDisable(ARM_USART_TimeoutTimer[usart_type][ARM_USART_RX_CHAN]);
     }
     p_res->Status.XferStatus.RxBusy = 1;
     usart_interrupt_enable(pARM_USART_Register[usart_type], USART_ERR_INT, TRUE);
@@ -879,15 +888,15 @@ static uint32_t ARM_USART_Send(eTEST_APP_ARM_USART_Types_t usart_type, void *pda
     }
 
     if(p_res->Status.XferStatus.TxBusy) {
-        TimerEnable(ARM_USART_TimeoutTimer[usart_type][ARM_USART_TX_CHAN], ARM_USART_TIMEOUT_MSEC);
-        while(p_res->Status.XferStatus.TxBusy && (!TimerTestFlag(ARM_USART_TimeoutTimer[usart_type][ARM_USART_TX_CHAN])));
-        if(TimerTestFlag(ARM_USART_TimeoutTimer[usart_type][ARM_USART_TX_CHAN])) {
+        TEST_APP_SOFTWARE_TIMER_TimerEnable(ARM_USART_TimeoutTimer[usart_type][ARM_USART_TX_CHAN], ARM_USART_TIMEOUT_MSEC);
+        while(p_res->Status.XferStatus.TxBusy && (!TEST_APP_SOFTWARE_TIMER_TimerTestFlag(ARM_USART_TimeoutTimer[usart_type][ARM_USART_TX_CHAN])));
+        if(TEST_APP_SOFTWARE_TIMER_TimerTestFlag(ARM_USART_TimeoutTimer[usart_type][ARM_USART_TX_CHAN])) {
             p_res->Status.DrvStatus |= TEST_APP_ARM_DRIVER_ERROR_BUSY;
             return TEST_APP_ARM_DRIVER_ERROR_BUSY;
         } else {
             p_res->Status.DrvStatus &= ~TEST_APP_ARM_DRIVER_ERROR_BUSY;
         }
-        TimerDisable(ARM_USART_TimeoutTimer[usart_type][ARM_USART_TX_CHAN]);
+        TEST_APP_SOFTWARE_TIMER_TimerDisable(ARM_USART_TimeoutTimer[usart_type][ARM_USART_TX_CHAN]);
     }
     p_res->Status.XferStatus.TxBusy = 1;
     if(p_res->DMA.TxEnable) {
