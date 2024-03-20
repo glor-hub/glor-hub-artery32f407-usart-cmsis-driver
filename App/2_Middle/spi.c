@@ -1,15 +1,30 @@
 //********************************************************************************
 //spi.c
 //********************************************************************************
+#include <string.h>
 #include "spi.h"
 #include "arm_driver.h"
 #include "arm_spi.h"
 #include "usart.h"
-#include "timer.h"
+
+#ifdef _TEST_APP_DEBUG_
+#include "assert.h"
+#include "LCD_2004.h"
+#endif//_TEST_APP_DEBUG_
+
+extern TEST_APP_ARM_SPI_Driver_t *pARM_SPI_Driver[TEST_APP_ARM_SPI_TYPES];
+extern TEST_APP_ARM_USART_Driver_t *pARM_USART_Driver[TEST_APP_ARM_USART_TYPES];
 
 //********************************************************************************
 //Macros
 //********************************************************************************
+#define SPI_TEST_DATA_BUFF_SIZE 256
+
+#define SPI_AD7685_ADC_NUM 8
+
+#define SPI_AD7685_DELAY_USEC_AFTER_CS ((uint32_t)10)
+
+#define SPI_NO_DELAY_USEC_AFTER_CS ((uint32_t)0)
 
 //********************************************************************************
 //Enums
@@ -22,67 +37,41 @@
 //********************************************************************************
 //Prototypes
 //********************************************************************************
-#ifdef _TEST_APP_SPI1_PERIPH_ENABLE_
-static uint32_t SPI1_Initialize(spi_master_slave_mode_type mode,
-                                spi_transmission_mode_type xfer_mode,
-                                spi_half_duplex_direction_type dir,
-                                spi_mclk_freq_div_type mclk_div,
-                                eTEST_APP_ARM_SPI_ClockLatchTypes_t clk_type,
-                                spi_cs_mode_type cs_mode,
-                                eTEST_APP_ARM_SPI_CSActiveLevel_t cs_active_level,
-                                eTEST_APP_ARM_SPI_CSConfirmEveryWorld_t cs_conf_every_world,
-                                spi_frame_bit_num_type data_bit_num,
-                                spi_first_bit_type data_first_bit,
-                                uint32_t gpio_map_config);
-static uint32_t SPI1_Uninitialize(void);
-static void SPI1_cb(void);
-static uint32_t SPI1_Recieve(void *pbuff, uint32_t num);
-static uint32_t SPI1_Send(void *pbuff, uint32_t num);
-static  void SPI1_SetCsActive(confirm_state new_state);
-static TEST_APP_ARM_SPI_Status_t SPI1_GetStatus(void);
-static TEST_APP_ARM_SPI_Transfer_t SPI1_GetTransfer(void);
-#endif//_TEST_APP_SPI1_PERIPH_ENABLE_
 
+error_status ARM_SPI_TestFullDuplexMode(eTEST_APP_ARM_SPI_Types_t spi_master_type,
+                                        eTEST_APP_ARM_SPI_Types_t spi_slave_type);
 
 //********************************************************************************
 //Variables
 //********************************************************************************
 
-extern TEST_APP_ARM_USART_Driver_t UART4_Driver;
+extern TEST_APP_ARM_SPI_Driver_t *pARM_SPI_Driver[TEST_APP_ARM_SPI_TYPES];
 
-#ifdef _TEST_APP_SPI1_PERIPH_ENABLE_
-TEST_APP_ARM_SPI_Driver_t SPI1_Driver = {
-    SPI1_Initialize,
-    SPI1_Uninitialize,
-    SPI1_cb,
-    SPI1_Send,
-    SPI1_Recieve,
-    SPI1_SetCsActive,
-    SPI1_GetTransfer,
-    SPI1_GetStatus
-};
-static TEST_APP_ARM_SPI_Resources_t SPI1_Resources;
-static uint32_t SPI1_EventBuff[TEST_APP_ARM_SPI_EVENT_BUFF_SIZE];
-static uint8_t SPI1_Tx_Buff[TEST_APP_ARM_SPI_TX_BUFF_SIZE];
-static uint8_t SPI1_Rx_Buff[TEST_APP_ARM_SPI_RX_BUFF_SIZE];
-
-#endif// _TEST_APP_SPI1_PERIPH_ENABLE_
-
+static char ARM_SPI_DataMasterTx[SPI_TEST_DATA_BUFF_SIZE] = {"Hello, slave"};
+static char ARM_SPI_DataSlaveTx[SPI_TEST_DATA_BUFF_SIZE] = {"Hello, master"};
 
 //================================================================================
 //Public
 //================================================================================
+
 
 /********************************************************************************
 SPI configuration:
 
 mode            - master/slave mode;
 xfer_mode       - transfer modes:
-                    2-wire unidirectional full-duplex,
-                    1-wire unidirectional simplex-rx (for rx only),
-                    1-wire bidirectional half-duplex-rx,
-                    1-wire bidirectional half-duplex-tx;
-dir             - data transmission direction for 1-wire bidirectional half-duplex only
+                    2-wire unidirectional full-duplex (SPI_TRANSMIT_FULL_DUPLEX),
+                    1-wire bidirectional half-duplex-rx (SPI_TRANSMIT_HALF_DUPLEX_RX),
+                    1-wire bidirectional half-duplex-tx (SPI_TRANSMIT_HALF_DUPLEX_TX),
+                    1-wire unidirectional simplex-rx for rx only (SPI_TRANSMIT_SIMPLEX_RX)
+                    1-wire unidirectional simplex-tx for tx only (SPI_TRANSMIT_FULL_DUPLEX_TX_ONLY),
+
+1-wire unidirectional simplex-rx transmit-only mode is similar to full-duplex mode:
+the data are transmitted on the transmit pin (MOSI in master mode or MISO in slave
+mode) and the receive pin (MISO in master mode or MOSI in slave mode) can be used as a
+general-purpose IO. In this case, the application just needs to ignore the Rx buffer (if
+the data register is read, it does not contain the received value).
+
 mclk_div        - master clock frequency division: 2,4,8,16,...1024;
 clk_type        - types:
                     clock polarity low, rising edge,
@@ -112,160 +101,214 @@ gpio_pin_def - pin definitions default/remap1/remap2:
             remap1:  spi4_cs(pe12), spi4_sck(pe11), spi4_miso(pe13), spi4_mosi(pe14);
             remap2:  spi4_cs(pb6), spi4_sck(pb7), spi4_miso(pb8), spi4_mosi(pb9);
 
+
 ********************************************************************************/
 
+void SPI1_IRQHandler(void)
+{
+    TEST_APP_ARM_SPI_IRQHandler(TEST_APP_ARM_SPI1);
+}
+
+void SPI2_I2S2EXT_IRQHandler(void)
+{
+    TEST_APP_ARM_SPI_IRQHandler(TEST_APP_ARM_SPI2);
+}
+
+void SPI3_I2S3EXT_IRQHandler(void)
+{
+    TEST_APP_ARM_SPI_IRQHandler(TEST_APP_ARM_SPI3);
+}
+
+void SPI4_IRQHandler(void)
+{
+    TEST_APP_ARM_SPI_IRQHandler(TEST_APP_ARM_SPI4);
+}
+
+/*
 error_status TEST_APP_SPI_Init(void)
 {
-    uint32_t status_ready = TEST_APP_ARM_DRIVER_NO_ERROR;
-
-#ifdef _TEST_APP_SPI1_PERIPH_ENABLE_
-
-    status_ready |= TEST_APP_SPI_Initialize(&SPI1_Driver,
-                                            SPI_MODE_MASTER,
-                                            SPI_TRANSMIT_SIMPLEX_RX,
-                                            SPI_HALF_DUPLEX_DIRECTION_RX,
-                                            SPI_MCLK_DIV_4, //30 MHz(APB2 bus-120 MHz)
-                                            TEST_APP_ARM_SPI_CLOCK_POLAR_LOW_FALLING_EDGE,
-                                            SPI_CS_SOFTWARE_MODE,
-                                            TEST_APP_ARM_SPI_CS_ACTIVE_LEVEL_HIGH,
-                                            TEST_APP_ARM_SPI_CS_CONFIRM_EVERY_WORLD_ENABLE,
-                                            SPI_FRAME_16BIT,
-                                            SPI_FIRST_BIT_MSB,
-                                            TEST_APP_ARM_SPI_GPIO_PIN_DEF_DEFAULT);
-#endif//_TEST_APP_SPI1_PERIPH_ENABLE_
-    return TEST_APP_ARM_DRIVER_isReady(status_ready) ? SUCCESS : ERROR;
+    uint32_t drv_status = TEST_APP_ARM_DRIVER_NO_ERROR;
+    eTEST_APP_ARM_SPI_Types_t spi_type;
+    TEST_APP_ARM_SPI_Driver_t *p_drv = pARM_SPI_Driver[TEST_APP_ARM_SPI1];
+    for(spi_type = TEST_APP_ARM_SPI1; spi_type < TEST_APP_ARM_SPI_TYPES;
+        spi_type++) {
+        if(p_drv[spi_type].GetStatus().DrvStateOn) {
+            switch(spi_type) {
+                case TEST_APP_ARM_SPI1: {
+                    drv_status |= p_drv[spi_type].Initialize(
+                                      SPI_MODE_MASTER,
+                                      SPI_TRANSMIT_FULL_DUPLEX,
+                                      SPI_MCLK_DIV_4, //30 MHz(APB2 bus-120 MHz)
+                                      TEST_APP_ARM_SPI_CLOCK_POLAR_LOW_FALLING_EDGE,
+                                      SPI_CS_HARDWARE_MODE,
+                                      TEST_APP_ARM_SPI_CS_ACTIVE_LEVEL_LOW,
+                                      TEST_APP_ARM_SPI_CS_CONFIRM_EVERY_WORLD_ENABLE,
+                                      SPI_FRAME_8BIT,
+                                      SPI_FIRST_BIT_MSB,
+                                      TEST_APP_ARM_SPI_PIN_DEF_TYPE_DEFAULT);
+                    break;
+                }
+                case TEST_APP_ARM_SPI2: {
+                    drv_status |= p_drv[spi_type].Initialize(
+                                      SPI_MODE_MASTER,
+                                      SPI_TRANSMIT_SIMPLEX_RX,
+                                      SPI_MCLK_DIV_4, //30 MHz(APB2 bus-120 MHz)
+                                      TEST_APP_ARM_SPI_CLOCK_POLAR_LOW_FALLING_EDGE,
+                                      SPI_CS_SOFTWARE_MODE,
+                                      TEST_APP_ARM_SPI_CS_ACTIVE_LEVEL_HIGH,
+                                      TEST_APP_ARM_SPI_CS_CONFIRM_EVERY_WORLD_DISABLE,
+                                      SPI_FRAME_16BIT,
+                                      SPI_FIRST_BIT_MSB,
+                                      TEST_APP_ARM_SPI_PIN_DEF_TYPE_REMAP1);
+                    break;
+                }
+                case TEST_APP_ARM_SPI3: {
+                    drv_status |= p_drv[spi_type].Initialize(
+                                      SPI_MODE_SLAVE,
+                                      SPI_TRANSMIT_FULL_DUPLEX,
+                                      SPI_MCLK_DIV_4, //30 MHz(APB2 bus-120 MHz)
+                                      TEST_APP_ARM_SPI_CLOCK_POLAR_LOW_FALLING_EDGE,
+                                      SPI_CS_HARDWARE_MODE,
+                                      TEST_APP_ARM_SPI_CS_ACTIVE_LEVEL_LOW,
+                                      TEST_APP_ARM_SPI_CS_CONFIRM_EVERY_WORLD_ENABLE,
+                                      SPI_FRAME_8BIT,
+                                      SPI_FIRST_BIT_MSB,
+                                      TEST_APP_ARM_SPI_PIN_DEF_TYPE_DEFAULT);
+                    break;
+                }
+                case TEST_APP_ARM_SPI4: {
+                    drv_status |= p_drv[spi_type].Initialize(
+                                      SPI_MODE_MASTER,
+                                      SPI_TRANSMIT_SIMPLEX_RX,
+                                      SPI_MCLK_DIV_4, //30 MHz(APB2 bus-120 MHz)
+                                      TEST_APP_ARM_SPI_CLOCK_POLAR_LOW_FALLING_EDGE,
+                                      SPI_CS_SOFTWARE_MODE,
+                                      TEST_APP_ARM_SPI_CS_ACTIVE_LEVEL_HIGH,
+                                      TEST_APP_ARM_SPI_CS_CONFIRM_EVERY_WORLD_ENABLE,
+                                      SPI_FRAME_16BIT,
+                                      SPI_FIRST_BIT_MSB,
+                                      TEST_APP_ARM_SPI_PIN_DEF_TYPE_DEFAULT);
+                    break;
+                }
+                default: {
+                    break;
+                }
+            }
+        }
+    }
+    return TEST_APP_ARM_DRIVER_isReady(drv_status) ? SUCCESS : ERROR;
 }
 
-uint32_t TEST_APP_SPI_Initialize(TEST_APP_ARM_SPI_Driver_t *p_drv,
-                                 spi_master_slave_mode_type mode,
-                                 spi_transmission_mode_type xfer_mode,
-                                 spi_half_duplex_direction_type dir,
-                                 spi_mclk_freq_div_type mclk_div,
-                                 eTEST_APP_ARM_SPI_ClockLatchTypes_t clk_type,
-                                 spi_cs_mode_type cs_mode,
-                                 eTEST_APP_ARM_SPI_CSActiveLevel_t cs_active_level,
-                                 eTEST_APP_ARM_SPI_CSConfirmEveryWorld_t cs_conf_every_world,
-                                 spi_frame_bit_num_type data_bit_num,
-                                 spi_first_bit_type data_first_bit,
-                                 uint32_t gpio_pin_def)
-{
-    uint32_t status_ready = TEST_APP_ARM_DRIVER_NO_ERROR;
-    status_ready |= p_drv->Initialize(mode, xfer_mode, dir, mclk_div, clk_type,
-                                      cs_mode, cs_active_level, cs_conf_every_world,
-                                      data_bit_num, data_first_bit,
-                                      gpio_pin_def);
-    return status_ready;
-}
-
-uint32_t TEST_APP_SPI_Uninitialize(TEST_APP_ARM_SPI_Driver_t *p_drv)
-{
-    uint32_t status_ready = TEST_APP_ARM_DRIVER_NO_ERROR;
-    status_ready |= p_drv->Uninitialize();
-    return status_ready;
-}
+*/
 
 void TEST_APP_SPI_cb(void)
 {
-#ifdef _TEST_APP_SPI1_PERIPH_ENABLE_
-    TEST_APP_ARM_SPI_Driver_t *p1_drv = &SPI1_Driver;
-    p1_drv ->Event_cb();
-#endif//_TEST_APP_SPI1_PERIPH_ENABLE_
+    eTEST_APP_ARM_SPI_Types_t spi_type;
+    TEST_APP_ARM_SPI_Driver_t *p_drv = pARM_SPI_Driver[TEST_APP_ARM_SPI1];
+    for(spi_type = TEST_APP_ARM_SPI1; spi_type < TEST_APP_ARM_SPI_TYPES;
+        spi_type++) {
+        if(p_drv[spi_type].GetStatus().DrvStateOn) {
+            p_drv[spi_type].Event_cb();
+        }
+    }
 }
 
-#ifdef _TEST_APP_SPI1_PERIPH_ENABLE_
-void SPI1_IRQHandler()
-{
-    TEST_APP_ARM_SPI_IRQHandler(&SPI1_Resources);
-}
-#endif//_TEST_APP_SPI1_PERIPH_ENABLE_
-
-
-#ifdef _TEST_APP_DEBUG_
-// SPI1 test for ADC AD7685 (Fclk AD7685 max = 59MHz)
 error_status TEST_APP_SPI_Test(void)
 {
-    uint32_t drv_status = TEST_APP_ARM_DRIVER_NO_ERROR;
-
-#ifdef _TEST_APP_SPI1_PERIPH_ENABLE_
-    uint32_t ADC_raw_data = 0x000F;
-    float ADC_float_data;
-    TEST_APP_ARM_SPI_Resources_t *p_res = &SPI1_Resources;
-    TEST_APP_ARM_SPI_Driver_t *p1_drv = &SPI1_Driver;
-    TEST_APP_ARM_SPI_SetCSActiveLevel(p_res, TRUE);
-    TimerDoDelay_ms(2500);
-    drv_status |= p1_drv->Recieve(&ADC_raw_data, 8);
-    ADC_float_data = (float)(ADC_raw_data);
-    (void)TEST_APP_USART_printf(&UART4_Driver, "%s %u\n", "Driver status", drv_status);
-    (void)TEST_APP_USART_printf(&UART4_Driver, "%s %.2f", "Data from AD7685:\n", ADC_float_data);
-#endif//_TEST_APP_SPI1_PERIPH_ENABLE_
-    return TEST_APP_ARM_DRIVER_isReady(drv_status) ? SUCCESS : ERROR;
+    error_status test_result;
+    test_result = ARM_SPI_TestFullDuplexMode(TEST_APP_ARM_SPI1, TEST_APP_ARM_SPI3);
+    return test_result;
 }
-#endif//_TEST_APP_DEBUG_
 
 
 //================================================================================
 //Private
 //================================================================================
-#ifdef _TEST_APP_SPI1_PERIPH_ENABLE_
-static uint32_t SPI1_Initialize(spi_master_slave_mode_type mode,
-                                spi_transmission_mode_type xfer_mode,
-                                spi_half_duplex_direction_type dir,
-                                spi_mclk_freq_div_type mclk_div,
-                                eTEST_APP_ARM_SPI_ClockLatchTypes_t clk_type,
-                                spi_cs_mode_type cs_mode,
-                                eTEST_APP_ARM_SPI_CSActiveLevel_t cs_active_level,
-                                eTEST_APP_ARM_SPI_CSConfirmEveryWorld_t cs_conf_every_world,
-                                spi_frame_bit_num_type data_bit_num,
-                                spi_first_bit_type data_first_bit,
-                                uint32_t gpio_map_config)
+
+//spi1, spi3
+error_status ARM_SPI_TestFullDuplexMode(eTEST_APP_ARM_SPI_Types_t spi_master_type,
+                                        eTEST_APP_ARM_SPI_Types_t spi_slave_type)
 {
-    uint32_t status_ready = TEST_APP_ARM_DRIVER_NO_ERROR;
-    TEST_APP_ARM_SPI_Resources_t *p_res = &SPI1_Resources;
-    status_ready |= TEST_APP_ARM_SPI_SetResources(p_res, SPI1, SPI1_EventBuff,
-                    SPI1_Tx_Buff, SPI1_Rx_Buff,
-                    mode, xfer_mode, dir, mclk_div, clk_type,
-                    cs_mode, cs_active_level,
-                    cs_conf_every_world, data_bit_num, data_first_bit, gpio_map_config);
-    status_ready |= TEST_APP_ARM_SPI_Init(p_res);
-    return status_ready;
+    uint32_t drv_status = TEST_APP_ARM_DRIVER_NO_ERROR;
+    TEST_APP_ARM_SPI_Driver_t *p_drv = pARM_SPI_Driver[TEST_APP_ARM_SPI1];
+    if(p_drv[spi_master_type].GetStatus().DrvStateOn &&
+       p_drv[spi_slave_type].GetStatus().DrvStateOn) {
+        drv_status |= p_drv[spi_master_type].Initialize(
+                          SPI_MODE_MASTER,
+                          SPI_TRANSMIT_FULL_DUPLEX,
+                          SPI_MCLK_DIV_4, //30 MHz(APB2 bus-120 MHz)
+                          TEST_APP_ARM_SPI_CLOCK_POLAR_LOW_FALLING_EDGE,
+                          SPI_CS_SOFTWARE_MODE,
+                          TEST_APP_ARM_SPI_CS_ACTIVE_LEVEL_LOW,
+                          TEST_APP_ARM_SPI_CS_CONFIRM_EVERY_WORLD_ENABLE,
+                          SPI_NO_DELAY_USEC_AFTER_CS,
+                          SPI_FRAME_8BIT,
+                          SPI_FIRST_BIT_MSB,
+                          TEST_APP_ARM_SPI_PIN_DEF_TYPE_DEFAULT);
+        drv_status |= p_drv[spi_slave_type].Initialize(
+                          SPI_MODE_SLAVE,
+                          SPI_TRANSMIT_SIMPLEX_RX,
+                          SPI_MCLK_DIV_4, //30 MHz(APB2 bus-120 MHz)
+                          TEST_APP_ARM_SPI_CLOCK_POLAR_LOW_FALLING_EDGE,
+                          SPI_CS_SOFTWARE_MODE,
+                          TEST_APP_ARM_SPI_CS_ACTIVE_LEVEL_HIGH,
+                          TEST_APP_ARM_SPI_CS_CONFIRM_EVERY_WORLD_DISABLE,
+                          SPI_NO_DELAY_USEC_AFTER_CS,
+                          SPI_FRAME_8BIT,
+                          SPI_FIRST_BIT_MSB,
+                          TEST_APP_ARM_SPI_PIN_DEF_TYPE_DEFAULT);
+    } else {
+        drv_status |= TEST_APP_ARM_DRIVER_ERROR;
+    }
+    char *pdata;
+    pdata = (char *)p_drv[spi_slave_type].GetTransfer().pTxData;
+    memcpy(pdata, ARM_SPI_DataSlaveTx, SPI_TEST_DATA_BUFF_SIZE);
+    p_drv[spi_slave_type].Send(pdata, SPI_TEST_DATA_BUFF_SIZE);
+    pdata = (char *)p_drv[spi_master_type].GetTransfer().pTxData;
+    memcpy(pdata, ARM_SPI_DataMasterTx, SPI_TEST_DATA_BUFF_SIZE);
+    p_drv[spi_master_type].Send(pdata, SPI_TEST_DATA_BUFF_SIZE);
+    while(p_drv[spi_master_type].GetStatus().XferStatus.TxBusy);
+    if(memcmp((char *)p_drv[spi_master_type].GetTransfer().pRxData,
+              ARM_SPI_DataSlaveTx,
+              SPI_TEST_DATA_BUFF_SIZE)) {
+        drv_status |= TEST_APP_ARM_DRIVER_ERROR;
+    }
+    if(memcmp((char *)p_drv[spi_slave_type].GetTransfer().pRxData,
+              ARM_SPI_DataMasterTx,
+              SPI_TEST_DATA_BUFF_SIZE)) {
+        drv_status |= TEST_APP_ARM_DRIVER_ERROR;
+    }
+    TEST_APP_USART_printf(pARM_USART_Driver[TEST_APP_ARM_UART4], "Master recieved");
+    TEST_APP_USART_printf(pARM_USART_Driver[TEST_APP_ARM_UART4],
+                          (char *)p_drv[spi_master_type].GetTransfer().pRxData);
+    TEST_APP_USART_printf(pARM_USART_Driver[TEST_APP_ARM_UART4], "Slave recieved");
+    TEST_APP_USART_printf(pARM_USART_Driver[TEST_APP_ARM_UART4],
+                          (char *)p_drv[spi_slave_type].GetTransfer().pRxData);
+    return TEST_APP_ARM_DRIVER_isReady(drv_status) ? SUCCESS : ERROR;
 }
 
-static uint32_t SPI1_Uninitialize(void)
+//spi2
+error_status ARM_SPI_TestAD7685(eTEST_APP_ARM_SPI_Types_t spi_master_type)
 {
-    uint32_t status_ready = TEST_APP_ARM_DRIVER_NO_ERROR;
-    TEST_APP_ARM_SPI_Resources_t *p_res = &SPI1_Resources;
-    status_ready |= TEST_APP_ARM_SPI_Uninit(p_res);
-    return status_ready;
+    uint32_t drv_status = TEST_APP_ARM_DRIVER_NO_ERROR;
+    TEST_APP_ARM_SPI_Driver_t *p_drv = pARM_SPI_Driver[TEST_APP_ARM_SPI1];
+    if(p_drv[spi_master_type].GetStatus().DrvStateOn) {
+        drv_status |= p_drv[spi_master_type].Initialize(
+                          SPI_MODE_MASTER,
+                          SPI_TRANSMIT_SIMPLEX_RX,
+                          SPI_MCLK_DIV_4, //30 MHz(APB2 bus-120 MHz)
+                          TEST_APP_ARM_SPI_CLOCK_POLAR_LOW_FALLING_EDGE,
+                          SPI_CS_SOFTWARE_MODE,
+                          TEST_APP_ARM_SPI_CS_ACTIVE_LEVEL_HIGH,
+                          TEST_APP_ARM_SPI_CS_CONFIRM_EVERY_WORLD_DISABLE,
+                          SPI_AD7685_DELAY_USEC_AFTER_CS,
+                          SPI_FRAME_16BIT,
+                          SPI_FIRST_BIT_MSB,
+                          TEST_APP_ARM_SPI_PIN_DEF_TYPE_REMAP1);
+    } else {
+        drv_status |= TEST_APP_ARM_DRIVER_ERROR;
+    }
+    uint16_t *pdata;
+    pdata = (uint16_t *)p_drv[spi_master_type].GetTransfer().pRxData;
+    return TEST_APP_ARM_DRIVER_isReady(drv_status) ? SUCCESS : ERROR;
 }
-
-static void SPI1_cb(void)
-{
-    TEST_APP_ARM_SPI_cb(&SPI1_Resources);
-}
-
-static void SPI1_SetCsActive(confirm_state new_state)
-{
-    TEST_APP_ARM_SPI_SetCSActiveLevel(&SPI1_Resources, new_state);
-}
-
-static uint32_t SPI1_Send(void *pbuff, uint32_t num)
-{
-    return TEST_APP_ARM_SPI_Send(&SPI1_Resources, pbuff, num);
-}
-
-static uint32_t SPI1_Recieve(void *pbuff, uint32_t num)
-{
-    return TEST_APP_ARM_SPI_Recieve(&SPI1_Resources, pbuff, num);
-}
-
-static TEST_APP_ARM_SPI_Status_t SPI1_GetStatus(void)
-{
-    return TEST_APP_ARM_SPI_GetStatus(&SPI1_Resources);
-}
-
-static TEST_APP_ARM_SPI_Transfer_t SPI1_GetTransfer(void)
-{
-    return TEST_APP_ARM_SPI_GetTransfer(&SPI1_Resources);
-}
-
-#endif//_TEST_APP_SPI1_PERIPH_ENABLE_
