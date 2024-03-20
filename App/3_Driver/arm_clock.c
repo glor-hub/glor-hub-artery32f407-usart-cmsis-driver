@@ -7,6 +7,7 @@
 #include "arm_gpio.h"
 #include "arm_usart.h"
 #include "arm_spi.h"
+#include "arm_TIMER.h"
 
 //********************************************************************************
 //Macros
@@ -82,6 +83,11 @@ static crm_periph_clock_type ARM_CRM_USART_PeriphClockType[TEST_APP_ARM_USART_TY
     CRM_UART8_PERIPH_CLOCK
 };
 
+static crm_periph_clock_type ARM_CRM_TIMER_PeriphClockType[TEST_APP_ARM_TIMER_TYPES] = {
+    CRM_TMR6_PERIPH_CLOCK,
+    CRM_TMR7_PERIPH_CLOCK
+};
+
 static crm_periph_reset_type ARM_CRM_GPIO_PeriphResetType[TEST_APP_ARM_GPIO_PORTS] = {
     CRM_GPIOA_PERIPH_RESET,
     CRM_GPIOB_PERIPH_RESET,
@@ -108,6 +114,11 @@ static crm_periph_reset_type ARM_CRM_USART_PeriphResetType[TEST_APP_ARM_USART_TY
     CRM_UART8_PERIPH_RESET
 };
 
+static crm_periph_reset_type ARM_CRM_TIMER_PeriphResetType[TEST_APP_ARM_TIMER_TYPES] = {
+    CRM_TMR6_PERIPH_RESET,
+    CRM_TMR7_PERIPH_RESET
+};
+
 //********************************************************************************
 //Prototypes
 //********************************************************************************
@@ -124,7 +135,7 @@ bool TEST_APP_ARM_CRM_isReady(uint32_t status)
 }
 
 //Configure a clock system using an external quartz resonator.
-//Its frequency is defined in init.h. Use PLL.
+//Use PLL.
 //Customize the clock frequency for 8 MHz resonator (8/2*60=240 MHz)
 
 uint32_t TEST_APP_ARM_CRM_HEXT_PLL_SysClock240MHzConfig(void)
@@ -192,7 +203,7 @@ bool TEST_APP_ARM_CRM_PeriphClockEnable(eTEST_APP_Periph_Types_t periph, uint8_t
     crm_periph_clock_type clock_type;
     switch(periph) {
         case TEST_APP_PERIPH_GPIO: {
-            if(param > TEST_APP_ARM_GPIO_PORTE) {
+            if(param >= TEST_APP_ARM_GPIO_PORTS) {
 #ifdef _TEST_APP_DEBUG_
                 LOG("GPIO clock error");
 #endif//_TEST_APP_DEBUG_
@@ -203,7 +214,7 @@ bool TEST_APP_ARM_CRM_PeriphClockEnable(eTEST_APP_Periph_Types_t periph, uint8_t
             break;
         }
         case TEST_APP_PERIPH_USART: {
-            if(param > TEST_APP_ARM_UART8) {
+            if(param >= TEST_APP_ARM_USART_TYPES) {
 #ifdef _TEST_APP_DEBUG_
                 LOG("USART clock error");
 #endif//_TEST_APP_DEBUG_
@@ -214,7 +225,7 @@ bool TEST_APP_ARM_CRM_PeriphClockEnable(eTEST_APP_Periph_Types_t periph, uint8_t
             break;
         }
         case TEST_APP_PERIPH_DMA: {
-            if(param > TEST_APP_ARM_DMA2_CHAN7) {
+            if(param >= TEST_APP_ARM_DMA_CHANS) {
 #ifdef _TEST_APP_DEBUG_
                 LOG("DMA clock error");
 #endif//_TEST_APP_DEBUG_
@@ -225,13 +236,24 @@ bool TEST_APP_ARM_CRM_PeriphClockEnable(eTEST_APP_Periph_Types_t periph, uint8_t
             break;
         }
         case TEST_APP_PERIPH_SPI: {
-            if(param > TEST_APP_ARM_SPI4) {
+            if(param >= TEST_APP_ARM_SPI_TYPES) {
 #ifdef _TEST_APP_DEBUG_
                 LOG("SPI clock error");
 #endif//_TEST_APP_DEBUG_
                 drv_status |= ARM_CRM_STA_PERIPH_CLOCK_ERR;
             } else {
                 clock_type = ARM_CRM_SPI_PeriphClockType[param];
+            }
+            break;
+        }
+        case TEST_APP_PERIPH_TIMER: {
+            if(param >= TEST_APP_ARM_TIMER_TYPES) {
+#ifdef _TEST_APP_DEBUG_
+                LOG("TIMER clock error");
+#endif//_TEST_APP_DEBUG_
+                drv_status |= ARM_CRM_STA_PERIPH_CLOCK_ERR;
+            } else {
+                clock_type = ARM_CRM_TIMER_PeriphClockType[param];
             }
             break;
         }
@@ -250,7 +272,7 @@ bool TEST_APP_ARM_CRM_PeriphReset(eTEST_APP_Periph_Types_t periph, uint8_t param
     crm_periph_reset_type reset_type;
     switch(periph) {
         case TEST_APP_PERIPH_GPIO: {
-            if(param > TEST_APP_ARM_GPIO_PORTE) {
+            if(param > TEST_APP_ARM_GPIO_PORTS) {
 #ifdef _TEST_APP_DEBUG_
                 LOG("GPIO reset error");
 #endif//_TEST_APP_DEBUG_
@@ -261,7 +283,7 @@ bool TEST_APP_ARM_CRM_PeriphReset(eTEST_APP_Periph_Types_t periph, uint8_t param
             break;
         }
         case TEST_APP_PERIPH_USART: {
-            if(param > TEST_APP_ARM_UART8) {
+            if(param > TEST_APP_ARM_USART_TYPES) {
 #ifdef _TEST_APP_DEBUG_
                 LOG("USART reset error");
 #endif//_TEST_APP_DEBUG_
@@ -272,13 +294,24 @@ bool TEST_APP_ARM_CRM_PeriphReset(eTEST_APP_Periph_Types_t periph, uint8_t param
             break;
         }
         case TEST_APP_PERIPH_SPI: {
-            if(param > TEST_APP_ARM_SPI4) {
+            if(param > TEST_APP_ARM_SPI_TYPES) {
 #ifdef _TEST_APP_DEBUG_
                 LOG("SPI reset error");
 #endif//_TEST_APP_DEBUG_
                 drv_status |= ARM_CRM_STA_PERIPH_RESET_ERR;
             } else {
                 reset_type = ARM_CRM_SPI_PeriphResetType[param];
+            }
+            break;
+        }
+        case TEST_APP_PERIPH_TIMER: {
+            if(param >= TEST_APP_ARM_TIMER_TYPES) {
+#ifdef _TEST_APP_DEBUG_
+                LOG("TIMER reset error");
+#endif//_TEST_APP_DEBUG_
+                drv_status |= ARM_CRM_STA_PERIPH_RESET_ERR;
+            } else {
+                reset_type = ARM_CRM_TIMER_PeriphResetType[param];
             }
             break;
         }

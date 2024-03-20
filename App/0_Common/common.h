@@ -6,6 +6,7 @@ typedef enum {
     TEST_APP_PERIPH_USART,
     TEST_APP_PERIPH_DMA,
     TEST_APP_PERIPH_SPI,
+    TEST_APP_PERIPH_TIMER,
     TEST_APP_PERIPHS
 } eTEST_APP_Periph_Types_t;
 

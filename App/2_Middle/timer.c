@@ -1,21 +1,20 @@
 //********************************************************************************
 //timer.c
+
+
 //********************************************************************************
 #include "at32f403a_407.h"
-#include "app.h"
+// #include "app.h"
+#include "arm_driver.h"
+#include "arm_timer.h"
+#include "software_timer.h"
 #include "timer.h"
-#include <stdbool.h>
-#include <string.h>
-#include "assert.h"
+
+extern TEST_APP_ARM_TIMER_Driver_t *pARM_TIMER_Driver[TEST_APP_ARM_TIMER_TYPES];
 
 //********************************************************************************
 //Macros
 //********************************************************************************
-
-//Status of programming timers on base of SysTick core system.
-
-#define TIMER_STA_READY                         ((uint32_t)0UL)
-#define TIMER_STA_SYSTICK_ERR                   ((uint32_t)0UL)
 
 //********************************************************************************
 //Enums
@@ -29,92 +28,65 @@
 //Variables
 //********************************************************************************
 
-typedef struct {
-    confirm_state State;
-    uint32_t Time;
-    volatile uint32_t Counter;
-    volatile flag_status Flag;
-} Timer_t;
-
-static Timer_t Timer[NUM_TIMERS];
-
 //********************************************************************************
 //Prototypes
 //********************************************************************************
-
-static bool SysTick_isReady(uint32_t status);
 
 //================================================================================
 //Public
 //================================================================================
 
-void SysTick_Handler(void)
+/*********************************************************************************
+TIMER configuration:
+one_circle_mode_en (TRUE/FALSE) - TRUE: timer count up to value in the PR register
+and stops
+
+period_buff_en (TRUE/FALSE) - TRUE: the values in the TMRx_PR and TMRx_DIV registers
+are transferred to the their shadow registers only at overflow event
+
+overflow_event_source (for flag and interrupt):
+   - TEST_APP_ARM_TIMER_COUNTER_OVERFLOW_EVENT_SOURCE - only counter overflow
+   - TEST_APP_ANY_OVERFLOW_EVENT_SOURCE - counter overflow, setting the OVFSWTR bit,
+                                        overflow event from the slave controller
+
+div_prescaler - prescaler division 0...65535
+
+auto_reload_value(PR) - auto-reload register value 0...65535
+
+F_overflow_event=F_clk/((1+div_prescaler)*(1+PR))
+
+ ********************************************************************************/
+
+
+error_status TEST_APP_TIMER_TimerInit(void)
 {
-    eTEST_APP_TimerTypes_t timer;
-    for(timer = TIMER_DELAY; timer < NUM_TIMERS; timer++) {
-        if(Timer[timer].State) {
-            if(++Timer[timer].Counter == Timer[timer].Time) {
-                Timer[timer].Flag = SET;
-            }
+    uint32_t drv_status = TEST_APP_ARM_DRIVER_NO_ERROR;
+    eTEST_APP_ARM_TIMER_Types_t timer_type;
+    TEST_APP_ARM_TIMER_Driver_t *p_drv = pARM_TIMER_Driver[TEST_APP_ARM_TIMER6_BASIC];
+    for(timer_type = TEST_APP_ARM_TIMER6_BASIC; timer_type < TEST_APP_ARM_TIMER_TYPES;
+        timer_type++) {
+        if(p_drv[timer_type].GetStatus().DrvStateOn) {
+            drv_status |= p_drv[timer_type].Initialize(TEST_APP_ARM_TIMER_ONE_CIRCLE_MODE_ENABLE,
+                          TEST_APP_ARM_TIMER_PERIOD_BUFFER_ENABLE,
+                          TEST_APP_ARM_TIMER_COUNTER_OVERFLOW_EVENT_SOURCE);
         }
     }
+    return TEST_APP_ARM_DRIVER_isReady(drv_status) ? SUCCESS : ERROR;
 }
 
-error_status TimerInit(void)
+void TEST_APP_ARM_TIMER_DoDelay_usec(eTEST_APP_ARM_TIMER_Types_t timer_type,
+                                     uint8_t num_useconds)
 {
-    memset(&Timer, 0, sizeof(Timer_t) * NUM_TIMERS);
+    TEST_APP_ARM_TIMER_Driver_t *p_drv = pARM_TIMER_Driver[timer_type];
 
-    uint32_t status = TIMER_STA_READY;
-    if(SysTick_Config(system_core_clock / 1000)) {
-#ifdef _TEST_APP_DEBUG_
-        LOG("In SysTick configuration error is occured.");
-#endif//_TEST_APP_DEBUG_
+    p_drv->Config(TEST_APP_TIMER6_TIMER7_1MHZ_DIV_SCALER, num_useconds);
+    p_drv->TimerEnable(TRUE);
+    while(p_drv->GetInterruptFlag(TMR_OVF_FLAG) != SET);
+    p_drv->ClearInterruptFlag(TMR_OVF_FLAG);
+    p_drv->TimerEnable(FALSE);
 
-
-        status |= TIMER_STA_SYSTICK_ERR;
-    }
-    return SysTick_isReady(status) ? SUCCESS : ERROR;
 }
-
-void TimerEnable(eTEST_APP_TimerTypes_t timer, uint32_t time)
-{
-    Timer[timer].State = TRUE;
-    Timer[timer].Time = time;
-    Timer[timer].Counter = 0;
-    Timer[timer].Flag = RESET;
-}
-
-void TimerDisable(eTEST_APP_TimerTypes_t timer)
-{
-    Timer[timer].State = FALSE;
-    //in msec
-    Timer[timer].Time = 0;
-    Timer[timer].Counter = 0;
-    Timer[timer].Flag = RESET;
-}
-
-flag_status TimerTestFlag(eTEST_APP_TimerTypes_t timer)
-{
-    return Timer[timer].Flag;
-}
-
-confirm_state TimerTestSet(eTEST_APP_TimerTypes_t timer)
-{
-    return Timer[timer].State;
-}
-
-void TimerDoDelay_ms(uint32_t time)
-{
-    TimerEnable(TIMER_DELAY, time);
-    while(TimerTestFlag(TIMER_DELAY) == RESET);
-    TimerDisable(TIMER_DELAY);
-}
-
 
 //================================================================================
 //Private
 //================================================================================
-static bool SysTick_isReady(uint32_t status)
-{
-    return (status == TIMER_STA_READY);
-}
