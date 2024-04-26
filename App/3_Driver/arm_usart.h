@@ -16,8 +16,8 @@
 UART4
 ********************************************/
 #define _TEST_APP_UART4_ENABLED_        (1)
-#define _TEST_APP_UART4_TX_DMA_ENABLED_ (1)
-#define _TEST_APP_UART4_RX_DMA_ENABLED_ (1)
+#define _TEST_APP_UART4_TX_DMA_ENABLED_ (0)
+#define _TEST_APP_UART4_RX_DMA_ENABLED_ (0)
 
 /*******************************************
 UART5
@@ -29,14 +29,14 @@ UART5
 /*******************************************
 UART7
 ********************************************/
-#define _TEST_APP_UART7_ENABLED_        (0)
+#define _TEST_APP_UART7_ENABLED_        (1)
 #define _TEST_APP_UART7_TX_DMA_ENABLED_ (0)
 #define _TEST_APP_UART7_RX_DMA_ENABLED_ (0)
 
 /*******************************************
 UART8
 ********************************************/
-#define _TEST_APP_UART8_ENABLED_        (0)
+#define _TEST_APP_UART8_ENABLED_        (1)
 #define _TEST_APP_UART8_TX_DMA_ENABLED_ (0)
 #define _TEST_APP_UART8_RX_DMA_ENABLED_ (0)
 
@@ -169,6 +169,6 @@ typedef struct {
 } TEST_APP_ARM_USART_Driver_t;
 
 void TEST_APP_ARM_USART_StartUp(void);
-void TEST_APP_ARM_USART_IRQHandler(eTEST_APP_ARM_USART_Types_t usart_type);
+void TEST_APP_ARM_USART_IRQHandler(eTEST_APP_ARM_USART_Types_t usart);
 
 #endif //_ARM_USART_H_ 
