@@ -232,7 +232,6 @@ void TEST_APP_DMA_InterruptEnable(eTEST_APP_ARM_DMA_Chan_t chan,
         }
         default:
             break;
-
     }
 }
 

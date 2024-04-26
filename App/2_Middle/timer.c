@@ -74,8 +74,8 @@ error_status TEST_APP_TIMER_TimerInit(void)
     return TEST_APP_ARM_DRIVER_isReady(drv_status) ? SUCCESS : ERROR;
 }
 
-void TEST_APP_ARM_TIMER_DoDelay_usec(eTEST_APP_ARM_TIMER_Types_t timer_type,
-                                     uint8_t num_useconds)
+void TEST_APP_TIMER_DoDelay_usec(eTEST_APP_ARM_TIMER_Types_t timer_type,
+                                 uint8_t num_useconds)
 {
     TEST_APP_ARM_TIMER_Driver_t *p_drv = pARM_TIMER_Driver[timer_type];
 
@@ -84,7 +84,6 @@ void TEST_APP_ARM_TIMER_DoDelay_usec(eTEST_APP_ARM_TIMER_Types_t timer_type,
     while(p_drv->GetInterruptFlag(TMR_OVF_FLAG) != SET);
     p_drv->ClearInterruptFlag(TMR_OVF_FLAG);
     p_drv->TimerEnable(FALSE);
-
 }
 
 //================================================================================
