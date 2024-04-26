@@ -8,7 +8,7 @@
 int main(void)
 {
     error_status init_result;
-    TEST_APP_StartUp();
+     TEST_APP_StartUp();
     init_result = TEST_APP_AppInit();
 
 #ifdef _TEST_APP_DEBUG_

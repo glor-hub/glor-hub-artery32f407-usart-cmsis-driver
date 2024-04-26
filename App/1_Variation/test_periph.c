@@ -48,7 +48,7 @@ void TEST_APP_PeriphTest(void)
         LOG("USART Test not passed");
     }
     if(TEST_APP_SPI_Test() == ERROR) {
-        LOG("USART Test not passed");
+        LOG("SPI Test not passed");
     }
 #endif//_TEST_APP_DEBUG_
 }

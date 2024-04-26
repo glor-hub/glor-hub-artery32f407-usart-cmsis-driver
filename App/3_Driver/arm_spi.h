@@ -8,16 +8,21 @@
 
 /********************************************
 
-CRC transmission and error checking is not supported
-in this driver version.
-DMA is not used in this driver version.
+This driver version does not support:
+- multiple slave devices
+- multiple master devices
+- CRC transmission and error checking
+- the use of DMA
+
+********************************************
+
+Select SPIx
+Configure SPIx using:
+ - parameters of the arrays in arm_spi.c,
+ - parameters of function TEST_APP_SPI_Init() in spi.c
 
 ********************************************/
 
-
-
-//select SPIx
-//select 8/16 frame bit number
 
 /*******************************************
 SPI1
@@ -35,14 +40,13 @@ SPI2
 SPI3
 
 ********************************************/
-#define _TEST_APP_SPI3_ENABLED_ (1)
-
+#define _TEST_APP_SPI3_ENABLED_ (0)
 
 /*******************************************
 SPI4
 
 ********************************************/
-#define _TEST_APP_SPI4_ENABLED_ (1)
+#define _TEST_APP_SPI4_ENABLED_ (0)
 
 /*******************************************
 
@@ -64,24 +68,38 @@ typedef enum {
     ARM_SPI_PIN_TYPES
 } eARM_SPI_PinTypes_t;
 
-
-// add new spi transmission mode type
-// (spi_transmission_mode_type is defined in at32f03a_407_gpio.h):
-#define SPI_TRANSMIT_FULL_DUPLEX_TX_ONLY    0x04
+typedef enum {
+    TEST_APP_ARM_SPI_FULL_DUPLEX_MASTER_MODE = 0,
+    TEST_APP_ARM_SPI_FULL_DUPLEX_SLAVE_MODE,
+    //full-duplex master with the use of single line MOSI:
+    TEST_APP_ARM_SPI_TRANSMIT_ONLY_MASTER_MODE,
+    //full-duplex slave with the use of single line MISO:
+    TEST_APP_ARM_SPI_TRANSMIT_ONLY_SLAVE_MODE,
+    TEST_APP_ARM_SPI_HALF_DUPLEX_TRANSMIT_MASTER_MODE,
+    TEST_APP_ARM_SPI_HALF_DUPLEX_TRANSMIT_SLAVE_MODE,
+    TEST_APP_ARM_SPI_HALF_DUPLEX_RECIEVE_MASTER_MODE,
+    TEST_APP_ARM_SPI_HALF_DUPLEX_RECIEVE_SLAVE_MODE,
+    TEST_APP_ARM_SPI_RECIEVE_ONLY_MASTER_MODE,
+    TEST_APP_ARM_SPI_RECIEVE_ONLY_SLAVE_MODE,
+    TEST_APP_ARM_SPI_MODE_TYPES
+} eTEST_APP_ARM_SPI_ModeTypes_t;
 
 typedef enum {
-    TEST_APP_ARM_SPI_PIN_DEF_TYPE_REMAP1 = 0,
-    TEST_APP_ARM_SPI_PIN_DEF_TYPE_REMAP2,
-    TEST_APP_ARM_SPI_PIN_DEF_REMAP_TYPES,
-    TEST_APP_ARM_SPI_PIN_DEF_TYPE_DEFAULT
-} eTEST_APP_ARM_SPI_PinDefTypes_t;
+    TEST_APP_ARM_SPI_GPIO_PIN_DEF_TYPE_DEFAULT,
+    TEST_APP_ARM_SPI_GPIO_PIN_DEF_TYPE_REMAP1,
+    TEST_APP_ARM_SPI_GPIO_PIN_DEF_TYPE_REMAP2,
+    TEST_APP_ARM_SPI_GPIO_PIN_DEF_TYPES,
+    TEST_APP_ARM_SPI_GPIO_PIN_REMAP_CONFIG_NOT_DEFINED,
+} eTEST_APP_ARM_SPI_GPIO_PinDefTypes_t;
 
-//add default pin configuration
-#define TEST_APP_ARM_SPI_PIN_DEF_TYPES (TEST_APP_ARM_SPI_PIN_DEF_REMAP_TYPES+1)
-#define TEST_APP_ARM_SPI_PIN_REMAP_CONFIG_NOT_DEFINED (uint32_t)0x00
+#define TEST_APP_ARM_SPI_GPIO_PIN_DEF_REMAP_TYPES (TEST_APP_ARM_SPI_GPIO_PIN_DEF_TYPES-1)
 
+typedef enum {
+    TEST_APP_ARM_SPI_GPIO_PIN_ANALOG_INPUT_MODE_ENABLE = 0,
+    TEST_APP_ARM_SPI_GPIO_PIN_ANALOG_INPUT_MODE_DISABLE
+} eTEST_APP_ARM_SPI_PinAnalogInputMode_t;
 
-// SPI Driver state
+//SPI Driver state
 #define TEST_APP_ARM_SPI_DRIVER_FLAG_INITIALIZED       (uint32_t)(1U << 0)
 #define TEST_APP_ARM_SPI_DRIVER_FLAG_CONFIGURATED      (uint32_t)(1U << 1)
 #define TEST_APP_ARM_SPI_DRIVER_FLAG_ENABLED           (uint32_t)(1U << 2)
@@ -91,6 +109,14 @@ typedef enum {
 #define TEST_APP_ARM_SPI_EVENT_TX_COMPLETE      ((uint32_t)1UL << 1)//Transmit completed
 #define TEST_APP_ARM_SPI_EVENT_RX_OVERFLOW      ((uint32_t)1UL << 2)//Receive data overflow
 #define TEST_APP_ARM_SPI_EVENT_MODE_FAULT       ((uint32_t)1UL << 3)//Master mode error
+
+//CS confirm every world enable in software mode
+#define TEST_APP_ARM_SPI_CS_CONFIRM_EVERY_WORLD_ENABLE  TRUE
+#define TEST_APP_ARM_SPI_CS_CONFIRM_EVERY_WORLD_DISABLE FALSE
+
+//MISO pin analog input mode enable
+#define TEST_APP_ARM_SPI_MISO_ANALOG_INPUT_MODE_ENABLE  TRUE
+#define TEST_APP_ARM_SPI_MISO_ANALOG_INPUT_MODE_DISABLE FALSE
 
 //SPI clock latch format modes
 typedef enum {
@@ -106,18 +132,13 @@ typedef enum {
     TEST_APP_ARM_SPI_CS_ACTIVE_LEVEL_HIGH
 } eTEST_APP_ARM_SPI_CSActiveLevel_t;
 
-//SPI CS confirm every world enable in software mode
-typedef enum {
-    TEST_APP_ARM_SPI_CS_CONFIRM_EVERY_WORLD_ENABLE = 0,
-    TEST_APP_ARM_SPI_CS_CONFIRM_EVERY_WORLD_DISABLE
-} eTEST_APP_ARM_SPI_CSConfirmEveryWorld_t;
-
 typedef struct {
     spi_init_type                           InitStruct;
     eTEST_APP_ARM_SPI_ClockLatchTypes_t     ClockType;
     eTEST_APP_ARM_SPI_CSActiveLevel_t       CSActiveLevel;
-    uint8_t                                 DelayAfterCS_usec;
-    eTEST_APP_ARM_SPI_CSConfirmEveryWorld_t CSConfEveryWorldEn;
+    confirm_state                           CSConfEveryWorldEn;
+    uint32_t                                DelayAfterCS_usec;
+    confirm_state                           MISOAnalogInputModeEn;
 } TEST_APP_ARM_SPI_Config_t;
 
 typedef struct {
@@ -135,8 +156,8 @@ typedef struct {
 } TEST_APP_ARM_SPI_Transfer_t;
 
 typedef struct {
-    uint8_t TxBusy;
-    uint8_t RxBusy;
+    volatile uint8_t TxBusy;
+    volatile uint8_t RxBusy;
     uint8_t RxOverflow;
     uint8_t ModeFault;
 } TEST_APP_ARM_SPI_XferStatus_t;
@@ -149,29 +170,26 @@ typedef struct {
 } TEST_APP_ARM_SPI_Status_t;
 
 typedef struct {
-    IRQn_Type                       IrqNum;         // SPI IRQ Number
-    eTEST_APP_ARM_SPI_PinDefTypes_t GpioPinDefType; //pin remapping or not
-    TEST_APP_RingBuffer_t           Event;
-    TEST_APP_ARM_SPI_Config_t       Config;
-    TEST_APP_ARM_SPI_GPIO_t         Gpio[ARM_SPI_PIN_TYPES];
-    TEST_APP_ARM_SPI_Transfer_t     Transfer;
-    TEST_APP_ARM_SPI_Status_t       Status;
+    eTEST_APP_ARM_SPI_ModeTypes_t           mode;
+    IRQn_Type                               IrqNum;         // SPI IRQ Number
+    eTEST_APP_ARM_SPI_GPIO_PinDefTypes_t    GpioPinDefType; //pin remapping or not
+    TEST_APP_RingBuffer_t                   Event;
+    TEST_APP_ARM_SPI_Config_t               Config;
+    TEST_APP_ARM_SPI_GPIO_t                 Gpio[ARM_SPI_PIN_TYPES];
+    TEST_APP_ARM_SPI_Transfer_t             Transfer;
+    TEST_APP_ARM_SPI_Status_t               Status;
 } TEST_APP_ARM_SPI_Resources_t;
 
 typedef struct {
-    uint32_t (*Initialize)(spi_master_slave_mode_type mode,
-                           spi_transmission_mode_type xfer_mode,
-                           spi_mclk_freq_div_type mclk_div,
-                           eTEST_APP_ARM_SPI_ClockLatchTypes_t clk_type,
-                           spi_cs_mode_type cs_mode,
-                           eTEST_APP_ARM_SPI_CSActiveLevel_t cs_active_level,
-                           eTEST_APP_ARM_SPI_CSConfirmEveryWorld_t cs_conf_every_world,
-                           uint32_t spi_delay_after_cs_usec,
+    uint32_t (*Initialize)(eTEST_APP_ARM_SPI_ModeTypes_t mode,
                            spi_frame_bit_num_type data_bit_num,
                            spi_first_bit_type data_first_bit,
-                           eTEST_APP_ARM_SPI_PinDefTypes_t gpio_pin_def_type);
+                           eTEST_APP_ARM_SPI_GPIO_PinDefTypes_t gpio_pin_def_type);
     uint32_t (*Uninitialize)(void);
+    void (*DisableOnTransfer)(void);
     void (*Event_cb)(void);
+    uint32_t (*Send_Recieve)(void *ptxdata, void *prxdata,
+                             uint32_t num);
     uint32_t (*Send)(void *pdata, uint32_t num);
     uint32_t (*Recieve)(void *pdata, uint32_t num);
     TEST_APP_ARM_SPI_Transfer_t (*GetTransfer)(void);
@@ -179,6 +197,6 @@ typedef struct {
 } TEST_APP_ARM_SPI_Driver_t;
 
 void TEST_APP_ARM_SPI_StartUp(void);
-void TEST_APP_ARM_SPI_IRQHandler(eTEST_APP_ARM_SPI_Types_t spi_type);
+void TEST_APP_ARM_SPI_IRQHandler(eTEST_APP_ARM_SPI_Types_t spi);
 
 #endif //_ARM_SPI_H_ 
