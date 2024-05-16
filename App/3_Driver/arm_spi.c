@@ -47,6 +47,7 @@ typedef enum {
 
 static uint32_t  ARM_SPI_SetResources(eTEST_APP_ARM_SPI_Types_t spi,
                                       eTEST_APP_ARM_SPI_ModeTypes_t mode,
+                                      spi_mclk_freq_div_type mclk_freq_div,
                                       spi_frame_bit_num_type data_bit_num,
                                       spi_first_bit_type data_first_bit,
                                       eTEST_APP_ARM_SPI_GPIO_PinDefTypes_t gpio_pin_def_type);
@@ -57,25 +58,30 @@ static void ARM_SPI_SoftwareReleaseSlave(eTEST_APP_ARM_SPI_Types_t spi);
 
 static uint32_t ARM_SPI_Initialize(eTEST_APP_ARM_SPI_Types_t spi,
                                    eTEST_APP_ARM_SPI_ModeTypes_t mode,
+                                   spi_mclk_freq_div_type mclk_freq_div,
                                    spi_frame_bit_num_type data_bit_num,
                                    spi_first_bit_type data_first_bit,
                                    eTEST_APP_ARM_SPI_GPIO_PinDefTypes_t gpio_pin_def_type);
 
 static uint32_t ARM_SPI_Initialize_1(eTEST_APP_ARM_SPI_ModeTypes_t mode,
+                                     spi_mclk_freq_div_type mclk_freq_div,
                                      spi_frame_bit_num_type data_bit_num,
                                      spi_first_bit_type data_first_bit,
                                      eTEST_APP_ARM_SPI_GPIO_PinDefTypes_t gpio_pin_def_type);
 
 static uint32_t ARM_SPI_Initialize_2(eTEST_APP_ARM_SPI_ModeTypes_t mode,
+                                     spi_mclk_freq_div_type mclk_freq_div,
                                      spi_frame_bit_num_type data_bit_num,
                                      spi_first_bit_type data_first_bit,
                                      eTEST_APP_ARM_SPI_GPIO_PinDefTypes_t gpio_pin_def_type);
 
 static uint32_t ARM_SPI_Initialize_3(eTEST_APP_ARM_SPI_ModeTypes_t mode,
+                                     spi_mclk_freq_div_type mclk_freq_div,
                                      spi_frame_bit_num_type data_bit_num,
                                      spi_first_bit_type data_first_bit,
                                      eTEST_APP_ARM_SPI_GPIO_PinDefTypes_t gpio_pin_def_type);
 static uint32_t ARM_SPI_Initialize_4(eTEST_APP_ARM_SPI_ModeTypes_t mode,
+                                     spi_mclk_freq_div_type mclk_freq_div,
                                      spi_frame_bit_num_type data_bit_num,
                                      spi_first_bit_type data_first_bit,
                                      eTEST_APP_ARM_SPI_GPIO_PinDefTypes_t gpio_pin_def_type);
@@ -237,23 +243,13 @@ static IRQn_Type ARM_SPI_IrqNumber[TEST_APP_ARM_SPI_TYPES] = {
 static TEST_APP_ARM_SPI_Resources_t ARM_SPI_Resources[TEST_APP_ARM_SPI_TYPES];
 static uint32_t ARM_SPI_EventBuff[TEST_APP_ARM_SPI_TYPES][ARM_SPI_EVENT_BUFF_SIZE];
 
-
 static uint32_t ARM_SPI_TxBuff[TEST_APP_ARM_SPI_TYPES][ARM_SPI_TX_BUFF_SIZE];
 static uint32_t ARM_SPI_RxBuff[TEST_APP_ARM_SPI_TYPES][ARM_SPI_RX_BUFF_SIZE];
-
-static spi_mclk_freq_div_type ARM_SPI_MasterClockFrequencyDiv[TEST_APP_ARM_SPI_TYPES] = {
-    // SPI_MCLK_DIV_4, //30 MHz(APB2 bus-120 MHz)
-    // SPI_MCLK_DIV_4, //30 MHz(APB2 bus-120 MHz)
-    SPI_MCLK_DIV_16, //30 MHz(APB2 bus-120 MHz)
-    SPI_MCLK_DIV_16, //30 MHz(APB2 bus-120 MHz)
-    SPI_MCLK_DIV_4, //30 MHz(APB2 bus-120 MHz)
-    SPI_MCLK_DIV_4, //30 MHz(APB2 bus-120 MHz)
-};
 
 static spi_cs_mode_type ARM_SPI_CSMode[TEST_APP_ARM_SPI_TYPES] = {
     SPI_CS_HARDWARE_MODE,
     SPI_CS_SOFTWARE_MODE,
-    SPI_CS_SOFTWARE_MODE,
+    SPI_CS_HARDWARE_MODE,
     SPI_CS_SOFTWARE_MODE
 };
 
@@ -267,7 +263,7 @@ static eTEST_APP_ARM_SPI_ClockLatchTypes_t ARM_SPI_ClockLatchType[TEST_APP_ARM_S
 static eTEST_APP_ARM_SPI_CSActiveLevel_t ARM_SPI_CSActiveLevel[TEST_APP_ARM_SPI_TYPES] = {
     TEST_APP_ARM_SPI_CS_ACTIVE_LEVEL_LOW,
     TEST_APP_ARM_SPI_CS_ACTIVE_LEVEL_LOW,
-    SPI_AD7685_CS_ACTIVE_LEVEL,
+    TEST_APP_ARM_SPI_CS_ACTIVE_LEVEL_LOW,
     TEST_APP_ARM_SPI_CS_ACTIVE_LEVEL_LOW
 };
 
@@ -281,14 +277,15 @@ static confirm_state ARM_SPI_CSConfirmEveryWorld[TEST_APP_ARM_SPI_TYPES] = {
 static uint32_t ARM_SPI_MasterDelayAfter_CS[TEST_APP_ARM_SPI_TYPES] = {
     SPI_NO_DELAY_USEC_AFTER_CS,
     SPI_NO_DELAY_USEC_AFTER_CS,
-    SPI_AD7685_DELAY_USEC_AFTER_CS,
+    SPI_NO_DELAY_USEC_AFTER_CS,
+    //SPI_AD7685_DELAY_USEC_AFTER_CS,
     SPI_NO_DELAY_USEC_AFTER_CS
 };
 
 static confirm_state ARM_SPI_MISOAnalogInput[TEST_APP_ARM_SPI_TYPES] = {
     TEST_APP_ARM_SPI_MISO_ANALOG_INPUT_MODE_DISABLE,
     TEST_APP_ARM_SPI_MISO_ANALOG_INPUT_MODE_DISABLE,
-    TEST_APP_ARM_SPI_MISO_ANALOG_INPUT_MODE_ENABLE,
+    TEST_APP_ARM_SPI_MISO_ANALOG_INPUT_MODE_DISABLE,
     TEST_APP_ARM_SPI_MISO_ANALOG_INPUT_MODE_DISABLE
 };
 
@@ -304,6 +301,31 @@ static TEST_APP_ARM_SPI_GPIO_t ARM_SPI_GPIO_Def[TEST_APP_ARM_SPI_TYPES][TEST_APP
 
     //SPI1
     {
+
+        //PIN_DEF_TYPE_REMAP1
+        {
+            //MISO
+            {TEST_APP_ARM_GPIO_PORTB, GPIO_PINS_4},
+            //MOSI
+            {TEST_APP_ARM_GPIO_PORTB, GPIO_PINS_5},
+            //CS
+            {TEST_APP_ARM_GPIO_PORTA, GPIO_PINS_15},
+            //SCLK
+            {TEST_APP_ARM_GPIO_PORTB, GPIO_PINS_3}
+        },
+
+        //PIN_DEF_TYPE_REMAP2
+        {
+            //MISO
+            {TEST_APP_ARM_GPIO_PORT_NOT_DEFINED, TEST_APP_ARM_GPIO_PIN_NOT_DEFINED},
+            //MOSI
+            {TEST_APP_ARM_GPIO_PORT_NOT_DEFINED, TEST_APP_ARM_GPIO_PIN_NOT_DEFINED},
+            //CS
+            {TEST_APP_ARM_GPIO_PORT_NOT_DEFINED, TEST_APP_ARM_GPIO_PIN_NOT_DEFINED},
+            //SCLK
+            {TEST_APP_ARM_GPIO_PORT_NOT_DEFINED, TEST_APP_ARM_GPIO_PIN_NOT_DEFINED}
+        },
+
         //PIN_DEF_TYPE_DEFAULT
         {
             //MISO
@@ -314,18 +336,23 @@ static TEST_APP_ARM_SPI_GPIO_t ARM_SPI_GPIO_Def[TEST_APP_ARM_SPI_TYPES][TEST_APP
             {TEST_APP_ARM_GPIO_PORTA, GPIO_PINS_4},
             //SCLK
             {TEST_APP_ARM_GPIO_PORTA, GPIO_PINS_5}
-        },
+        }
+
+    },
+
+//SPI2
+    {
 
         //PIN_DEF_TYPE_REMAP1
         {
             //MISO
-            {TEST_APP_ARM_GPIO_PORTB, GPIO_PINS_4},
+            {TEST_APP_ARM_GPIO_PORT_NOT_DEFINED, TEST_APP_ARM_GPIO_PIN_NOT_DEFINED},
             //MOSI
-            {TEST_APP_ARM_GPIO_PORTB, GPIO_PINS_5},
+            {TEST_APP_ARM_GPIO_PORT_NOT_DEFINED, TEST_APP_ARM_GPIO_PIN_NOT_DEFINED},
             //CS
-            {TEST_APP_ARM_GPIO_PORTA, GPIO_PINS_15},
+            {TEST_APP_ARM_GPIO_PORT_NOT_DEFINED, TEST_APP_ARM_GPIO_PIN_NOT_DEFINED},
             //SCLK
-            {TEST_APP_ARM_GPIO_PORTB, GPIO_PINS_3}
+            {TEST_APP_ARM_GPIO_PORT_NOT_DEFINED, TEST_APP_ARM_GPIO_PIN_NOT_DEFINED}
         },
 
         //PIN_DEF_TYPE_REMAP2
@@ -338,11 +365,8 @@ static TEST_APP_ARM_SPI_GPIO_t ARM_SPI_GPIO_Def[TEST_APP_ARM_SPI_TYPES][TEST_APP
             {TEST_APP_ARM_GPIO_PORT_NOT_DEFINED, TEST_APP_ARM_GPIO_PIN_NOT_DEFINED},
             //SCLK
             {TEST_APP_ARM_GPIO_PORT_NOT_DEFINED, TEST_APP_ARM_GPIO_PIN_NOT_DEFINED}
-        }
-    },
+        },
 
-//SPI2
-    {
         //PIN_DEF_TYPE_DEFAULT
         {
             //MISO
@@ -353,46 +377,12 @@ static TEST_APP_ARM_SPI_GPIO_t ARM_SPI_GPIO_Def[TEST_APP_ARM_SPI_TYPES][TEST_APP
             {TEST_APP_ARM_GPIO_PORTB, GPIO_PINS_12},
             //SCLK
             {TEST_APP_ARM_GPIO_PORTB, GPIO_PINS_13}
-        },
-
-        //PIN_DEF_TYPE_REMAP1
-        {
-            //MISO
-            {TEST_APP_ARM_GPIO_PORT_NOT_DEFINED, TEST_APP_ARM_GPIO_PIN_NOT_DEFINED},
-            //MOSI
-            {TEST_APP_ARM_GPIO_PORT_NOT_DEFINED, TEST_APP_ARM_GPIO_PIN_NOT_DEFINED},
-            //CS
-            {TEST_APP_ARM_GPIO_PORT_NOT_DEFINED, TEST_APP_ARM_GPIO_PIN_NOT_DEFINED},
-            //SCLK
-            {TEST_APP_ARM_GPIO_PORT_NOT_DEFINED, TEST_APP_ARM_GPIO_PIN_NOT_DEFINED}
-        },
-
-        //PIN_DEF_TYPE_REMAP2
-        {
-            //MISO
-            {TEST_APP_ARM_GPIO_PORT_NOT_DEFINED, TEST_APP_ARM_GPIO_PIN_NOT_DEFINED},
-            //MOSI
-            {TEST_APP_ARM_GPIO_PORT_NOT_DEFINED, TEST_APP_ARM_GPIO_PIN_NOT_DEFINED},
-            //CS
-            {TEST_APP_ARM_GPIO_PORT_NOT_DEFINED, TEST_APP_ARM_GPIO_PIN_NOT_DEFINED},
-            //SCLK
-            {TEST_APP_ARM_GPIO_PORT_NOT_DEFINED, TEST_APP_ARM_GPIO_PIN_NOT_DEFINED}
         }
+
     },
 
 //SPI3
     {
-        //PIN_DEF_TYPE_DEFAULT
-        {
-            //MISO
-            {TEST_APP_ARM_GPIO_PORTB, GPIO_PINS_4},
-            //MOSI
-            {TEST_APP_ARM_GPIO_PORTB, GPIO_PINS_5},
-            //CS
-            {TEST_APP_ARM_GPIO_PORTA, GPIO_PINS_15},
-            //SCLK
-            {TEST_APP_ARM_GPIO_PORTB, GPIO_PINS_3}
-        },
 
         //PIN_DEF_TYPE_REMAP1
         {
@@ -416,22 +406,24 @@ static TEST_APP_ARM_SPI_GPIO_t ARM_SPI_GPIO_Def[TEST_APP_ARM_SPI_TYPES][TEST_APP
             {TEST_APP_ARM_GPIO_PORT_NOT_DEFINED, TEST_APP_ARM_GPIO_PIN_NOT_DEFINED},
             //SCLK
             {TEST_APP_ARM_GPIO_PORT_NOT_DEFINED, TEST_APP_ARM_GPIO_PIN_NOT_DEFINED}
+        },
+
+        //PIN_DEF_TYPE_DEFAULT
+        {
+            //MISO
+            {TEST_APP_ARM_GPIO_PORTB, GPIO_PINS_4},
+            //MOSI
+            {TEST_APP_ARM_GPIO_PORTB, GPIO_PINS_5},
+            //CS
+            {TEST_APP_ARM_GPIO_PORTA, GPIO_PINS_15},
+            //SCLK
+            {TEST_APP_ARM_GPIO_PORTB, GPIO_PINS_3}
         }
+
     },
 
 //SPI4
     {
-        //PIN_DEF_TYPE_DEFAULT
-        {
-            //MISO
-            {TEST_APP_ARM_GPIO_PORTE, GPIO_PINS_5},
-            //MOSI
-            {TEST_APP_ARM_GPIO_PORTE, GPIO_PINS_6},
-            //CS
-            {TEST_APP_ARM_GPIO_PORTE, GPIO_PINS_4},
-            //SCLK
-            {TEST_APP_ARM_GPIO_PORTE, GPIO_PINS_2}
-        },
 
         //PIN_DEF_TYPE_REMAP1
         {
@@ -455,7 +447,20 @@ static TEST_APP_ARM_SPI_GPIO_t ARM_SPI_GPIO_Def[TEST_APP_ARM_SPI_TYPES][TEST_APP
             {TEST_APP_ARM_GPIO_PORTB, GPIO_PINS_6},
             //SCLK
             {TEST_APP_ARM_GPIO_PORTB, GPIO_PINS_7}
+        },
+
+        //PIN_DEF_TYPE_DEFAULT
+        {
+            //MISO
+            {TEST_APP_ARM_GPIO_PORTE, GPIO_PINS_5},
+            //MOSI
+            {TEST_APP_ARM_GPIO_PORTE, GPIO_PINS_6},
+            //CS
+            {TEST_APP_ARM_GPIO_PORTE, GPIO_PINS_4},
+            //SCLK
+            {TEST_APP_ARM_GPIO_PORTE, GPIO_PINS_2}
         }
+
     }
 };
 
@@ -507,7 +512,7 @@ void TEST_APP_ARM_SPI_IRQHandler(eTEST_APP_ARM_SPI_Types_t spi)
                     (uint8_t)(ARM_SPI_ReadData(spi));
             } else {
                 *((uint16_t *)p_res->Transfer.pRxData + p_res->Transfer.RxCnt) =
-                    ARM_SPI_ReadData(spi);
+                    (uint16_t)ARM_SPI_ReadData(spi);
             }
             p_res->Transfer.RxCnt++;
             if((p_res->Config.InitStruct.cs_mode_selection == SPI_CS_SOFTWARE_MODE) &&
@@ -582,6 +587,7 @@ void TEST_APP_ARM_SPI_IRQHandler(eTEST_APP_ARM_SPI_Types_t spi)
 
 static uint32_t  ARM_SPI_SetResources(eTEST_APP_ARM_SPI_Types_t spi,
                                       eTEST_APP_ARM_SPI_ModeTypes_t mode,
+                                      spi_mclk_freq_div_type mclk_freq_div,
                                       spi_frame_bit_num_type data_bit_num,
                                       spi_first_bit_type data_first_bit,
                                       eTEST_APP_ARM_SPI_GPIO_PinDefTypes_t gpio_pin_def_type)
@@ -592,7 +598,7 @@ static uint32_t  ARM_SPI_SetResources(eTEST_APP_ARM_SPI_Types_t spi,
     p_res->GpioPinDefType = gpio_pin_def_type;
     p_res->Config.InitStruct.master_slave_mode = ARM_SPI_MasterSlaveMode[mode];
     p_res->Config.InitStruct.transmission_mode = ARM_SPI_TransmissionMode[mode];
-    p_res->Config.InitStruct.mclk_freq_division = ARM_SPI_MasterClockFrequencyDiv[spi];
+    p_res->Config.InitStruct.mclk_freq_division = mclk_freq_div;
     p_res->Config.InitStruct.cs_mode_selection = ARM_SPI_CSMode[spi];
     p_res->Config.InitStruct.frame_bit_num = data_bit_num;
     p_res->Config.InitStruct.first_bit_transmission = data_first_bit;
@@ -650,13 +656,14 @@ static uint32_t  ARM_SPI_SetResources(eTEST_APP_ARM_SPI_Types_t spi,
 
 static uint32_t ARM_SPI_Initialize(eTEST_APP_ARM_SPI_Types_t spi,
                                    eTEST_APP_ARM_SPI_ModeTypes_t mode,
+                                   spi_mclk_freq_div_type mclk_freq_div,
                                    spi_frame_bit_num_type data_bit_num,
                                    spi_first_bit_type data_first_bit,
                                    eTEST_APP_ARM_SPI_GPIO_PinDefTypes_t gpio_pin_def_type)
 {
     TEST_APP_ARM_SPI_Resources_t *p_res = &ARM_SPI_Resources[spi];
     uint32_t drv_status = TEST_APP_ARM_DRIVER_NO_ERROR;
-    drv_status |= ARM_SPI_SetResources(spi, mode, data_bit_num,
+    drv_status |= ARM_SPI_SetResources(spi, mode, mclk_freq_div, data_bit_num,
                                        data_first_bit, gpio_pin_def_type);
     if(!(TEST_APP_ARM_CRM_PeriphClockEnable(TEST_APP_PERIPH_SPI, spi, TRUE))) {
         p_res->Status.DrvStatus |= TEST_APP_ARM_DRIVER_ERROR;
@@ -778,14 +785,15 @@ static void ARM_SPI_Event_cb(eTEST_APP_ARM_SPI_Types_t spi)
         }
         p_res->Transfer.RxCnt = 0;
         p_res->Transfer.RxNum = 0;
-#ifdef _TEST_APP_DEBUG_
-        spi_enable(pARM_SPI_Register[spi], FALSE);
-#endif//_TEST_APP_DEBUG_
+// #ifdef _TEST_APP_DEBUG_
+//         spi_enable(pARM_SPI_Register[spi], FALSE);
+// #endif//_TEST_APP_DEBUG_
     }
     if(event & TEST_APP_ARM_SPI_EVENT_TX_COMPLETE) {
         switch(p_res->mode) {
             case TEST_APP_ARM_SPI_FULL_DUPLEX_MASTER_MODE: {
                 while(p_res->Status.XferStatus.RxBusy == 1);
+                TEST_APP_LCD2004_Printf(3, 0, SET, "%s", "SPI master is ok");
                 break;
             }
             case TEST_APP_ARM_SPI_FULL_DUPLEX_SLAVE_MODE: {
@@ -807,9 +815,9 @@ static void ARM_SPI_Event_cb(eTEST_APP_ARM_SPI_Types_t spi)
         }
         p_res->Transfer.TxCnt = 0;
         p_res->Transfer.TxNum = 0;
-#ifdef _TEST_APP_DEBUG_
-        spi_enable(pARM_SPI_Register[spi], FALSE);
-#endif//_TEST_APP_DEBUG_
+// #ifdef _TEST_APP_DEBUG_
+//         spi_enable(pARM_SPI_Register[spi], FALSE);
+// #endif//_TEST_APP_DEBUG_
     }
     if(event & TEST_APP_ARM_SPI_EVENT_RX_OVERFLOW) {
 //to do: overflow in master recieve only mode (use SPI_TRANSMIT_FULL_DUPLEX)
@@ -1332,40 +1340,44 @@ static TEST_APP_ARM_SPI_Status_t ARM_SPI_GetStatus(eTEST_APP_ARM_SPI_Types_t spi
 }
 
 static uint32_t ARM_SPI_Initialize_1(eTEST_APP_ARM_SPI_ModeTypes_t mode,
+                                     spi_mclk_freq_div_type mclk_freq_div,
                                      spi_frame_bit_num_type data_bit_num,
                                      spi_first_bit_type data_first_bit,
                                      eTEST_APP_ARM_SPI_GPIO_PinDefTypes_t gpio_pin_def_type)
 {
-    return ARM_SPI_Initialize(TEST_APP_ARM_SPI1, mode,
-                              data_bit_num, data_first_bit, gpio_pin_def_type);
+    return ARM_SPI_Initialize(TEST_APP_ARM_SPI1, mode, mclk_freq_div, data_bit_num,
+                              data_first_bit, gpio_pin_def_type);
 }
 
 
 static uint32_t ARM_SPI_Initialize_2(eTEST_APP_ARM_SPI_ModeTypes_t mode,
+                                     spi_mclk_freq_div_type mclk_freq_div,
                                      spi_frame_bit_num_type data_bit_num,
                                      spi_first_bit_type data_first_bit,
                                      eTEST_APP_ARM_SPI_GPIO_PinDefTypes_t gpio_pin_def_type)
 {
-    return ARM_SPI_Initialize(TEST_APP_ARM_SPI2, mode, data_bit_num,
+    return ARM_SPI_Initialize(TEST_APP_ARM_SPI2, mode, mclk_freq_div, data_bit_num,
                               data_first_bit, gpio_pin_def_type);
 }
 
 static uint32_t ARM_SPI_Initialize_3(eTEST_APP_ARM_SPI_ModeTypes_t mode,
+                                     spi_mclk_freq_div_type mclk_freq_div,
                                      spi_frame_bit_num_type data_bit_num,
                                      spi_first_bit_type data_first_bit,
                                      eTEST_APP_ARM_SPI_GPIO_PinDefTypes_t gpio_pin_def_type)
 {
-    return ARM_SPI_Initialize(TEST_APP_ARM_SPI3, mode, data_bit_num,
+    return ARM_SPI_Initialize(TEST_APP_ARM_SPI3, mode, mclk_freq_div, data_bit_num,
                               data_first_bit, gpio_pin_def_type);
 }
 
 static uint32_t ARM_SPI_Initialize_4(eTEST_APP_ARM_SPI_ModeTypes_t mode,
+                                     spi_mclk_freq_div_type mclk_freq_div,
                                      spi_frame_bit_num_type data_bit_num,
                                      spi_first_bit_type data_first_bit,
                                      eTEST_APP_ARM_SPI_GPIO_PinDefTypes_t gpio_pin_def_type)
 {
-    return ARM_SPI_Initialize(TEST_APP_ARM_SPI4, mode,
-                              data_bit_num, data_first_bit, gpio_pin_def_type);
+    return ARM_SPI_Initialize(TEST_APP_ARM_SPI4, mode, mclk_freq_div, data_bit_num,
+                              data_first_bit, gpio_pin_def_type);
 }
 
 static uint32_t ARM_SPI_Uninitialize_1(void)

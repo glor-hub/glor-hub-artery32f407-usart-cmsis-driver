@@ -40,13 +40,13 @@ SPI2
 SPI3
 
 ********************************************/
-#define _TEST_APP_SPI3_ENABLED_ (0)
+#define _TEST_APP_SPI3_ENABLED_ (1)
 
 /*******************************************
 SPI4
 
 ********************************************/
-#define _TEST_APP_SPI4_ENABLED_ (0)
+#define _TEST_APP_SPI4_ENABLED_ (1)
 
 /*******************************************
 
@@ -85,9 +85,9 @@ typedef enum {
 } eTEST_APP_ARM_SPI_ModeTypes_t;
 
 typedef enum {
-    TEST_APP_ARM_SPI_GPIO_PIN_DEF_TYPE_DEFAULT,
-    TEST_APP_ARM_SPI_GPIO_PIN_DEF_TYPE_REMAP1,
+    TEST_APP_ARM_SPI_GPIO_PIN_DEF_TYPE_REMAP1 = 0,
     TEST_APP_ARM_SPI_GPIO_PIN_DEF_TYPE_REMAP2,
+    TEST_APP_ARM_SPI_GPIO_PIN_DEF_TYPE_DEFAULT,
     TEST_APP_ARM_SPI_GPIO_PIN_DEF_TYPES,
     TEST_APP_ARM_SPI_GPIO_PIN_REMAP_CONFIG_NOT_DEFINED,
 } eTEST_APP_ARM_SPI_GPIO_PinDefTypes_t;
@@ -158,8 +158,8 @@ typedef struct {
 typedef struct {
     volatile uint8_t TxBusy;
     volatile uint8_t RxBusy;
-    uint8_t RxOverflow;
-    uint8_t ModeFault;
+    volatile uint8_t RxOverflow;
+    volatile uint8_t ModeFault;
 } TEST_APP_ARM_SPI_XferStatus_t;
 
 typedef struct {
@@ -182,6 +182,7 @@ typedef struct {
 
 typedef struct {
     uint32_t (*Initialize)(eTEST_APP_ARM_SPI_ModeTypes_t mode,
+                           spi_mclk_freq_div_type mclk_freq_div,
                            spi_frame_bit_num_type data_bit_num,
                            spi_first_bit_type data_first_bit,
                            eTEST_APP_ARM_SPI_GPIO_PinDefTypes_t gpio_pin_def_type);

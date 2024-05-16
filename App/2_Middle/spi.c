@@ -17,7 +17,7 @@
 //Macros
 //********************************************************************************
 
-#define SPI_TEST_DATA_pBUFF_SIZE 256
+#define SPI_TEST_NUM_CYCLES 200
 
 //********************************************************************************
 //Enums
@@ -31,7 +31,7 @@
 //Prototypes
 //********************************************************************************
 
-error_status static ARM_SPI_TestFullDuplexMode(eTEST_APP_ARM_SPI_Types_t spi_master,
+static error_status ARM_SPI_TestFullDuplexMode(eTEST_APP_ARM_SPI_Types_t spi_master,
         eTEST_APP_ARM_SPI_Types_t spi_slave, spi_frame_bit_num_type data_bit_num);
 
 //********************************************************************************
@@ -40,14 +40,14 @@ error_status static ARM_SPI_TestFullDuplexMode(eTEST_APP_ARM_SPI_Types_t spi_mas
 
 extern TEST_APP_ARM_SPI_Driver_t *pARM_SPI_Driver[TEST_APP_ARM_SPI_TYPES];
 
-static uint8_t SPI_Test8BitDataMaster[] =  {0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07, 0x08, 0x09, 0x10};
-static uint8_t SPI_Test8BitDataSlave[] =  {0x50, 0x51, 0x52, 0x53, 0x54, 0x55, 0x56, 0x57, 0x58, 0x59};
+static uint8_t SPI_Test8BitDataMaster[] =  {0x11, 0x12, 0x13, 0x14, 0x15, 0x16, 0x17, 0x18, 0x19, 0x1A};
+static uint8_t SPI_Test8BitDataSlave[] =  {0x51, 0x52, 0x53, 0x54, 0x55, 0x56, 0x57, 0x58, 0x59, 0x5A};
 
-static uint16_t SPI_Test16BitDataMaster[] =  {0x0001, 0x0002, 0x0003, 0x0004, 0x0005, 0x0006,
-                                              0x0007, 0x0008, 0x0009, 0x0010
+static uint16_t SPI_Test16BitDataMaster[] =  {0x1001, 0x1002, 0x1003, 0x1004, 0x1005, 0x1006,
+                                              0x1007, 0x1008, 0x1009, 0x100A
                                              };
-static uint16_t SPI_Test16BitDataSlave[] =  {0x1000, 0x2000, 0x3000, 0x4000, 0x5000, 0x6000,
-                                             0x7000, 0x8000, 0x9000, 0xA000
+static uint16_t SPI_Test16BitDataSlave[] =  {0x5001, 0x5002, 0x5003, 0x5004, 0x5005, 0x5006,
+                                             0x5007, 0x5008, 0x5009, 0x500A
                                             };
 
 //================================================================================
@@ -69,8 +69,7 @@ mode                    - TEST_APP_ARM_SPI_FULL_DUPLEX_MASTER_MODE,
                         - TEST_APP_ARM_SPI_TRANSMIT_ONLY_SLAVE_MODE,
                         - TEST_APP_ARM_SPI_RECIEVE_ONLY_SLAVE_MODE,
 
-mclk_freq_division      - master clock frequency division: 2,4,8,16,...1024,
-                            set in ARM_SPI_MasterClockFrequencyDiv[]);
+mclk_freq_div      - master clock frequency division: 2,4,8,16,...1024,
 
 cs_mode_selection       - hardware/software mode,
                             set in ARM_SPI_CSMode[]);
@@ -203,11 +202,32 @@ void TEST_APP_SPI_cb(void)
     }
 }
 
+//******************************************************************************************
+//The test used in project - on interrupts for SPIx and SPIy on the same chip
+//works correctly at SPI_MCLK_DIV_16 for 8-bit frame, at SPI_MCLK_DIV_32 for 16-bit frame.
+//The reason is interrupt priorities for SPIx and SPIy.
+//******************************************************************************************/
+
 error_status TEST_APP_SPI_Test(void)
 {
     error_status test_result;
-    test_result = ARM_SPI_TestFullDuplexMode(TEST_APP_ARM_SPI2, TEST_APP_ARM_SPI1,
-                  SPI_FRAME_16BIT);
+    uint16_t i;
+    for(i = 0; i < SPI_TEST_NUM_CYCLES; i++) {
+        test_result = ARM_SPI_TestFullDuplexMode(TEST_APP_ARM_SPI4, TEST_APP_ARM_SPI3,
+                      SPI_FRAME_16BIT);
+    }
+    for(i = 0; i < SPI_TEST_NUM_CYCLES; i++) {
+        test_result = ARM_SPI_TestFullDuplexMode(TEST_APP_ARM_SPI4, TEST_APP_ARM_SPI3,
+                      SPI_FRAME_8BIT);
+    }
+    for(i = 0; i < SPI_TEST_NUM_CYCLES; i++) {
+        test_result = ARM_SPI_TestFullDuplexMode(TEST_APP_ARM_SPI2, TEST_APP_ARM_SPI1,
+                      SPI_FRAME_8BIT);
+    }
+    for(i = 0; i < SPI_TEST_NUM_CYCLES; i++) {
+        test_result = ARM_SPI_TestFullDuplexMode(TEST_APP_ARM_SPI2, TEST_APP_ARM_SPI1,
+                      SPI_FRAME_16BIT);
+    }
     return test_result;
 }
 
@@ -216,32 +236,37 @@ error_status TEST_APP_SPI_Test(void)
 //================================================================================
 
 #ifdef _TEST_APP_DEBUG_
-//parameter data_bit_numt can be one of the following values:
+//parameter data_bit_num can be one of the following values:
 //SPI_FRAME_8BIT, SPI_FRAME_16BIT
-error_status static ARM_SPI_TestFullDuplexMode(eTEST_APP_ARM_SPI_Types_t spi_master,
+
+static error_status ARM_SPI_TestFullDuplexMode(eTEST_APP_ARM_SPI_Types_t spi_master,
         eTEST_APP_ARM_SPI_Types_t spi_slave, spi_frame_bit_num_type data_bit_num)
 {
 
     TEST_APP_ARM_SPI_Driver_t *p_drv_mst = pARM_SPI_Driver[spi_master];
     TEST_APP_ARM_SPI_Driver_t *p_drv_slv = pARM_SPI_Driver[spi_slave];
     uint32_t drv_status = TEST_APP_ARM_DRIVER_NO_ERROR;
-    if(p_drv_mst->GetStatus().DrvStateOn &&
-       p_drv_slv->GetStatus().DrvStateOn) {
-        drv_status |= p_drv_mst->Initialize(
-                          TEST_APP_ARM_SPI_FULL_DUPLEX_MASTER_MODE,
-                          data_bit_num,
-                          SPI_FIRST_BIT_MSB,
-                          TEST_APP_ARM_SPI_GPIO_PIN_DEF_TYPE_DEFAULT);
-        drv_status |= p_drv_slv->Initialize(
-                          TEST_APP_ARM_SPI_FULL_DUPLEX_SLAVE_MODE,
-                          data_bit_num,
-                          SPI_FIRST_BIT_MSB,
-                          TEST_APP_ARM_SPI_GPIO_PIN_DEF_TYPE_DEFAULT);
-    } else {
-        drv_status |= TEST_APP_ARM_DRIVER_ERROR;
-    }
+    static uint16_t num_errs = 0;
+    static uint16_t num_passed = 0;
     switch(data_bit_num) {
         case SPI_FRAME_8BIT: {
+            if(p_drv_mst->GetStatus().DrvStateOn &&
+               p_drv_slv->GetStatus().DrvStateOn) {
+                drv_status |= p_drv_mst->Initialize(
+                                  TEST_APP_ARM_SPI_FULL_DUPLEX_MASTER_MODE,
+                                  SPI_MCLK_DIV_16,
+                                  data_bit_num,
+                                  SPI_FIRST_BIT_MSB,
+                                  TEST_APP_ARM_SPI_GPIO_PIN_DEF_TYPE_DEFAULT);
+                drv_status |= p_drv_slv->Initialize(
+                                  TEST_APP_ARM_SPI_FULL_DUPLEX_SLAVE_MODE,
+                                  SPI_MCLK_DIV_16,
+                                  data_bit_num,
+                                  SPI_FIRST_BIT_MSB,
+                                  TEST_APP_ARM_SPI_GPIO_PIN_DEF_TYPE_REMAP1);
+            } else {
+                drv_status |= TEST_APP_ARM_DRIVER_ERROR;
+            }
             uint8_t *pbuff_rx_master = (uint8_t *)(p_drv_mst->GetTransfer().pRxData);
             uint8_t *pbuff_rx_slave = (uint8_t *)(p_drv_slv->GetTransfer().pRxData);
             p_drv_slv->Send_Recieve(SPI_Test8BitDataSlave, pbuff_rx_slave, sizeof(SPI_Test8BitDataSlave));
@@ -255,35 +280,56 @@ error_status static ARM_SPI_TestFullDuplexMode(eTEST_APP_ARM_SPI_Types_t spi_mas
                       (uint8_t *)pbuff_rx_master,
                       sizeof(SPI_Test8BitDataSlave))
               ) {
+                num_errs++;
                 LOG("SPI FullDuplex Mode transfer error");
                 drv_status |= TEST_APP_ARM_DRIVER_ERROR;
             }
             break;
         }
         case SPI_FRAME_16BIT: {
+            if(p_drv_mst->GetStatus().DrvStateOn &&
+               p_drv_slv->GetStatus().DrvStateOn) {
+                drv_status |= p_drv_mst->Initialize(
+                                  TEST_APP_ARM_SPI_FULL_DUPLEX_MASTER_MODE,
+                                  SPI_MCLK_DIV_32,
+                                  data_bit_num,
+                                  SPI_FIRST_BIT_MSB,
+                                  TEST_APP_ARM_SPI_GPIO_PIN_DEF_TYPE_DEFAULT);
+                drv_status |= p_drv_slv->Initialize(
+                                  TEST_APP_ARM_SPI_FULL_DUPLEX_SLAVE_MODE,
+                                  SPI_MCLK_DIV_32,
+                                  data_bit_num,
+                                  SPI_FIRST_BIT_MSB,
+                                  TEST_APP_ARM_SPI_GPIO_PIN_DEF_TYPE_REMAP1);
+            } else {
+                drv_status |= TEST_APP_ARM_DRIVER_ERROR;
+            }
             uint16_t *pbuff_rx_master = (uint16_t *)(p_drv_mst->GetTransfer().pRxData);
             uint16_t *pbuff_rx_slave = (uint16_t *)(p_drv_slv->GetTransfer().pRxData);
-            p_drv_slv->Send_Recieve(SPI_Test16BitDataSlave, pbuff_rx_slave, sizeof(SPI_Test16BitDataSlave));
-            p_drv_mst->Send_Recieve(SPI_Test16BitDataMaster, pbuff_rx_master, sizeof(SPI_Test16BitDataMaster));
+            p_drv_slv->Send_Recieve(SPI_Test16BitDataSlave, pbuff_rx_slave, sizeof(SPI_Test16BitDataSlave) / sizeof(uint16_t));
+            p_drv_mst->Send_Recieve(SPI_Test16BitDataMaster, pbuff_rx_master, sizeof(SPI_Test16BitDataMaster) / sizeof(uint16_t));
             while(p_drv_mst->GetStatus().XferStatus.TxBusy);
             while(p_drv_slv->GetStatus().XferStatus.RxBusy);
             if(memcmp((uint16_t *)SPI_Test16BitDataMaster,
                       (uint16_t *)pbuff_rx_slave,
-                      sizeof(SPI_Test16BitDataMaster)) ||
+                      sizeof(SPI_Test16BitDataMaster) / sizeof(uint16_t)) ||
                memcmp((uint16_t *)SPI_Test16BitDataSlave,
                       (uint16_t *)pbuff_rx_master,
-                      sizeof(SPI_Test16BitDataSlave))
+                      sizeof(SPI_Test16BitDataSlave) / sizeof(uint16_t))
               ) {
+                num_errs++;
                 LOG("SPI FullDuplex Mode transfer error");
                 drv_status |= TEST_APP_ARM_DRIVER_ERROR;
             }
             break;
         }
     }
-
     if(drv_status == TEST_APP_ARM_DRIVER_NO_ERROR) {
+        num_passed++;
         LOG("SPI in FullDuplex Mode successfully swap test data");
     }
+    TEST_APP_LCD2004_Printf(1, 0, SET, "SPI errors: %d", num_errs);
+    TEST_APP_LCD2004_Printf(2, 0, SET, "SPI passed: %d", num_passed);
     return TEST_APP_ARM_DRIVER_isReady(drv_status) ? SUCCESS : ERROR;
 }
 #endif//_TEST_APP_DEBUG_
