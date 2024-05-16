@@ -38,7 +38,7 @@ static TEST_APP_SOFTWARE_TIMER_Timer_t Timer[TEST_APP_SYSTICK_TIMER_NUM_TIMERS];
 void SysTick_Handler(void)
 {
     eTEST_APP_SYSTICK_TIMER_TimerTypes_t timer;
-    for(timer = TEST_APP_SYSTICK_TIMER_DELAY;
+    for(timer = TEST_APP_SYSTICK_TIMER_POLL;
         timer < TEST_APP_SYSTICK_TIMER_NUM_TIMERS;
         timer++) {
         if(Timer[timer].State) {
@@ -60,6 +60,7 @@ error_status TEST_APP_SYSTICK_TIMER_TimerInit(void)
 #endif//_TEST_APP_DEBUG_
         drv_status |= TEST_APP_ARM_DRIVER_ERROR;
     }
+    TEST_APP_SYSTICK_TIMER_TimerEnable(TEST_APP_SYSTICK_TIMER_POLL, TEST_APP_SYSTICK_TIMER_POLL_TIME);
     return TEST_APP_ARM_DRIVER_isReady(drv_status) ? SUCCESS : ERROR;
 }
 

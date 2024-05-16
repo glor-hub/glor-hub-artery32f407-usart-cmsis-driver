@@ -3,12 +3,13 @@
 #include <stdbool.h>
 #include "app.h"
 #include "test_periph.h"
+#include "systick_timer.h"
 #include "assert.h"
 
 int main(void)
 {
     error_status init_result;
-     TEST_APP_StartUp();
+    TEST_APP_StartUp();
     init_result = TEST_APP_AppInit();
 
 #ifdef _TEST_APP_DEBUG_
@@ -18,7 +19,10 @@ int main(void)
 #endif//_TEST_APP_DEBUG_
     TEST_APP_PeriphTest();
     while(1) {
-        // PeriphTest();
-        TEST_APP_AppIdleTask();
+        if(TEST_APP_SYSTICK_TIMER_TimerTestFlag(TEST_APP_SYSTICK_TIMER_POLL)) {
+            TEST_APP_AppIdleTask();
+            TEST_APP_SYSTICK_TIMER_TimerEnable(TEST_APP_SYSTICK_TIMER_POLL, TEST_APP_SYSTICK_TIMER_POLL_TIME);
+        }
+
     }
 }
